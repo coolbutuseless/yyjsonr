@@ -1,0 +1,464 @@
+---
+title: yyjsonr
+output: github_document
+---
+
+<!-- README.md is generated from README.Rmd. Please edit that file -->
+
+```{r, include = FALSE}
+knitr::opts_chunk$set(
+  collapse = TRUE,
+  comment = "#>",
+  fig.path = "man/figures/README-",
+  fig.height = 3,
+  out.width = "100%"
+)
+
+library(tidyr)
+library(yyjsonr)
+
+if (FALSE) {
+  covr::report(covr::package_coverage(
+    line_exclusions = list('src/yyjson.c', 'src/yyjson.h')
+  ))
+}
+
+if (FALSE) {
+  pkgdown::build_site(override = list(destination = "../coolbutuseless.github.io/package/yyjsonr"))
+}
+```
+
+
+
+# yyjsonr <img src="man/figures/logo.png" align="right" width = "20%"/>
+
+<!-- badges: start -->
+![](https://img.shields.io/badge/cool-useless-green.svg)
+[![R-CMD-check](https://github.com/coolbutuseless/ryyjson-dev/actions/workflows/R-CMD-check.yaml/badge.svg)](https://github.com/coolbutuseless/ryyjson-dev/actions/workflows/R-CMD-check.yaml)
+<!-- badges: end -->
+
+`{yyjsonr}` is a fast JSON parser/serializer, which converts R data to/from JSON and NDJSON.
+
+In most cases it is around 2x to 10x faster than `{jsonlite}` at both reading and writing JSON.
+
+It is based around the [`yyjson`](https://github.com/ibireme/yyjson) C library.
+
+### Help needed!
+
+If you have an interest in fast JSON reading/writing in R, then **I need your help**.
+
+The scope of this package and options it supports are still in flux.  What 
+can I add to help your JSON needs?  Open an issue on github and let me know!
+
+You can assist by:
+
+* Finding cases that give unexpected results for your JSON needs
+* Suggesting how you want to have a particular JSON object to appear in R
+* Propose configuration options to control a particular aspect of how *you*
+  want JSON to translate to/from R
+* Trying it out in your package as an alternative to your current JSON package.
+    * Is it worth the change?
+    * What functionality is lacking?
+    * What would you need to make the switch proper?
+* Suggesting additional interesting benchmarks/tests.
+* Creating/Donating a nice hex logo!
+
+
+### The `yyjson` C library
+
+This package includes the [`yyjson`](https://github.com/ibireme/yyjson) C
+library (version `YYJSON_VERSION_HEX = 0x000700`).  
+
+`yysjon` is MIT licensed - see `LICENSE-yyjson.txt` in this package for more details.
+
+### What's in the box
+
+* Write R objects to JSON
+    * `to_json_str()`, `to_json_file()` 
+* Read in JSON as R objects
+    * `from_json_str()`, `from_json_file()`, `from_json_conn()`
+* Read in NDJSON 
+    * `from_ndjson_file_as_list()`, `from_ndjson_file_as_df()` 
+* `to_opts()`, `from_opts()` construct configuration options for reading/writing
+  JSON
+
+
+### Comparison to other JSON packages
+
+|              | R to JSON | JSON to R | ndjson read | ndjson write |
+|--------------|-----------|-----------|-------------|--------------|
+| yyjsonr      | Fast!     | Fast!     | Fast!       | Not yet      |
+| jsonlite     | Yes       | Yes       | Yes         | Yes          |
+| RcppSimdJson | No        | Fast!     | No          | No           |
+| jsonify      | Yes       | Yes       | Yes         | Yes          |
+
+
+## Installation
+
+You can install from [GitHub](https://github.com/coolbutuseless/yyjsonr) with:
+
+``` r
+# install.package('remotes')
+remotes::install_github('coolbutuseless/yyjsonr')
+```
+
+
+
+R to JSON string
+==============================================================================
+
+```{r}
+str <- to_json_str(head(iris, 3), pretty = TRUE)
+cat(str)
+
+from_json_str(str)
+```
+
+Benchmark: R to JSON string
+-----------------------------------------------------------------------------
+
+<details>
+<summary>Show/Hide benchmark code</summary>
+```{r}
+res <- bench::mark(
+  jsonlite::toJSON(iris),
+  jsonify::to_json(iris),
+  yyjsonr::to_json_str(iris),
+  check = FALSE
+)
+
+knitr::kable(res[,1:5])
+```
+</details>
+
+```{r echo=FALSE}
+plot(res)
+```
+
+
+
+Benchmark: JSON string to R
+-----------------------------------------------------------------------------
+
+<details>
+<summary>Show/Hide benchmark code</summary>
+
+```{r}
+json_str <- to_json_str(iris)
+res <- bench::mark(
+  jsonlite::fromJSON(json_str),
+  jsonify::from_json(json_str),
+  RcppSimdJson::fparse(json_str),
+  yyjsonr::from_json_str(json_str),
+  check = FALSE
+)
+knitr::kable(res[,1:5])
+```
+</details>
+
+```{r echo=FALSE}
+plot(res)
+```
+
+
+R to JSON file
+==============================================================================
+
+```{r eval=FALSE}
+to_json_file(iris, tempfile())
+```
+
+
+
+
+Benchmark: R to JSON file
+------------------------------------------------------------------------------
+
+<details>
+<summary>Show/Hide benchmark code</summary>
+```{r}
+json_file <- tempfile()
+res <- bench::mark(
+  jsonlite::write_json(iris, json_file),
+  yyjsonr::to_json_file(iris, json_file),
+  check = FALSE
+)
+
+knitr::kable(res[, 1:5])
+```
+</details>
+
+```{r echo=FALSE}
+plot(res)
+```
+
+
+Benchmark: JSON file to R
+------------------------------------------------------------------------------
+
+<details>
+<summary>Show/Hide benchmark code</summary>
+```{r}
+json_file <- tempfile()
+jsonlite::write_json(iris, json_file)
+res <- bench::mark(
+  jsonlite::fromJSON(file(json_file)), 
+  RcppSimdJson::fload(json_file), 
+  yyjsonr::from_json_file(json_file),
+  check = TRUE
+)
+
+knitr::kable(res[, 1:5])
+```
+</details>
+
+```{r echo=FALSE}
+plot(res)
+```
+
+
+Parsing ndjson
+===============================================================================
+
+`ndjson` is "newline delimited json" which is multiple json strings in a file, 
+with each string separated by a newline.  This is a convenient storage method for
+lots  of similarly structured objects e.g. log output.
+
+There are options to read only a subset of lines from the ndjson file (`nskip` 
+and `nread`) - which can lead to time savings if only a subset of 
+lines are needed.
+
+```{r}
+ndjson_file <- tempfile()
+
+{
+  # Setup an 'ndjson' file to read back in
+  df <- head( nycflights13::flights[, 1:5], 2)
+  jsonlite::stream_out(df, file(ndjson_file), verbose = FALSE)
+}
+
+from_ndjson_file_as_df(ndjson_file)
+from_ndjson_file_as_list(ndjson_file)
+```
+
+
+
+Benchmark: Parsing ndjson
+-------------------------------------------------------------------------------
+
+
+<details>
+<summary>Show/Hide benchmark code</summary>
+```{r}
+#~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+#' Set-up benchmark data
+#~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+ndjson_filename <- tempfile()
+df <- head( nycflights13::flights, 1000)
+jsonlite::stream_out(df, file(ndjson_filename), verbose = FALSE)
+
+#~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+#' benchmark
+#~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+res <- bench::mark(
+  ndjson::stream_in(ndjson_filename),
+  jsonlite::stream_in(file(ndjson_filename), verbose = FALSE),
+  jsonify::from_ndjson(ndjson_filename),
+  yyjsonr::from_ndjson_file_as_list(ndjson_filename),
+  yyjsonr::from_ndjson_file_as_df  (ndjson_filename),
+  check = FALSE
+)
+
+knitr::kable(res[, 1:5])
+```
+</details>
+
+```{r echo=FALSE}
+plot(res)
+```
+
+
+
+More Benchmarks
+============================================================================
+
+Benchmark from `{RcppSimdJson}`
+----------------------------------------------------------------------------
+
+<details>
+<summary>Show/Hide benchmark code</summary>
+```{r}
+jsonfile <- system.file("jsonexamples", "twitter.json", package="RcppSimdJson")
+json <- paste(readLines(jsonfile), collapse = "\n")
+
+res <- bench::mark(
+  jsonlite::fromJSON(json),
+  RcppSimdJson::fparse(json),
+  yyjsonr::from_json_str(json),
+  check = FALSE
+)
+
+knitr::kable(res[, 1:5])
+```
+</details>
+
+```{r echo=FALSE}
+plot(res)
+```
+
+Benchmark from `{jsonify}`
+----------------------------------------------------------------------------
+
+<details>
+<summary>Show/Hide benchmark code</summary>
+```{r}
+n <- 1e5
+df <- data.frame(
+  id = 1:n
+  , value = sample(letters, size = n, replace = T)
+  , val2 = rnorm(n = n)
+  , log = sample(c(T,F), size = n, replace = T)
+  , stringsAsFactors = FALSE
+)
+
+res <- bench::mark(
+  jsonlite::toJSON( df ),
+  jsonify::to_json( df ),
+  yyjsonr::to_json_str( df ),
+  check = FALSE
+)
+
+knitr::kable(res[,1:5])
+```
+</details>
+
+```{r echo=FALSE}
+plot(res)
+```
+
+
+<details>
+<summary>Show/Hide benchmark code</summary>
+```{r}
+n <- 1e4
+x <- list(
+  x = rnorm(n = n)
+  , y = list(x = rnorm(n = n))
+  , z = list( list( x = rnorm(n = n)))
+  , xx = rnorm(n = n)
+  , yy = data.frame(
+      id = 1:n
+      , value = sample(letters, size = n, replace = T)
+      , val2 = rnorm(n = n)
+      , log = sample(c(T,F), size = n, replace = T)
+    )
+)
+
+res <- bench::mark(
+ jsonlite::toJSON( x ),
+ jsonify::to_json( x ),
+ yyjsonr::to_json_str(x),
+ check = FALSE
+)
+
+
+knitr::kable(res[,1:5])
+```
+</details>
+
+```{r echo=FALSE}
+plot(res)
+```
+
+
+<details>
+<summary>Show/Hide benchmark code</summary>
+```{r}
+jlt <- jsonlite::toJSON( x )
+
+res <- bench::mark(
+  jsonlite::fromJSON( jlt ),
+  jsonify::from_json( jlt ),
+  yyjsonr::from_json_str(jlt),
+  check = FALSE
+)
+
+knitr::kable(res[,1:5])
+```
+</details>
+
+```{r echo=FALSE}
+plot(res)
+```
+
+
+Parsing differences compared to `{jsonlite}`
+=============================================================================
+
+
+Numeric types retained in presence of other strings
+-----------------------------------------------------------------------------
+
+`{yyjsonr}` does not promote numeric values in arrays to strings if the array
+contains a string.  Instead the R container is promoted to a `list()` in order
+to retain original types.
+
+Note: this could be controlled by a flag if desired. Open an issue and let 
+me know what you need!
+
+```{r}
+json <- '[1,2,3,"apple"]'
+jsonlite::fromJSON(json)
+yyjsonr::from_json_str(json)
+```
+
+
+3-d arrays are parsed as multiple 2-d matrices and combined
+-----------------------------------------------------------------------------
+
+In `{yyjsonr}` the order in which elements in an array are serialized to 
+JSON correspond to an array of row-major matrices in human-readable order.
+
+`{jsonlite}` does things differently. The array formats are internally
+consistent within each package, but not cross-compatible between them i.e.
+you cannot serialize an array in `{yyjsonr}` and re-create it exactly 
+using `{jsonlite}`.
+
+```{r}
+mat <- array(1:12, dim = c(2,3,2))
+mat
+
+str <- jsonlite::toJSON(mat)
+str
+jsonlite::fromJSON(str)
+
+
+str <- yyjsonr::to_json_str(mat)
+str
+yyjsonr::from_json_str(str)
+```
+
+
+
+
+
+
+
+
+
+
+
+    
+## Limitiations
+
+* Some datatypes not currently supported:
+    * Complex numbers
+    * POSIXlt
+    * Matrices of POSIXct / Date
+
+
+## Acknowledgements
+
+* R Core for developing and maintaining the language.
+* CRAN maintainers, for patiently shepherding packages onto CRAN and maintaining
+  the repository

@@ -1,0 +1,83 @@
+---
+title: "Configuration Options for Parsing from JSON"
+output: rmarkdown::html_vignette
+vignette: >
+  %\VignetteIndexEntry{Configuration Options for Parsing from JSON}
+  %\VignetteEngine{knitr::rmarkdown}
+  %\VignetteEncoding{UTF-8}
+---
+
+```{r, include = FALSE}
+knitr::opts_chunk$set(
+  collapse = TRUE,
+  comment = "#>"
+)
+```
+
+```{r setup}
+suppressPackageStartupMessages({
+  library(bit64)
+  library(yyjsonr)
+})
+```
+
+Large integers
+-----------------------------------------------------------------------------
+
+```{r}
+str <- '[1, 2, 274877906944]'
+
+from_json_str(str, int64 = 'string')
+
+from_json_str(str, int64 = 'bit64')
+```
+
+
+Missing list elements (when parsing data.frames)
+-----------------------------------------------------------------------------
+
+```{r}
+str <- '[{"a":1, "b":[1,2]}, {"a":2}]'
+
+from_json_str(str, missing_list_elem = 'null')
+
+from_json_str(str, missing_list_elem = 'na')
+```
+
+
+Vectors to data.frame
+-----------------------------------------------------------------------------
+
+```{r}
+str <- '{"a":[1,2],"b":["apple","banana"]}'
+
+from_json_str(str, vectors_to_df = FALSE)
+
+from_json_str(str, vectors_to_df =  TRUE)
+```
+
+
+String special values: 'NA'
+-----------------------------------------------------------------------------
+
+```{r}
+str <- '["apple", "banana", null, "NA"]'
+
+from_json_str(str, str_specials = 'string')
+
+from_json_str(str, str_specials = 'special')
+```
+
+
+Numeric special values: 'NA', 'NaN', 'Inf', '-Inf'
+-----------------------------------------------------------------------------
+
+```{r}
+str <- '[1.0, 2.0, null, "NA", "Inf", "-Inf", "NaN"]'
+
+from_json_str(str, num_specials = 'string')
+
+from_json_str(str, num_specials = 'special')
+```
+
+
