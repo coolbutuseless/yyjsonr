@@ -4,7 +4,7 @@
 \alias{from_json_conn}
 \title{Parse JSON from an R connection object.}
 \usage{
-from_json_conn(conn, opts = from_opts(), ...)
+from_json_conn(conn, opts = list(), ...)
 }
 \arguments{
 \item{conn}{connection object.  e.g. \code{url('https://jsonplaceholder.typicode.com/todos/1')}}
@@ -35,6 +35,7 @@ from_json_conn(url("https://api.github.com/users/hadley/repos"))
 \seealso{
 Other JSON Parsers: 
 \code{\link{from_json_file}()},
+\code{\link{from_json_raw}()},
 \code{\link{from_json_str}()},
 \code{\link{from_ndjson_file_as_df}()}
 }

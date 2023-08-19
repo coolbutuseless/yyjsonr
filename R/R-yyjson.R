@@ -1,4 +1,9 @@
 
+modify_list <- function(old, new) {
+  for (nm in names(new)) old[[nm]] <- new[[nm]]
+  old
+}
+
 #~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 #' Advanced: Values for setting internal options directly on YYJSON library
 #' 
@@ -273,7 +278,7 @@ to_opts <- function(
 
 
 #~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
-#' Convert JSON to R
+#' Convert JSON in a character string to R
 #' 
 #' @param str a single character string
 #' @param opts Named list of options for parsing. Usually created by \code{from_opts()}
@@ -283,18 +288,43 @@ to_opts <- function(
 #'
 #' @examples
 #' \dontrun{
-#' from_json_str(str, opts = iris_opts(int64 = 'string'))
+#' from_json_str(str, opts = parse_opts(int64 = 'string'))
 #' }
 #' 
 #' @family JSON Parsers
 #' @return R object
 #' @export
 #~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
-from_json_str <- function(str, opts = from_opts(), ...) {
+from_json_str <- function(str, opts = list(), ...) {
   .Call(
     parse_from_str_, 
     str, 
-    utils::modifyList(opts, list(...))
+    modify_list(opts, list(...))
+  )
+}
+
+#~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+#' Convert JSON in a raw vector to R
+#' 
+#' @inheritParams from_json_str
+#' @param raw_vec raw vector
+#'
+#'
+#' @examples
+#' \dontrun{
+#' a <- nanonext::ncurl("https://postman-echo.com/get", convert = FALSE)
+#' from_json_raw(a$raw)
+#' }
+#' 
+#' @family JSON Parsers
+#' @return R object
+#' @export
+#~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+from_json_raw <- function(raw_vec, opts = list(), ...) {
+  .Call(
+    parse_from_raw_, 
+    raw_vec, 
+    modify_list(opts, list(...))
   )
 }
 
@@ -315,11 +345,11 @@ from_json_str <- function(str, opts = from_opts(), ...) {
 #' @return R object
 #' @export
 #~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
-from_json_file <- function(filename, opts = from_opts(), ...) {
+from_json_file <- function(filename, opts = list(), ...) {
   .Call(
     parse_from_file_, 
     filename, 
-    utils::modifyList(opts, list(...))
+    modify_list(opts, list(...))
   )
 }
 
@@ -347,7 +377,7 @@ from_json_file <- function(filename, opts = from_opts(), ...) {
 #' @return R object
 #' @export
 #~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
-from_json_conn <- function(conn, opts = from_opts(), ...) {
+from_json_conn <- function(conn, opts = list(), ...) {
   str <- paste(readLines(conn), collapse = "")
   from_json_str(str, opts, ...)
 }
@@ -370,14 +400,13 @@ from_json_conn <- function(conn, opts = from_opts(), ...) {
 #' }
 #' 
 #' @family JSON Serializer
-#' @importFrom utils modifyList
 #' @export
 #~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
-to_json_str <- function(x, opts = to_opts(), ...) {
+to_json_str <- function(x, opts = list(), ...) {
   .Call(
     serialize_to_str_, 
     x, 
-    utils::modifyList(opts, list(...), keep.null = FALSE)
+    modify_list(opts, list(...))
   )
 }
 
@@ -394,15 +423,14 @@ to_json_str <- function(x, opts = to_opts(), ...) {
 #' }
 #' 
 #' @family JSON Serializer
-#' @importFrom utils modifyList
 #' @export
 #~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
-to_json_file <- function(x, filename, opts = to_opts(), ...) {
+to_json_file <- function(x, filename, opts = list(), ...) {
   .Call(
     serialize_to_file_, 
     x,
     filename, 
-    utils::modifyList(opts, list(...), keep.null = FALSE)
+    modify_list(opts, list(...))
   )
   
   invisible(NULL)
@@ -441,7 +469,7 @@ to_json_file <- function(x, filename, opts = to_opts(), ...) {
 #' @return data.frame
 #' @export
 #~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
-from_ndjson_file_as_df <- function(filename, nread = -1, nskip = 0, nprobe = 100, opts = from_opts(), ...) {
+from_ndjson_file_as_df <- function(filename, nread = -1, nskip = 0, nprobe = 100, opts = list(), ...) {
   
   .Call(
     parse_ndjson_file_as_df_,
@@ -449,7 +477,7 @@ from_ndjson_file_as_df <- function(filename, nread = -1, nskip = 0, nprobe = 100
     nread,
     nskip,
     nprobe,
-    utils::modifyList(opts, list(...), keep.null = FALSE)
+    modify_list(opts, list(...))
   )
 }
 
@@ -461,13 +489,13 @@ from_ndjson_file_as_df <- function(filename, nread = -1, nskip = 0, nprobe = 100
 #' @return list
 #' @export
 #~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
-from_ndjson_file_as_list <- function(filename, nread = -1, nskip = 0, opts = from_opts(), ...) {
+from_ndjson_file_as_list <- function(filename, nread = -1, nskip = 0, opts = list(), ...) {
   .Call(
     parse_ndjson_file_as_list_,
     filename, 
     nread,
     nskip,
-    utils::modifyList(opts, list(...), keep.null = FALSE)
+    modify_list(opts, list(...))
   )
 }
 

@@ -2,6 +2,7 @@
 
 export(from_json_conn)
 export(from_json_file)
+export(from_json_raw)
 export(from_json_str)
 export(from_ndjson_file_as_df)
 export(from_ndjson_file_as_list)
@@ -11,5 +12,4 @@ export(to_json_file)
 export(to_json_str)
 export(to_opts)
 export(write_flag)
-importFrom(utils,modifyList)
 useDynLib(yyjsonr, .registration=TRUE)

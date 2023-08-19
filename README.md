@@ -57,7 +57,8 @@ more details.
 - Write R objects to JSON
   - `to_json_str()`, `to_json_file()`
 - Read in JSON as R objects
-  - `from_json_str()`, `from_json_file()`, `from_json_conn()`
+  - `from_json_str()`, `from_json_file()`, `from_json_conn()`,
+    `from_json_raw()`
 - Read in NDJSON
   - `from_ndjson_file_as_list()`, `from_ndjson_file_as_df()`
 - `to_opts()`, `from_opts()` construct configuration options for
@@ -65,12 +66,14 @@ more details.
 
 ### Comparison to other JSON packages
 
-|              | R to JSON | JSON to R | ndjson read | ndjson write |
-|--------------|-----------|-----------|-------------|--------------|
-| yyjsonr      | Fast!     | Fast!     | Fast!       | Not yet      |
-| jsonlite     | Yes       | Yes       | Yes         | Yes          |
-| RcppSimdJson | No        | Fast!     | No          | No           |
-| jsonify      | Yes       | Yes       | Yes         | Yes          |
+|              | R to JSON | JSON to R | ndjson read | ndjson write | geojson to `{sf}` |
+|--------------|-----------|-----------|-------------|--------------|-------------------|
+| yyjsonr      | Fast!     | Fast!     | Fast!       | Not yet      | In progress       |
+| jsonlite     | Yes       | Yes       | Yes         | Yes          |                   |
+| RcppSimdJson |           | Fast!     |             |              |                   |
+| jsonify      | Yes       | Yes       | Yes         | Yes          |                   |
+| ndjson       |           |           | Yes         | Yes          |                   |
+| geojsonsf    |           |           |             |              | Yes               |
 
 ## Installation
 
@@ -141,9 +144,9 @@ knitr::kable(res[,1:5])
 
 | expression                 |     min |  median |   itr/sec | mem_alloc |
 |:---------------------------|--------:|--------:|----------:|----------:|
-| jsonlite::toJSON(iris)     | 326.6µs | 361.4µs |  2725.886 |    2.17MB |
-| jsonify::to_json(iris)     | 236.4µs | 254.3µs |  3873.617 |    4.91MB |
-| yyjsonr::to_json_str(iris) |  60.4µs |  67.4µs | 14524.304 |        0B |
+| jsonlite::toJSON(iris)     | 324.8µs | 336.7µs |  2859.793 |    2.17MB |
+| jsonify::to_json(iris)     | 234.6µs | 246.2µs |  3977.187 |    4.91MB |
+| yyjsonr::to_json_str(iris) |  42.5µs |  45.7µs | 21296.682 |        0B |
 
 </details>
 
@@ -170,10 +173,10 @@ knitr::kable(res[,1:5])
 
 | expression                       |     min |  median |   itr/sec | mem_alloc |
 |:---------------------------------|--------:|--------:|----------:|----------:|
-| jsonlite::fromJSON(json_str)     | 457.4µs | 532.8µs |  1876.522 |  427.19KB |
-| jsonify::from_json(json_str)     | 718.3µs | 772.8µs |  1292.290 |    36.2KB |
-| RcppSimdJson::fparse(json_str)   |  48.1µs |    52µs | 18955.674 |  107.09KB |
-| yyjsonr::from_json_str(json_str) |    44µs |  47.1µs | 20995.343 |    6.09KB |
+| jsonlite::fromJSON(json_str)     | 468.7µs | 506.7µs |  1963.633 |  427.19KB |
+| jsonify::from_json(json_str)     | 715.2µs | 730.9µs |  1357.473 |    36.2KB |
+| RcppSimdJson::fparse(json_str)   |  47.4µs |  49.9µs | 19516.056 |  107.09KB |
+| yyjsonr::from_json_str(json_str) |  30.2µs |  30.9µs | 31394.666 |    6.09KB |
 
 </details>
 
@@ -205,12 +208,12 @@ knitr::kable(res[, 1:5])
 
 | expression                             |     min |  median |   itr/sec | mem_alloc |
 |:---------------------------------------|--------:|--------:|----------:|----------:|
-| jsonlite::write_json(iris, json_file)  | 389.5µs | 414.2µs |  2373.233 |    48.8KB |
-| yyjsonr::to_json_file(iris, json_file) |  86.6µs |  93.5µs | 10519.602 |    5.18KB |
+| jsonlite::write_json(iris, json_file)  | 387.5µs | 406.4µs |  2425.187 |    48.8KB |
+| yyjsonr::to_json_file(iris, json_file) |  68.3µs |  75.6µs | 13000.259 |    7.06KB |
 
 </details>
 
-<img src="man/figures/README-unnamed-chunk-9-1.png" width="100%" />
+<img src="man/figures/README-unnamed-chunk-10-1.png" width="100%" />
 
 ## Benchmark: JSON file to R
 
@@ -234,13 +237,13 @@ knitr::kable(res[, 1:5])
 
 | expression                          |     min |  median |   itr/sec | mem_alloc |
 |:------------------------------------|--------:|--------:|----------:|----------:|
-| jsonlite::fromJSON(file(json_file)) | 520.9µs | 550.4µs |  1792.103 |   145.9KB |
-| RcppSimdJson::fload(json_file)      |  78.1µs |    82µs | 11946.916 |   136.4KB |
-| yyjsonr::from_json_file(json_file)  |  54.7µs |  56.5µs | 17170.412 |    10.2KB |
+| jsonlite::fromJSON(file(json_file)) | 518.2µs | 546.7µs |  1806.745 |   145.9KB |
+| RcppSimdJson::fload(json_file)      |  77.6µs |  80.4µs | 12083.845 |   136.4KB |
+| yyjsonr::from_json_file(json_file)  |  40.6µs |  42.2µs | 23282.733 |    12.1KB |
 
 </details>
 
-<img src="man/figures/README-unnamed-chunk-11-1.png" width="100%" />
+<img src="man/figures/README-unnamed-chunk-12-1.png" width="100%" />
 
 # Parsing ndjson
 
@@ -332,15 +335,15 @@ knitr::kable(res[, 1:5])
 
 | expression                                                  |     min |  median |   itr/sec | mem_alloc |
 |:------------------------------------------------------------|--------:|--------:|----------:|----------:|
-| ndjson::stream_in(ndjson_filename)                          | 14.43ms | 14.73ms |  67.34481 |    3.62MB |
-| jsonlite::stream_in(file(ndjson_filename), verbose = FALSE) | 21.84ms | 22.24ms |  44.31303 |    1.26MB |
-| jsonify::from_ndjson(ndjson_filename)                       | 11.88ms | 12.18ms |  81.96709 |  568.56KB |
-| yyjsonr::from_ndjson_file_as_list(ndjson_filename)          |  1.41ms |  1.52ms | 653.19715 |  404.22KB |
-| yyjsonr::from_ndjson_file_as_df(ndjson_filename)            |  1.02ms |   1.1ms | 846.07737 |   95.03KB |
+| ndjson::stream_in(ndjson_filename)                          | 13.86ms | 14.13ms |  69.92451 |    3.62MB |
+| jsonlite::stream_in(file(ndjson_filename), verbose = FALSE) | 21.41ms | 21.75ms |  46.05789 |    1.26MB |
+| jsonify::from_ndjson(ndjson_filename)                       | 10.75ms | 12.09ms |  82.69238 |  568.56KB |
+| yyjsonr::from_ndjson_file_as_list(ndjson_filename)          |  1.39ms |  1.49ms | 665.50263 |  404.22KB |
+| yyjsonr::from_ndjson_file_as_df(ndjson_filename)            | 996.1µs |  1.09ms | 827.71912 |   95.03KB |
 
 </details>
 
-<img src="man/figures/README-unnamed-chunk-14-1.png" width="100%" />
+<img src="man/figures/README-unnamed-chunk-15-1.png" width="100%" />
 
 # More Benchmarks
 
@@ -365,15 +368,15 @@ res <- bench::mark(
 knitr::kable(res[, 1:5])
 ```
 
-| expression                   |    min |  median |   itr/sec | mem_alloc |
-|:-----------------------------|-------:|--------:|----------:|----------:|
-| jsonlite::fromJSON(json)     | 22.7ms | 23.06ms |  42.93444 |     832KB |
-| RcppSimdJson::fparse(json)   | 2.04ms |  2.19ms | 449.47419 |     182KB |
-| yyjsonr::from_json_str(json) | 1.22ms |  1.27ms | 767.22580 |     214KB |
+| expression                   |     min |  median |   itr/sec | mem_alloc |
+|:-----------------------------|--------:|--------:|----------:|----------:|
+| jsonlite::fromJSON(json)     | 23.16ms | 24.14ms |  41.09108 |     832KB |
+| RcppSimdJson::fparse(json)   |  1.89ms |  1.95ms | 507.90585 |     182KB |
+| yyjsonr::from_json_str(json) |   1.2ms |  1.28ms | 768.82525 |     214KB |
 
 </details>
 
-<img src="man/figures/README-unnamed-chunk-16-1.png" width="100%" />
+<img src="man/figures/README-unnamed-chunk-17-1.png" width="100%" />
 
 ## Benchmark from `{jsonify}`
 
@@ -404,15 +407,15 @@ res <- bench::mark(
 knitr::kable(res[,1:5])
 ```
 
-| expression               |     min |  median |  itr/sec | mem_alloc |
-|:-------------------------|--------:|--------:|---------:|----------:|
-| jsonlite::toJSON(df)     |  60.3ms |  73.2ms | 13.79801 |   20.81MB |
-| jsonify::to_json(df)     | 111.5ms | 112.6ms |  8.53920 |     8.3MB |
-| yyjsonr::to_json_str(df) |  18.6ms |  19.2ms | 50.40402 |    6.01MB |
+| expression               |     min | median |   itr/sec | mem_alloc |
+|:-------------------------|--------:|-------:|----------:|----------:|
+| jsonlite::toJSON(df)     |  59.9ms | 64.3ms | 14.612294 |   20.81MB |
+| jsonify::to_json(df)     | 123.5ms |  126ms |  7.329134 |     8.3MB |
+| yyjsonr::to_json_str(df) |  18.4ms | 19.4ms | 50.899039 |    6.01MB |
 
 </details>
 
-<img src="man/figures/README-unnamed-chunk-18-1.png" width="100%" />
+<img src="man/figures/README-unnamed-chunk-19-1.png" width="100%" />
 
 <details>
 <summary>
@@ -445,15 +448,15 @@ res <- bench::mark(
 knitr::kable(res[,1:5])
 ```
 
-| expression              |    min | median |   itr/sec | mem_alloc |
-|:------------------------|-------:|-------:|----------:|----------:|
-| jsonlite::toJSON(x)     | 9.51ms | 9.94ms |  97.69311 |    3.34MB |
-| jsonify::to_json(x)     | 13.5ms | 13.7ms |  72.16428 |    1.88MB |
-| yyjsonr::to_json_str(x) | 3.41ms | 3.62ms | 271.92525 |    1.34MB |
+| expression              |    min |  median |   itr/sec | mem_alloc |
+|:------------------------|-------:|--------:|----------:|----------:|
+| jsonlite::toJSON(x)     | 9.45ms | 10.11ms |  98.83587 |    3.34MB |
+| jsonify::to_json(x)     | 13.2ms | 13.46ms |  74.02950 |    1.88MB |
+| yyjsonr::to_json_str(x) | 3.41ms |  3.58ms | 271.47753 |    1.34MB |
 
 </details>
 
-<img src="man/figures/README-unnamed-chunk-20-1.png" width="100%" />
+<img src="man/figures/README-unnamed-chunk-21-1.png" width="100%" />
 
 <details>
 <summary>
@@ -473,15 +476,15 @@ res <- bench::mark(
 knitr::kable(res[,1:5])
 ```
 
-| expression                  |     min |  median |   itr/sec | mem_alloc |
-|:----------------------------|--------:|--------:|----------:|----------:|
-| jsonlite::fromJSON(jlt)     | 32.65ms | 33.78ms |  29.59399 |    2.37MB |
-| jsonify::from_json(jlt)     | 32.31ms | 32.64ms |  30.55011 |    1.34MB |
-| yyjsonr::from_json_str(jlt) |  1.86ms |  1.97ms | 506.21367 |  547.25KB |
+| expression                  |    min |  median |   itr/sec | mem_alloc |
+|:----------------------------|-------:|--------:|----------:|----------:|
+| jsonlite::fromJSON(jlt)     | 32.4ms | 32.98ms |  30.28041 |    2.37MB |
+| jsonify::from_json(jlt)     | 32.1ms | 32.34ms |  30.91962 |    1.34MB |
+| yyjsonr::from_json_str(jlt) |  1.9ms |  1.98ms | 502.47696 |  547.25KB |
 
 </details>
 
-<img src="man/figures/README-unnamed-chunk-22-1.png" width="100%" />
+<img src="man/figures/README-unnamed-chunk-23-1.png" width="100%" />
 
 # Parsing differences compared to `{jsonlite}`
 

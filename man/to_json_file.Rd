@@ -4,7 +4,7 @@
 \alias{to_json_file}
 \title{Convert R object to JSON file}
 \usage{
-to_json_file(x, filename, opts = to_opts(), ...)
+to_json_file(x, filename, opts = list(), ...)
 }
 \arguments{
 \item{x}{the object to be encoded}

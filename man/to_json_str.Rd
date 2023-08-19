@@ -4,7 +4,7 @@
 \alias{to_json_str}
 \title{Convert R object to JSON string}
 \usage{
-to_json_str(x, opts = to_opts(), ...)
+to_json_str(x, opts = list(), ...)
 }
 \arguments{
 \item{x}{the object to be encoded}

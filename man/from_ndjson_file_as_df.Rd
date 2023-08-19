@@ -10,17 +10,11 @@ from_ndjson_file_as_df(
   nread = -1,
   nskip = 0,
   nprobe = 100,
-  opts = from_opts(),
+  opts = list(),
   ...
 )
 
-from_ndjson_file_as_list(
-  filename,
-  nread = -1,
-  nskip = 0,
-  opts = from_opts(),
-  ...
-)
+from_ndjson_file_as_list(filename, nread = -1, nskip = 0, opts = list(), ...)
 }
 \arguments{
 \item{filename}{text file or gzipped file}
@@ -66,11 +60,13 @@ from_ndjson_file_as_list("flights.ndjson", nskip = 1000, nread = 200)
 Other JSON Parsers: 
 \code{\link{from_json_conn}()},
 \code{\link{from_json_file}()},
+\code{\link{from_json_raw}()},
 \code{\link{from_json_str}()}
 
 Other JSON Parsers: 
 \code{\link{from_json_conn}()},
 \code{\link{from_json_file}()},
+\code{\link{from_json_raw}()},
 \code{\link{from_json_str}()}
 }
 \concept{JSON Parsers}

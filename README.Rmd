@@ -76,7 +76,7 @@ library (version `YYJSON_VERSION_HEX = 0x000700`).
 * Write R objects to JSON
     * `to_json_str()`, `to_json_file()` 
 * Read in JSON as R objects
-    * `from_json_str()`, `from_json_file()`, `from_json_conn()`
+    * `from_json_str()`, `from_json_file()`, `from_json_conn()`, `from_json_raw()`
 * Read in NDJSON 
     * `from_ndjson_file_as_list()`, `from_ndjson_file_as_df()` 
 * `to_opts()`, `from_opts()` construct configuration options for reading/writing
@@ -85,12 +85,14 @@ library (version `YYJSON_VERSION_HEX = 0x000700`).
 
 ### Comparison to other JSON packages
 
-|              | R to JSON | JSON to R | ndjson read | ndjson write |
-|--------------|-----------|-----------|-------------|--------------|
-| yyjsonr      | Fast!     | Fast!     | Fast!       | Not yet      |
-| jsonlite     | Yes       | Yes       | Yes         | Yes          |
-| RcppSimdJson | No        | Fast!     | No          | No           |
-| jsonify      | Yes       | Yes       | Yes         | Yes          |
+|              | R to JSON | JSON to R | ndjson read | ndjson write | geojson to  `{sf}`|
+|--------------|-----------|-----------|-------------|--------------|-------------------|
+| yyjsonr      | Fast!     | Fast!     | Fast!       | Not yet      | In progress       |
+| jsonlite     | Yes       | Yes       | Yes         | Yes          |                   |
+| RcppSimdJson |           | Fast!     |             |              |                   |
+| jsonify      | Yes       | Yes       | Yes         | Yes          |                   |
+| ndjson       |           |           | Yes         | Yes          |                   |
+| geojsonsf    |           |           |             |              | Yes               |
 
 
 ## Installation
@@ -159,6 +161,22 @@ knitr::kable(res[,1:5])
 ```{r echo=FALSE}
 plot(res)
 ```
+
+
+```{r eval=FALSE, echo=FALSE}
+a <- nanonext::ncurl("https://postman-echo.com/get", convert = FALSE)
+
+res <- bench::mark(
+  RcppSimdJson::fparse(a$raw),
+  from_json_raw(a$raw),
+  check = FALSE
+)
+
+knitr::kable(res[,1:5])
+plot(res)
+```
+
+
 
 
 R to JSON file

@@ -32,12 +32,12 @@ serialize_options parse_serialize_options(SEXP serialize_opts_) {
     .yyjson_write_flag = 0,
   };
   
-  if (!isNewList(serialize_opts_)) {
-    error("'serialize_opts' must be a list");
+  if (isNull(serialize_opts_) || length(serialize_opts_) == 0) {
+    return opt;
   }
   
-  if (inherits(serialize_opts_, "from_opts")) {
-    error("Expected 'to_opts()'");
+  if (!isNewList(serialize_opts_)) {
+    error("'serialize_opts' must be a list");
   }
   
   SEXP nms_ = getAttrib(serialize_opts_, R_NamesSymbol);

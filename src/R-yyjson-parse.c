@@ -28,12 +28,12 @@ parse_options create_parse_options(SEXP parse_opts_) {
     .yyjson_read_flag   = 0
   };
   
-  if (!isNewList(parse_opts_)) {
-    error("'parse_opts' must be a list");
+  if (isNull(parse_opts_) || length(parse_opts_) == 0) {
+    return opt;
   }
   
-  if (inherits(parse_opts_, "to_opts")) {
-    error("Expected 'from_opts()'");
+  if (!isNewList(parse_opts_)) {
+    error("'parse_opts' must be a list");
   }
   
   SEXP nms_ = getAttrib(parse_opts_, R_NamesSymbol);
@@ -1838,6 +1838,21 @@ SEXP parse_from_str_(SEXP str_, SEXP parse_opts_) {
   return parse_json_from_str(str, &opt);
 }
 
+//===========================================================================
+// From RAW vector
+//===========================================================================
+SEXP parse_from_raw_(SEXP raw_, SEXP parse_opts_) {
+  
+  const char *str = (const char *)RAW(raw_);
+  parse_options opt = create_parse_options(parse_opts_);
+  
+  // Raw string may or may not have a NULL byter terminator.
+  // So ask 'yyjson' to stop parsing when the json parsing naturally ends
+  // rather than running over into dead space after the raw string ends
+  opt.yyjson_read_flag |= YYJSON_READ_STOP_WHEN_DONE;
+  
+  return parse_json_from_str(str, &opt);
+}
 
 //===========================================================================
 // Parse from file given as a filename

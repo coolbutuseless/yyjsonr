@@ -2,9 +2,9 @@
 % Please edit documentation in R/R-yyjson.R
 \name{from_json_str}
 \alias{from_json_str}
-\title{Convert JSON to R}
+\title{Convert JSON in a character string to R}
 \usage{
-from_json_str(str, opts = from_opts(), ...)
+from_json_str(str, opts = list(), ...)
 }
 \arguments{
 \item{str}{a single character string}
@@ -18,11 +18,11 @@ The valid named options are identical to arguments to \code{\link[=from_opts]{fr
 R object
 }
 \description{
-Convert JSON to R
+Convert JSON in a character string to R
 }
 \examples{
 \dontrun{
-from_json_str(str, opts = iris_opts(int64 = 'string'))
+from_json_str(str, opts = parse_opts(int64 = 'string'))
 }
 
 }
@@ -30,6 +30,7 @@ from_json_str(str, opts = iris_opts(int64 = 'string'))
 Other JSON Parsers: 
 \code{\link{from_json_conn}()},
 \code{\link{from_json_file}()},
+\code{\link{from_json_raw}()},
 \code{\link{from_ndjson_file_as_df}()}
 }
 \concept{JSON Parsers}
