@@ -6,3 +6,4 @@
 ^LICENSE-yyjson.txt$
 ^.devcontainer$
 ^\.github$
+^pkgdown$

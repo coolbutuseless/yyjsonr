@@ -499,4 +499,58 @@ from_ndjson_file_as_list <- function(filename, nread = -1, nskip = 0, opts = lis
   )
 }
 
+#~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+#' Write list or data.frame object to ndjson 
+#' 
+#' @inherit to_json_file
+#' @param x data.frame or list
+#' @param filename filename 
+#'
+#' @export
+#~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+to_ndjson_file <- function(x, filename, opts = list(), ...) {
+  opts <- modify_list(opts, list(...))
+  
+  if (is.data.frame(x)) {
+    .Call(
+      serialize_df_to_ndjson_file_,
+      x,
+      filename,
+      opts
+    )
+  } else {
+    .Call(
+      serialize_list_to_ndjson_file_,
+      x,
+      filename,
+      opts
+    )
+  }
+  invisible()
+}
+
+
+#~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+#' @rdname to_ndjson_file
+#' @export
+#~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+to_ndjson_str <- function(x, opts = list(), ...) {
+  opts <- modify_list(opts, list(...))
+  
+  if (is.data.frame(x)) {
+    .Call(
+      serialize_df_to_ndjson_str_,
+      x,
+      opts
+    )
+  } else {
+    .Call(
+      serialize_list_to_ndjson_str_,
+      x,
+      opts
+    )
+  }
+}
+
+
 

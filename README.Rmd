@@ -87,7 +87,7 @@ library (version `YYJSON_VERSION_HEX = 0x000700`).
 
 |              | R to JSON | JSON to R | ndjson read | ndjson write | geojson to  `{sf}`|
 |--------------|-----------|-----------|-------------|--------------|-------------------|
-| yyjsonr      | Fast!     | Fast!     | Fast!       | Not yet      | In progress       |
+| yyjsonr      | Fast!     | Fast!     | Fast!       | Fast!        | In progress       |
 | jsonlite     | Yes       | Yes       | Yes         | Yes          |                   |
 | RcppSimdJson |           | Fast!     |             |              |                   |
 | jsonify      | Yes       | Yes       | Yes         | Yes          |                   |
@@ -261,7 +261,7 @@ from_ndjson_file_as_list(ndjson_file)
 
 
 
-Benchmark: Parsing ndjson
+Benchmark: Parsing from ndjson
 -------------------------------------------------------------------------------
 
 
@@ -295,6 +295,68 @@ knitr::kable(res[, 1:5])
 plot(res)
 ```
 
+
+
+Benchmark: Writing to ndjson file
+-------------------------------------------------------------------------------
+
+
+<details>
+<summary>Show/Hide benchmark code</summary>
+```{r}
+#~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+#' Set-up benchmark data
+#~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+ndjson_filename <- tempfile()
+df <- head( nycflights13::flights, 1000)
+
+#~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+#' benchmark
+#~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+res <- bench::mark(
+  jsonlite = jsonlite::stream_out(df, file(ndjson_filename), verbose = FALSE),
+  yyjsonr  = yyjsonr::to_ndjson_file(df, ndjson_filename),
+  check = FALSE
+)
+
+knitr::kable(res[, 1:5])
+```
+</details>
+
+```{r echo=FALSE}
+plot(res)
+```
+
+
+Benchmark: Writing to ndjson string
+-------------------------------------------------------------------------------
+
+
+<details>
+<summary>Show/Hide benchmark code</summary>
+```{r}
+#~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+#' Set-up benchmark data
+#~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+ndjson_filename <- tempfile()
+df <- head( nycflights13::flights, 1000)
+
+#~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+#' benchmark
+#~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+res <- bench::mark(
+  jsonify  = jsonify::to_ndjson(df),
+  yyjsonr  = yyjsonr::to_ndjson_str(df),
+  check = FALSE
+)
+
+knitr::kable(res[, 1:5])
+```
+</details>
+
+```{r echo=FALSE}
+plot(res)
+```
 
 
 More Benchmarks
