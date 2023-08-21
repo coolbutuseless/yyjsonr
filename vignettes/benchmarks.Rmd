@@ -21,6 +21,7 @@ library(yyjsonr)
 library(bench)
 library(ggplot2)
 library(tidyr)
+library(ggbeeswarm)
 ```
 
 

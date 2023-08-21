@@ -27,6 +27,7 @@ Suggests:
     nycflights13,
     dplyr,
     ggplot2,
-    tidyr
+    tidyr,
+    ggbeeswarm
 Config/testthat/edition: 3
 VignetteBuilder: knitr
