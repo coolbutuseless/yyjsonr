@@ -1,0 +1,396 @@
+---
+title: "Benchmarks"
+output: rmarkdown::html_vignette
+vignette: >
+  %\VignetteIndexEntry{Benchmarks}
+  %\VignetteEngine{knitr::rmarkdown}
+  %\VignetteEncoding{UTF-8}
+---
+
+```{r, include = FALSE}
+knitr::opts_chunk$set(
+  collapse = TRUE,
+  comment = "#>",
+  fig.width = 6,
+  fig.height = 4
+)
+```
+
+```{r setup}
+library(yyjsonr)
+library(bench)
+library(ggplot2)
+library(tidyr)
+```
+
+
+Benchmark overview
+==============================================================================
+
+* Benchmarking was done an Apple M2 Silicon.
+* Test-cases were drawn from other packages and other examples seen in the wild
+
+
+Validate JSON String
+----------------------------------------------------------------------------
+
+
+```{r}
+json_str <- to_json_str(iris)
+
+res00 <- bench::mark(
+  jsonlite     = jsonlite::validate(json_str),
+  jsonify      = jsonify::validate_json(json_str),
+  yyjsonr      = yyjsonr::validate_json_str(json_str),
+  check = TRUE
+)
+```
+
+```{r echo=FALSE}
+res00$benchmark <- 'Validate JSON String'
+knitr::kable(res00[,1:5])
+plot(res00) + theme_bw() + theme(legend.position = 'none')
+```
+
+
+
+To JSON String
+----------------------------------------------------------------------------
+
+
+```{r}
+res01 <- bench::mark(
+  jsonlite = jsonlite::toJSON(iris),
+  jsonify  = jsonify::to_json(iris),
+  yyjsonr  = yyjsonr::to_json_str(iris),
+  check = FALSE
+)
+```
+
+
+```{r echo=FALSE}
+res01$benchmark <- 'To JSON String'
+knitr::kable(res01[,1:5])
+plot(res01) + theme_bw() + theme(legend.position = 'none')
+```
+
+
+
+From JSON String
+----------------------------------------------------------------------------
+
+```{r}
+json_str <- to_json_str(iris)
+
+res02 <- bench::mark(
+  jsonlite     = jsonlite::fromJSON(json_str),
+  jsonify      = jsonify::from_json(json_str),
+  rcppsimdjson = RcppSimdJson::fparse(json_str),
+  yyjsonr      = yyjsonr::from_json_str(json_str),
+  check = TRUE
+)
+```
+
+```{r echo=FALSE}
+res02$benchmark <- 'From JSON String'
+knitr::kable(res02[,1:5])
+plot(res02) + theme_bw() + theme(legend.position = 'none')
+```
+
+
+From JSON raw vector
+----------------------------------------------------------------------------
+
+```{r warning=FALSE}
+a <- nanonext::ncurl("https://postman-echo.com/get", convert = FALSE)
+
+res03 <- bench::mark(
+  jsonlite     = jsonlite::fromJSON(rawConnection(a$raw)),
+  rcppsimdjson = RcppSimdJson::fparse(a$raw),
+  yyjsonr      = yyjsonr::from_json_raw(a$raw),
+  check = FALSE
+)
+```
+
+
+```{r echo=FALSE}
+res03$benchmark <- 'From JSON Raw Vector'
+knitr::kable(res03[,1:5])
+plot(res03) + theme_bw() + theme(legend.position = 'none')
+```
+
+
+
+
+To JSON File
+----------------------------------------------------------------------------
+
+```{r}
+json_file <- tempfile()
+
+res04 <- bench::mark(
+  jsonlite = jsonlite::write_json(iris, json_file),
+  yyjsonr  = yyjsonr::to_json_file(iris, json_file),
+  check = FALSE
+)
+
+```
+
+```{r echo=FALSE}
+res04$benchmark <- 'To JSON File'
+knitr::kable(res04[, 1:5])
+plot(res04) + theme_bw() + theme(legend.position = 'none')
+```
+
+
+From JSON File
+------------------------------------------------------------------------------
+
+```{r}
+json_file <- tempfile()
+jsonlite::write_json(iris, json_file)
+
+res05 <- bench::mark(
+  jsonlite     = jsonlite::fromJSON(file(json_file)), 
+  rcppsimdjson = RcppSimdJson::fload(json_file), 
+  yyjsonr      = yyjsonr::from_json_file(json_file),
+  check = TRUE
+)
+
+```
+
+```{r echo=FALSE}
+res05$benchmark <- 'From JSON File'
+knitr::kable(res05[, 1:5])
+plot(res05) + theme_bw() + theme(legend.position = 'none')
+```
+
+
+
+From NDJSON file
+-------------------------------------------------------------------------------
+
+
+```{r include = FALSE}
+ndjson_filename <- tempfile()
+df <- head( nycflights13::flights, 1000)
+jsonlite::stream_out(df, file(ndjson_filename), verbose = FALSE)
+
+res06 <- bench::mark(
+  ndjson   = ndjson::stream_in(ndjson_filename),
+  jsonlite = jsonlite::stream_in(file(ndjson_filename), verbose = FALSE),
+  jsonify  = jsonify::from_ndjson(ndjson_filename),
+  yyjsonr  = yyjsonr::from_ndjson_file_as_df  (ndjson_filename),
+  check = FALSE
+)
+```
+
+```{r echo=FALSE}
+res06$benchmark <- 'From NDJSON File'
+knitr::kable(res06[, 1:5])
+plot(res06) + theme_bw() + theme(legend.position = 'none')
+```
+
+
+
+To NDJSON File
+-------------------------------------------------------------------------------
+
+
+```{r include = FALSE}
+ndjson_filename <- tempfile()
+df <- head( nycflights13::flights, 1000)
+
+res07 <- bench::mark(
+  jsonlite = jsonlite::stream_out(df, file(ndjson_filename), verbose = FALSE),
+  yyjsonr  = yyjsonr::to_ndjson_file(df, ndjson_filename),
+  check = FALSE
+)
+```
+
+
+```{r echo=FALSE}
+res07$benchmark <- 'To NDJSON File'
+knitr::kable(res07[, 1:5])
+plot(res07) + theme_bw() + theme(legend.position = 'none')
+```
+
+
+To NDJSON String
+-------------------------------------------------------------------------------
+
+
+```{r message=FALSE, include = FALSE}
+ndjson_filename <- tempfile()
+df <- head( nycflights13::flights, 1000)
+
+res08 <- bench::mark(
+  jsonify  = jsonify::to_ndjson(df),
+  jsonlite = jsonlite::stream_out(df, con = textConnection(NULL, "w"), name = "greg", local = TRUE),
+  yyjsonr  = yyjsonr::to_ndjson_str(df),
+  check = FALSE
+)
+```
+
+```{r echo=FALSE}
+res08$benchmark <- 'To NDJSON String'
+knitr::kable(res08[, 1:5])
+plot(res08) + theme_bw() + theme(legend.position = 'none')
+```
+
+
+
+Benchmark from `{RcppSimdJson}`
+----------------------------------------------------------------------------
+
+```{r}
+jsonfile <- system.file("jsonexamples", "twitter.json", package="RcppSimdJson")
+json <- paste(readLines(jsonfile), collapse = "\n")
+
+res09 <- bench::mark(
+  jsonlite     = jsonlite::fromJSON(json),
+  rcppsimdjson = RcppSimdJson::fparse(json),
+  yyjsonr      = yyjsonr::from_json_str(json),
+  check = FALSE
+)
+```
+
+```{r echo=FALSE}
+res09$benchmark <- 'Rcppsimdjson'
+knitr::kable(res09[, 1:5])
+plot(res09) + theme_bw() + theme(legend.position = 'none')
+```
+
+Benchmark 1 from `{jsonify}` 
+----------------------------------------------------------------------------
+
+```{r}
+n <- 1e5
+df <- data.frame(
+  id = 1:n
+  , value = sample(letters, size = n, replace = T)
+  , val2 = rnorm(n = n)
+  , log = sample(c(T,F), size = n, replace = T)
+  , stringsAsFactors = FALSE
+)
+
+res10 <- bench::mark(
+  jsonlite = jsonlite::toJSON( df ),
+  jsonify  = jsonify::to_json( df ),
+  yyjsonr  = yyjsonr::to_json_str( df ),
+  check = FALSE
+)
+```
+
+```{r echo=FALSE}
+res10$benchmark <- 'jsonify (1)'
+knitr::kable(res10[,1:5])
+plot(res10) + theme_bw() + theme(legend.position = 'none')
+```
+
+Benchmark 2 from `{jsonify}` 
+----------------------------------------------------------------------------
+
+```{r}
+n <- 1e4
+x <- list(
+  x = rnorm(n = n)
+  , y = list(x = rnorm(n = n))
+  , z = list( list( x = rnorm(n = n)))
+  , xx = rnorm(n = n)
+  , yy = data.frame(
+      id = 1:n
+      , value = sample(letters, size = n, replace = T)
+      , val2 = rnorm(n = n)
+      , log = sample(c(T,F), size = n, replace = T)
+    )
+)
+
+res11 <- bench::mark(
+ jsonlite = jsonlite::toJSON( x ),
+ jsonify  = jsonify::to_json( x ),
+ yyjsonr  = yyjsonr::to_json_str(x),
+ check = FALSE
+)
+```
+
+```{r echo=FALSE}
+res11$benchmark <- 'jsonify (2)'
+knitr::kable(res11[,1:5])
+plot(res11) + theme_bw() + theme(legend.position = 'none')
+```
+
+
+Benchmark 3 from `{jsonify}` 
+----------------------------------------------------------------------------
+
+```{r}
+jlt <- jsonlite::toJSON( x )
+
+res12 <- bench::mark(
+  jsonlite     = jsonlite::fromJSON( jlt ),
+  jsonify      = jsonify::from_json( jlt ),
+  rcppsimdjson = RcppSimdJson::fparse(jlt),
+  yyjsonr      = yyjsonr::from_json_str(jlt),
+  check = FALSE
+)
+
+```
+
+```{r echo=FALSE}
+res12$benchmark <- 'jsonify (3)'
+knitr::kable(res12[,1:5])
+plot(res12) + theme_bw() + theme(legend.position = 'none')
+```
+
+
+Summary
+===============================================================================
+
+```{r echo = FALSE, fig.width = 8, fig.height = 6}
+library(dplyr)
+plot_df <- bind_rows(res00, res01, res02, res03, res04, res05,
+                  res06, res07, res08, res09, res10, res11, res12)
+
+plot_df$benchmark <- factor(
+  plot_df$benchmark, 
+  levels = unique(plot_df$benchmark)
+)
+
+plot_df <- plot_df %>% 
+  mutate(
+    package = as.character(expression),
+    iters   = `itr/sec`,
+    speed   = iters
+  ) %>%
+  select(benchmark, package, iters, speed)
+
+plot_df <- plot_df %>%
+  group_by(benchmark) %>%
+  mutate(
+    ref_speed = speed[which(package == 'jsonlite')],
+    speed = speed / ref_speed
+  ) %>%
+  ungroup()
+
+ggplot(plot_df) + 
+  geom_col(aes(package, speed, fill = package), 
+           position = position_dodge2(preserve = "single")) + 
+  facet_wrap(~benchmark, scales = 'free_y') + 
+  theme_bw() + 
+  theme(legend.position = 'none') + 
+  scale_fill_manual(values = c(rep(grey(0.5), 4), 'dodgerblue3')) +
+  geom_hline(yintercept = 1, color = 'red', alpha = 0.5, linetype = 2) + 
+  labs(
+    x = NULL,
+    y = "Factor speed increase over reference implementation",
+    title = "Speed-up compared to reference implementation",
+    subtitle = "Red line indicates reference implementation {jsonlite}"
+  )
+
+# ggsave("./man/figures/benchmark-summary.png", width = 14, height = 8)
+
+```
+
+
+

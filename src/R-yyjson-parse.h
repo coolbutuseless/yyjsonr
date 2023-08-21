@@ -118,4 +118,7 @@ long long json_val_to_integer64(yyjson_val *val, parse_options *opt);
 SEXP json_val_to_charsxp(yyjson_val *val, parse_options *opt);
 SEXP json_as_robj(yyjson_val *val, parse_options *opt);
 
-
+//===========================================================================
+// Error reporting
+//===========================================================================
+void output_verbose_error(const char *str, yyjson_read_err err);

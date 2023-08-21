@@ -1730,6 +1730,29 @@ SEXP json_as_robj(yyjson_val *val, parse_options *opt) {
 
 
 #define ERR_CONTEXT 20
+void output_verbose_error(const char *str, yyjson_read_err err) {
+  // Slice off a bit of the string within +/- ERR_CONTEXT of the error pos
+  int min_idx = err.pos - ERR_CONTEXT;
+  min_idx = min_idx < 0 ? 0 : min_idx;
+  int max_idx = err.pos + ERR_CONTEXT;
+  max_idx = max_idx > strlen(str) ? strlen(str) : max_idx;
+  
+  // copy this context into a temp string. ensure it ends in '\0'
+  char err_string[3 * ERR_CONTEXT];
+  strncpy((char *)&err_string, str + min_idx, max_idx - min_idx);
+  err_string[max_idx - min_idx] = '\0';
+  Rprintf("%s\n", err_string);
+  
+  // Print a "^" to point to the error
+  unsigned int pos = ERR_CONTEXT;
+  pos = err.pos < ERR_CONTEXT ? err.pos - 1 : ERR_CONTEXT;
+  for (unsigned int i = 0; i < pos; i++) {
+    Rprintf(" ");
+  }
+  Rprintf("^\n");
+}
+
+
 //~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 // 
 //~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
@@ -1747,28 +1770,8 @@ SEXP parse_json_from_str(const char *str, parse_options *opt) {
   //   - add a visual pointer to the output so the user knows where this was
   //~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
   if (doc == NULL) {
-    // Slice off a bit of the string within +/- ERR_CONTEXT of the error pos
-    int min_idx = err.pos - ERR_CONTEXT;
-    min_idx = min_idx < 0 ? 0 : min_idx;
-    int max_idx = err.pos + ERR_CONTEXT;
-    max_idx = max_idx > strlen(str) ? strlen(str) : max_idx;
-    
-    // copy this context into a temp string. ensure it ends in '\0'
-    char err_string[3 * ERR_CONTEXT];
-    strncpy((char *)&err_string, str + min_idx, max_idx - min_idx);
-    err_string[max_idx - min_idx] = '\0';
-    Rprintf("%s\n", err_string);
-    
-    // Print a "^" to point to the error
-    unsigned int pos = ERR_CONTEXT;
-    pos = err.pos < ERR_CONTEXT ? err.pos - 1 : ERR_CONTEXT;
-    for (unsigned int i = 0; i < pos; i++) {
-      Rprintf(" ");
-    }
-    Rprintf("^\n");
-
+    output_verbose_error(str, err);
     error("Error parsing JSON: %s code: %u at position: %ld\n", err.msg, err.code, err.pos);
-    
   }
   
   //~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
@@ -1866,6 +1869,59 @@ SEXP parse_from_file_(SEXP filename_, SEXP parse_opts_) {
 }
 
 
+//~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+// Validate
+//~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+SEXP validate_json_file_(SEXP filename_, SEXP verbose_, SEXP parse_opts_) {
+  
+  const char *filename = (const char *)CHAR( STRING_ELT(filename_, 0) );
+  parse_options opt = create_parse_options(parse_opts_);
+  
+  yyjson_read_err err;
+  yyjson_doc *doc = yyjson_read_file((char *)filename, opt.yyjson_read_flag, NULL, &err);
+  
+  //~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+  // If doc is NULL, then an error occurred during parsing.
+  //~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+  if (doc == NULL) {
+    if (asLogical(verbose_)) {
+      warning("Error parsing JSON file '%s': %s code: %u at position: %ld\n", 
+            filename, err.msg, err.code, err.pos);
+    }
+    return ScalarLogical(0);
+    
+  }
+  
+  yyjson_doc_free(doc);
+  
+  return ScalarLogical(1);
+}
 
+
+//~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+// Validate
+//~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+SEXP validate_json_str_(SEXP str_, SEXP verbose_, SEXP parse_opts_) {
+  const char *str = (const char *)CHAR( STRING_ELT(str_, 0) );
+  parse_options opt = create_parse_options(parse_opts_);
+  
+  yyjson_read_err err;
+  yyjson_doc *doc = yyjson_read_opts((char *)str, strlen(str), opt.yyjson_read_flag, NULL, &err);
+  
+  //~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+  // If doc is NULL, then an error occurred during parsing.
+  //~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+  if (doc == NULL) {
+    if (asLogical(verbose_)) {
+      output_verbose_error(str, err);
+      warning("Error parsing JSON: %s code: %u at position: %ld\n", 
+              err.msg, err.code, err.pos);
+    }
+    return ScalarLogical(0);
+  }
+  
+  yyjson_doc_free(doc);
+  return ScalarLogical(1);
+}
 
 

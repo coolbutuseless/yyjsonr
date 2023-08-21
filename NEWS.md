@@ -1,4 +1,9 @@
 
+
+# yyjsonr 0.1.3  2023-08-21
+
+* Added `validate_json_file()` and `validate_json_str()`
+
 # yyjsonr 0.1.2  2023-08-20
 
 * Added `to_ndjson_file()` and `to_ndjson_str()`

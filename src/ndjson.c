@@ -106,7 +106,6 @@ SEXP parse_ndjson_file_as_list_(SEXP filename_, SEXP nread_, SEXP nskip_, SEXP p
   //~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
   char buf[MAX_LINE_LENGTH];
   
-  yyjson_read_flag flg = 0;
   parse_options opt = create_parse_options(parse_opts_);
   
   unsigned int nread = asInteger(nread_);
@@ -174,9 +173,11 @@ SEXP parse_ndjson_file_as_list_(SEXP filename_, SEXP nread_, SEXP nskip_, SEXP p
     // might have to do something fancier for lines with just whitespace
     if (strlen(buf) <= 1) continue;
     
-    yyjson_doc *doc = yyjson_read(buf, strlen(buf), flg);
+    yyjson_read_err err;
+    yyjson_doc *doc = yyjson_read_opts(buf, strlen(buf), opt.yyjson_read_flag, NULL, &err);
     
     if (doc == NULL) {
+      output_verbose_error(buf, err);
       warning("Couldn't parse NDJSON row %i. Inserting 'NULL'\n", i);
       SET_VECTOR_ELT(list_, i, R_NilValue);
     } else {
@@ -305,9 +306,10 @@ SEXP parse_ndjson_file_as_df_(SEXP filename_, SEXP nread_, SEXP nskip_, SEXP npr
     // might have to do something fancier for lines with just whitespace
     if (strlen(buf) <= 1) continue;
     
-    yyjson_read_flag flg = 0;
-    yyjson_doc *doc = yyjson_read(buf, strlen(buf), flg);
+    yyjson_read_err err;
+    yyjson_doc *doc = yyjson_read_opts(buf, strlen(buf), opt.yyjson_read_flag, NULL, &err);
     if (doc == NULL) {
+      output_verbose_error(buf, err);
       error("Couldn't parse JSON during probe line %i\n", i);
     }
     
@@ -406,9 +408,10 @@ SEXP parse_ndjson_file_as_df_(SEXP filename_, SEXP nread_, SEXP nskip_, SEXP npr
     // might have to do something fancier for lines with just whitespace
     if (strlen(buf) <= 1) continue;
     
-    yyjson_read_flag flg = 0;
-    yyjson_doc *doc = yyjson_read(buf, strlen(buf), flg);
+    yyjson_read_err err;
+    yyjson_doc *doc = yyjson_read_opts(buf, strlen(buf), opt.yyjson_read_flag, NULL, &err);
     if (doc == NULL) {
+      output_verbose_error(buf, err);
       error("Couldn't parse JSON on line %i\n", i);
     }
     

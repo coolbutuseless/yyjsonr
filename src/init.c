@@ -19,6 +19,9 @@ extern SEXP serialize_df_to_ndjson_file_(SEXP robj_, SEXP filename_, SEXP serial
 extern SEXP serialize_list_to_ndjson_str_ (SEXP robj_,                 SEXP serialize_opts_);
 extern SEXP serialize_list_to_ndjson_file_(SEXP robj_, SEXP filename_, SEXP serialize_opts_);
 
+extern SEXP validate_json_file_(SEXP filename_, SEXP verbose_, SEXP parse_opts_);
+extern SEXP validate_json_str_ (SEXP str_     , SEXP verbose_, SEXP parse_opts_);
+
 static const R_CallMethodDef CEntries[] = {
   {"serialize_to_str_" , (DL_FUNC) &serialize_to_str_ , 2},
   {"serialize_to_file_", (DL_FUNC) &serialize_to_file_, 3},
@@ -35,6 +38,9 @@ static const R_CallMethodDef CEntries[] = {
   
   {"serialize_list_to_ndjson_str_" , (DL_FUNC) &serialize_list_to_ndjson_str_ , 2},
   {"serialize_list_to_ndjson_file_", (DL_FUNC) &serialize_list_to_ndjson_file_, 3},
+  
+  {"validate_json_file_", (DL_FUNC) &validate_json_file_, 3},
+  {"validate_json_str_" , (DL_FUNC) &validate_json_str_ , 3},
   
   {NULL , NULL, 0}
 };

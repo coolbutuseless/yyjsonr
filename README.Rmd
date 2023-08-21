@@ -77,6 +77,8 @@ library (version `YYJSON_VERSION_HEX = 0x000700`).
     * `to_json_str()`, `to_json_file()` 
 * Read in JSON as R objects
     * `from_json_str()`, `from_json_file()`, `from_json_conn()`, `from_json_raw()`
+* Validate JSON 
+    * `validate_json_str()`, `validate_json_file()`
 * Read in NDJSON 
     * `from_ndjson_file_as_list()`, `from_ndjson_file_as_df()` 
 * `to_opts()`, `from_opts()` construct configuration options for reading/writing
@@ -95,6 +97,10 @@ library (version `YYJSON_VERSION_HEX = 0x000700`).
 | geojsonsf    |           |           |             |              | Yes               |
 
 
+<img src="man/figures/benchmark-summary.png">
+
+
+
 ## Installation
 
 You can install from [GitHub](https://github.com/coolbutuseless/yyjsonr) with:
@@ -106,375 +112,27 @@ remotes::install_github('coolbutuseless/yyjsonr')
 
 
 
-R to JSON string
+Simple usage example
 ==============================================================================
 
 ```{r}
+library(yyjsonr)
+
 str <- to_json_str(head(iris, 3), pretty = TRUE)
 cat(str)
 
 from_json_str(str)
 ```
 
-Benchmark: R to JSON string
------------------------------------------------------------------------------
-
-<details>
-<summary>Show/Hide benchmark code</summary>
-```{r}
-res <- bench::mark(
-  jsonlite::toJSON(iris),
-  jsonify::to_json(iris),
-  yyjsonr::to_json_str(iris),
-  check = FALSE
-)
-
-knitr::kable(res[,1:5])
-```
-</details>
-
-```{r echo=FALSE}
-plot(res)
-```
-
-
-
-Benchmark: JSON string to R
------------------------------------------------------------------------------
-
-<details>
-<summary>Show/Hide benchmark code</summary>
-
-```{r}
-json_str <- to_json_str(iris)
-res <- bench::mark(
-  jsonlite::fromJSON(json_str),
-  jsonify::from_json(json_str),
-  RcppSimdJson::fparse(json_str),
-  yyjsonr::from_json_str(json_str),
-  check = FALSE
-)
-knitr::kable(res[,1:5])
-```
-</details>
-
-```{r echo=FALSE}
-plot(res)
-```
-
-
-```{r eval=FALSE, echo=FALSE}
-a <- nanonext::ncurl("https://postman-echo.com/get", convert = FALSE)
-
-res <- bench::mark(
-  RcppSimdJson::fparse(a$raw),
-  from_json_raw(a$raw),
-  check = FALSE
-)
-
-knitr::kable(res[,1:5])
-plot(res)
-```
-
-
-
-
-R to JSON file
-==============================================================================
-
-```{r eval=FALSE}
-to_json_file(iris, tempfile())
-```
-
-
-
-
-Benchmark: R to JSON file
-------------------------------------------------------------------------------
-
-<details>
-<summary>Show/Hide benchmark code</summary>
-```{r}
-json_file <- tempfile()
-res <- bench::mark(
-  jsonlite::write_json(iris, json_file),
-  yyjsonr::to_json_file(iris, json_file),
-  check = FALSE
-)
-
-knitr::kable(res[, 1:5])
-```
-</details>
-
-```{r echo=FALSE}
-plot(res)
-```
-
-
-Benchmark: JSON file to R
-------------------------------------------------------------------------------
-
-<details>
-<summary>Show/Hide benchmark code</summary>
-```{r}
-json_file <- tempfile()
-jsonlite::write_json(iris, json_file)
-res <- bench::mark(
-  jsonlite::fromJSON(file(json_file)), 
-  RcppSimdJson::fload(json_file), 
-  yyjsonr::from_json_file(json_file),
-  check = TRUE
-)
-
-knitr::kable(res[, 1:5])
-```
-</details>
-
-```{r echo=FALSE}
-plot(res)
-```
-
-
-Parsing ndjson
-===============================================================================
-
-`ndjson` is "newline delimited json" which is multiple json strings in a file, 
-with each string separated by a newline.  This is a convenient storage method for
-lots  of similarly structured objects e.g. log output.
-
-There are options to read only a subset of lines from the ndjson file (`nskip` 
-and `nread`) - which can lead to time savings if only a subset of 
-lines are needed.
-
-```{r}
-ndjson_file <- tempfile()
-
-{
-  # Setup an 'ndjson' file to read back in
-  df <- head( nycflights13::flights[, 1:5], 2)
-  jsonlite::stream_out(df, file(ndjson_file), verbose = FALSE)
-}
-
-from_ndjson_file_as_df(ndjson_file)
-from_ndjson_file_as_list(ndjson_file)
-```
-
-
-
-Benchmark: Parsing from ndjson
--------------------------------------------------------------------------------
-
-
-<details>
-<summary>Show/Hide benchmark code</summary>
-```{r}
-#~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
-#' Set-up benchmark data
-#~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
-ndjson_filename <- tempfile()
-df <- head( nycflights13::flights, 1000)
-jsonlite::stream_out(df, file(ndjson_filename), verbose = FALSE)
-
-#~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
-#' benchmark
-#~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
-res <- bench::mark(
-  ndjson::stream_in(ndjson_filename),
-  jsonlite::stream_in(file(ndjson_filename), verbose = FALSE),
-  jsonify::from_ndjson(ndjson_filename),
-  yyjsonr::from_ndjson_file_as_list(ndjson_filename),
-  yyjsonr::from_ndjson_file_as_df  (ndjson_filename),
-  check = FALSE
-)
-
-knitr::kable(res[, 1:5])
-```
-</details>
-
-```{r echo=FALSE}
-plot(res)
-```
-
-
-
-Benchmark: Writing to ndjson file
--------------------------------------------------------------------------------
-
-
-<details>
-<summary>Show/Hide benchmark code</summary>
-```{r}
-#~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
-#' Set-up benchmark data
-#~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
-ndjson_filename <- tempfile()
-df <- head( nycflights13::flights, 1000)
-
-#~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
-#' benchmark
-#~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
-res <- bench::mark(
-  jsonlite = jsonlite::stream_out(df, file(ndjson_filename), verbose = FALSE),
-  yyjsonr  = yyjsonr::to_ndjson_file(df, ndjson_filename),
-  check = FALSE
-)
-
-knitr::kable(res[, 1:5])
-```
-</details>
-
-```{r echo=FALSE}
-plot(res)
-```
-
-
-Benchmark: Writing to ndjson string
--------------------------------------------------------------------------------
-
-
-<details>
-<summary>Show/Hide benchmark code</summary>
-```{r}
-#~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
-#' Set-up benchmark data
-#~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
-ndjson_filename <- tempfile()
-df <- head( nycflights13::flights, 1000)
-
-#~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
-#' benchmark
-#~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
-res <- bench::mark(
-  jsonify  = jsonify::to_ndjson(df),
-  yyjsonr  = yyjsonr::to_ndjson_str(df),
-  check = FALSE
-)
-
-knitr::kable(res[, 1:5])
-```
-</details>
-
-```{r echo=FALSE}
-plot(res)
-```
-
-
-More Benchmarks
-============================================================================
-
-Benchmark from `{RcppSimdJson}`
-----------------------------------------------------------------------------
-
-<details>
-<summary>Show/Hide benchmark code</summary>
-```{r}
-jsonfile <- system.file("jsonexamples", "twitter.json", package="RcppSimdJson")
-json <- paste(readLines(jsonfile), collapse = "\n")
-
-res <- bench::mark(
-  jsonlite::fromJSON(json),
-  RcppSimdJson::fparse(json),
-  yyjsonr::from_json_str(json),
-  check = FALSE
-)
-
-knitr::kable(res[, 1:5])
-```
-</details>
-
-```{r echo=FALSE}
-plot(res)
-```
-
-Benchmark from `{jsonify}`
-----------------------------------------------------------------------------
-
-<details>
-<summary>Show/Hide benchmark code</summary>
-```{r}
-n <- 1e5
-df <- data.frame(
-  id = 1:n
-  , value = sample(letters, size = n, replace = T)
-  , val2 = rnorm(n = n)
-  , log = sample(c(T,F), size = n, replace = T)
-  , stringsAsFactors = FALSE
-)
-
-res <- bench::mark(
-  jsonlite::toJSON( df ),
-  jsonify::to_json( df ),
-  yyjsonr::to_json_str( df ),
-  check = FALSE
-)
-
-knitr::kable(res[,1:5])
-```
-</details>
-
-```{r echo=FALSE}
-plot(res)
-```
-
-
-<details>
-<summary>Show/Hide benchmark code</summary>
-```{r}
-n <- 1e4
-x <- list(
-  x = rnorm(n = n)
-  , y = list(x = rnorm(n = n))
-  , z = list( list( x = rnorm(n = n)))
-  , xx = rnorm(n = n)
-  , yy = data.frame(
-      id = 1:n
-      , value = sample(letters, size = n, replace = T)
-      , val2 = rnorm(n = n)
-      , log = sample(c(T,F), size = n, replace = T)
-    )
-)
-
-res <- bench::mark(
- jsonlite::toJSON( x ),
- jsonify::to_json( x ),
- yyjsonr::to_json_str(x),
- check = FALSE
-)
-
-
-knitr::kable(res[,1:5])
-```
-</details>
-
-```{r echo=FALSE}
-plot(res)
-```
-
-
-<details>
-<summary>Show/Hide benchmark code</summary>
-```{r}
-jlt <- jsonlite::toJSON( x )
-
-res <- bench::mark(
-  jsonlite::fromJSON( jlt ),
-  jsonify::from_json( jlt ),
-  yyjsonr::from_json_str(jlt),
-  check = FALSE
-)
-
-knitr::kable(res[,1:5])
-```
-</details>
-
-```{r echo=FALSE}
-plot(res)
-```
-
 
 Parsing differences compared to `{jsonlite}`
 =============================================================================
 
+No 'digits' argument
+-----------------------------------------------------------------------------
+
+Numeric conversion is handled within the `yyjson` C library and is not 
+configuraable.
 
 Numeric types retained in presence of other strings
 -----------------------------------------------------------------------------

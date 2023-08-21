@@ -553,4 +553,47 @@ to_ndjson_str <- function(x, opts = list(), ...) {
 }
 
 
+#~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+#' Validate JSON in file or string
+#'
+#' @inheritParams from_json_file
+#' @param filename path to file containing JSON
+#' @param str character string containing JSON
+#' @param verbose logical. If the JSON is not valid, should a warning be 
+#'        shown giving details?
+#'
+#' @return Logical value. TRUE if JSON validates as OK, otherwise FALSE
+#' @export 
+#~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+validate_json_file <- function(filename, verbose = FALSE, opts = list(), ...) {
+  opts <- modify_list(opts, list(...))
+  
+  .Call(
+    validate_json_file_,
+    filename,
+    verbose,
+    opts
+  )
+}
+
+#~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+#' @rdname validate_json_file
+#' @export
+#~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+validate_json_str <- function(str, verbose = FALSE, opts = list(), ...) {
+  opts <- modify_list(opts, list(...))
+  
+  .Call(
+    validate_json_str_,
+    str,
+    verbose,
+    opts
+  )
+}
+
+
+
+
+
+
 
