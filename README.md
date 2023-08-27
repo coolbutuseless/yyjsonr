@@ -61,6 +61,9 @@ more details.
     `from_json_raw()`
 - Validate JSON
   - `validate_json_str()`, `validate_json_file()`
+- Read/Write GeoJSON to/from `{sf}` objects
+  - `from_geojson_str()`, `from_geojson_file()`
+  - `to_geojson_str()`, `to_geojson_file()`
 - Read in NDJSON
   - `from_ndjson_file_as_list()`, `from_ndjson_file_as_df()`
 - `to_opts()`, `from_opts()` construct configuration options for
@@ -68,14 +71,14 @@ more details.
 
 ### Comparison to other JSON packages
 
-|              | R to JSON | JSON to R | ndjson read | ndjson write | geojson to `{sf}` |
-|--------------|-----------|-----------|-------------|--------------|-------------------|
-| yyjsonr      | Fast!     | Fast!     | Fast!       | Fast!        | In progress       |
-| jsonlite     | Yes       | Yes       | Yes         | Yes          |                   |
-| RcppSimdJson |           | Fast!     |             |              |                   |
-| jsonify      | Yes       | Yes       | Yes         | Yes          |                   |
-| ndjson       |           |           | Yes         | Yes          |                   |
-| geojsonsf    |           |           |             |              | Yes               |
+|              | R to JSON | JSON to R | ndjson read | ndjson write | geojson to/from `{sf}` |
+|--------------|-----------|-----------|-------------|--------------|------------------------|
+| yyjsonr      | Fast!     | Fast!     | Fast!       | Fast!        | Alpha code working     |
+| jsonlite     | Yes       | Yes       | Yes         | Yes          |                        |
+| RcppSimdJson |           | Fast!     |             |              |                        |
+| jsonify      | Yes       | Yes       | Yes         | Yes          |                        |
+| ndjson       |           |           | Yes         | Yes          |                        |
+| geojsonsf    |           |           |             |              | Yes                    |
 
 <img src="man/figures/benchmark-summary.png">
 
@@ -223,7 +226,8 @@ yyjsonr::from_json_str(str)
 
 ## Limitiations
 
-- Some datatypes not currently supported:
+- Some datatypes not currently supported. Please file an issue on github
+  if these types are critical for yoy:
   - Complex numbers
   - POSIXlt
   - Matrices of POSIXct / Date

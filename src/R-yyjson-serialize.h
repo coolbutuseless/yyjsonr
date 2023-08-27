@@ -45,3 +45,5 @@ yyjson_mut_val *scalar_rawsxp_to_json_val(SEXP vec_, unsigned int idx, yyjson_mu
 yyjson_mut_val *scalar_factor_to_json_val(SEXP factor_, unsigned int idx,  yyjson_mut_doc *doc, serialize_options *opt);
 yyjson_mut_val *scalar_double_to_json_val(double rdbl, yyjson_mut_doc *doc, serialize_options *opt);
 yyjson_mut_val *scalar_strsxp_to_json_val(SEXP str_, unsigned int idx, yyjson_mut_doc *doc, serialize_options *opt);
+
+yyjson_mut_val *data_frame_row_to_json_object(SEXP df_, unsigned int row, int skip_col, yyjson_mut_doc *doc, serialize_options *opt);

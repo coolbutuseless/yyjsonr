@@ -22,6 +22,8 @@ library(bench)
 library(ggplot2)
 library(tidyr)
 library(ggbeeswarm)
+library(geojsonsf)
+library(sf)
 ```
 
 
@@ -240,6 +242,48 @@ plot(res08) + theme_bw() + theme(legend.position = 'none')
 ```
 
 
+From GeoJSON String
+----------------------------------------------------------------------------
+
+```{r}
+res13 <- bench::mark(
+  geojsonsf    = geojsonsf::geojson_sf(geojsonsf::geo_melbourne),
+  yyjsonr      = yyjsonr::from_geojson_str(geojsonsf::geo_melbourne),
+  check = FALSE
+)
+
+```
+
+```{r echo=FALSE}
+res13$benchmark <- 'from GeoJSON string'
+knitr::kable(res13[,1:5])
+plot(res13) + theme_bw() + theme(legend.position = 'none')
+```
+
+
+To GeoJSON String
+----------------------------------------------------------------------------
+
+```{r}
+sf_obj <- sf::st_read(system.file("shape/nc.shp", package="sf"), quiet = TRUE)
+
+res14 <- bench::mark(
+  geojsonsf    = geojsonsf::sf_geojson(sf_obj),
+  yyjsonr      = yyjsonr::to_geojson_str(sf_obj),
+  check = FALSE
+)
+
+```
+
+```{r echo=FALSE}
+res14$benchmark <- 'to GeoJSON string'
+knitr::kable(res14[,1:5])
+plot(res14) + theme_bw() + theme(legend.position = 'none')
+```
+
+
+
+
 
 Benchmark from `{RcppSimdJson}`
 ----------------------------------------------------------------------------
@@ -350,8 +394,11 @@ Summary
 
 ```{r echo = FALSE, fig.width = 8, fig.height = 6}
 library(dplyr)
-plot_df <- bind_rows(res00, res01, res02, res03, res04, res05,
-                  res06, res07, res08, res09, res10, res11, res12)
+plot_df <- bind_rows(
+  res00, res01, res02, res03, res04, res05,
+  res13, res14, # geojson
+  res06, res07, res08, res09, res10, res11, res12,
+)
 
 plot_df$benchmark <- factor(
   plot_df$benchmark, 
@@ -369,7 +416,7 @@ plot_df <- plot_df %>%
 plot_df <- plot_df %>%
   group_by(benchmark) %>%
   mutate(
-    ref_speed = speed[which(package == 'jsonlite')],
+    ref_speed = speed[which(package %in% c('jsonlite', 'geojsonsf'))],
     speed = speed / ref_speed
   ) %>%
   ungroup()
@@ -377,19 +424,19 @@ plot_df <- plot_df %>%
 ggplot(plot_df) + 
   geom_col(aes(package, speed, fill = package), 
            position = position_dodge2(preserve = "single")) + 
-  facet_wrap(~benchmark, scales = 'free_y') + 
+  facet_wrap(~benchmark, scales = 'free_y', ncol = 3) + 
   theme_bw() + 
   theme(legend.position = 'none') + 
-  scale_fill_manual(values = c(rep(grey(0.5), 4), 'dodgerblue3')) +
+  scale_fill_manual(values = c(rep(grey(0.5), 5), 'dodgerblue3')) +
   geom_hline(yintercept = 1, color = 'red', alpha = 0.5, linetype = 2) + 
   labs(
     x = NULL,
     y = "Factor speed increase over reference implementation",
     title = "Speed-up compared to reference implementation",
-    subtitle = "Red line indicates reference implementation {jsonlite}"
+    subtitle = "Red line indicates reference implementation {jsonlite} or {geojsonsf}"
   )
 
-# ggsave("./man/figures/benchmark-summary.png", width = 14, height = 8)
+# ggsave("./man/figures/benchmark-summary.png", width = 12, height = 10)
 
 ```
 

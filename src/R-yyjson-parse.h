@@ -102,6 +102,10 @@ typedef struct {
   unsigned int yyjson_read_flag;
 } parse_options;
 
+//===========================================================================
+// Number of context characters to print when an error occurs
+//===========================================================================
+#define ERR_CONTEXT 20
 
 parse_options create_parse_options(SEXP parse_opts_);
 SEXP parse_json_from_str(const char *str, parse_options *opt);
@@ -109,7 +113,7 @@ SEXP parse_json_from_str(const char *str, parse_options *opt);
 
 unsigned int update_type_bitset(unsigned int type_bitset, yyjson_val *val, parse_options *opt);
 unsigned int get_best_sexp_to_represent_type_bitset(unsigned int type_bitset, parse_options *opt);
-
+void dump_type_bitset(unsigned int type_bitset);
 
 int32_t json_val_to_logical(yyjson_val *val, parse_options *opt);
 int32_t json_val_to_integer(yyjson_val *val, parse_options *opt);

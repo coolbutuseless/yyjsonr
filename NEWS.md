@@ -1,4 +1,11 @@
 
+# yyjsonr 0.1.4  2023-08-27
+
+* Initial **alpha** GeoJSON support:
+    * `from_geojson_str()`, `from_geojson_file()`
+        * Needs more testing for corner cases
+    * `to_geojson_str()`, `to_geojson_file()`
+        * At a very alpha stage.
 
 # yyjsonr 0.1.3  2023-08-21
 

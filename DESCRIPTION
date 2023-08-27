@@ -1,7 +1,7 @@
 Package: yyjsonr
 Type: Package
-Title: Fast JSON and NDJSON Parsing and Serialisation with 'yyjson'
-Version: 0.1.3
+Title: Fast JSON, GeoJSON and NDJSON Parsing and Serialisation
+Version: 0.1.4
 Authors@R: c(
     person("Mike", "FC", role = c("aut", "cre"), email = "mikefc@coolbutuseless.com"),
     person("Yao", "Yuan", role = "cph", email = "ibireme@gmail.com", 
@@ -17,17 +17,6 @@ Suggests:
     bit64,
     knitr,
     rmarkdown,
-    testthat (>= 3.0.0),
-    RcppSimdJson,
-    bench, 
-    jsonify,
-    jsonlite,
-    nanonext,
-    ndjson,
-    nycflights13,
-    dplyr,
-    ggplot2,
-    tidyr,
-    ggbeeswarm
+    testthat (>= 3.0.0)
 Config/testthat/edition: 3
 VignetteBuilder: knitr

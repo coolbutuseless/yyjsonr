@@ -8,6 +8,10 @@
 to_ndjson_file(x, filename, opts = list(), ...)
 
 to_ndjson_str(x, opts = list(), ...)
+
+to_ndjson_file(x, filename, opts = list(), ...)
+
+to_ndjson_str(x, opts = list(), ...)
 }
 \arguments{
 \item{x}{data.frame or list}
@@ -20,6 +24,8 @@ to_ndjson_str(x, opts = list(), ...)
 The valid named options are identical to arguments to \code{\link[=to_opts]{to_opts()}}}
 }
 \description{
+Write list or data.frame object to ndjson
+
 Write list or data.frame object to ndjson
 }
 \examples{

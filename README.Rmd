@@ -79,6 +79,11 @@ library (version `YYJSON_VERSION_HEX = 0x000700`).
     * `from_json_str()`, `from_json_file()`, `from_json_conn()`, `from_json_raw()`
 * Validate JSON 
     * `validate_json_str()`, `validate_json_file()`
+* Read/Write GeoJSON to/from `{sf}` objects
+    * New in v0.1.4
+    * Currently in an "alpha" state.
+    * `from_geojson_str()`, `from_geojson_file()`
+    * `to_geojson_str()`, `to_geojson_file()`
 * Read in NDJSON 
     * `from_ndjson_file_as_list()`, `from_ndjson_file_as_df()` 
 * `to_opts()`, `from_opts()` construct configuration options for reading/writing
@@ -87,9 +92,9 @@ library (version `YYJSON_VERSION_HEX = 0x000700`).
 
 ### Comparison to other JSON packages
 
-|              | R to JSON | JSON to R | ndjson read | ndjson write | geojson to  `{sf}`|
+|              | R to JSON | JSON to R | ndjson read | ndjson write | geojson to/from  `{sf}`|
 |--------------|-----------|-----------|-------------|--------------|-------------------|
-| yyjsonr      | Fast!     | Fast!     | Fast!       | Fast!        | In progress       |
+| yyjsonr      | Fast!     | Fast!     | Fast!       | Fast!        | Alpha code working       |
 | jsonlite     | Yes       | Yes       | Yes         | Yes          |                   |
 | RcppSimdJson |           | Fast!     |             |              |                   |
 | jsonify      | Yes       | Yes       | Yes         | Yes          |                   |
@@ -99,7 +104,7 @@ library (version `YYJSON_VERSION_HEX = 0x000700`).
 
 <img src="man/figures/benchmark-summary.png">
 
-
+Note: Benchmarks were run on Apple M2 Mac.  See file "man/benchmark/benchmark.Rmd" for details.
 
 ## Installation
 
@@ -189,7 +194,8 @@ yyjsonr::from_json_str(str)
     
 ## Limitiations
 
-* Some datatypes not currently supported:
+* Some datatypes not currently supported. Please file an issue on github if
+  these types are critical for yoy:
     * Complex numbers
     * POSIXlt
     * Matrices of POSIXct / Date
