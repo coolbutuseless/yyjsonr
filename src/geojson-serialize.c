@@ -78,15 +78,18 @@ yyjson_mut_val *serialize_geom(SEXP sf_, yyjson_mut_doc *doc, geo_serialize_opti
   } else if (inherits(sf_, "MULTIPOINT")) {
     yyjson_mut_obj_add_str(doc, obj, "type", "MultiPoint");
   } else if (inherits(sf_, "LINESTRING")) {
-    yyjson_mut_obj_add_str(doc, obj, "type", "Linestring");
+    yyjson_mut_obj_add_str(doc, obj, "type", "LineString");
   } else if (inherits(sf_, "MULTILINESTRING")) {
-    yyjson_mut_obj_add_str(doc, obj, "type", "MultiLinestring");
+    yyjson_mut_obj_add_str(doc, obj, "type", "MultiLineString");
   } else if (inherits(sf_, "POLYGON")) {
     yyjson_mut_obj_add_str(doc, obj, "type", "Polygon");
   } else if (inherits(sf_, "MULTIPOLYGON")) {
     yyjson_mut_obj_add_str(doc, obj, "type", "MultiPolygon");
+  } else if (inherits(sf_, "GEOMETRYCOLLECTION")) {
+    Rprintf("@@@@@@@ GeometryCollection\n");
+    yyjson_mut_obj_add_str(doc, obj, "type", "GeometryCollection");
   } else {
-    error("@@@@@@@ serialize_geom Issue\n");
+    error("@@@@@@@ serialize_geom Issue. Unhandled geometry type\n");
   }
   
   yyjson_mut_val *key = yyjson_mut_str(doc, "coordinates");

@@ -338,7 +338,9 @@ SEXP parse_coords_as_matrix(yyjson_val *arr, unsigned int coord_type, geo_parse_
 // Parse multiple matrices into a list 
 // Used for polygon and multipolygon
 //~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
-SEXP parse_coords_as_matrix_list(yyjson_val *arr, geo_parse_options *opt) {
+SEXP parse_coords_as_matrix_list(yyjson_val *arr, 
+                                 unsigned int *accumulated_coord_type, 
+                                 geo_parse_options *opt) {
   unsigned int nrings = yyjson_get_len(arr);
   
   SEXP ll_ = PROTECT(allocVector(VECSXP, nrings)); 
@@ -346,16 +348,18 @@ SEXP parse_coords_as_matrix_list(yyjson_val *arr, geo_parse_options *opt) {
   yyjson_arr_iter ring_iter = yyjson_arr_iter_with(arr);
   yyjson_val *coords;
   unsigned int ring_idx = 0;
+  unsigned int coord_type = COORD_XY;
   while ((coords = yyjson_arr_iter_next(&ring_iter))) {
     
-    
-    unsigned int coord_type = calc_matrix_coord_type(coords, opt);
+    coord_type = calc_matrix_coord_type(coords, opt);
     SEXP mat_ = PROTECT(parse_coords_as_matrix(coords, coord_type, opt));
     SET_VECTOR_ELT(ll_, ring_idx, mat_);
     
     UNPROTECT(1);
     ring_idx++;
   }
+  
+  *accumulated_coord_type = coord_type;
   
   UNPROTECT(1);
   return ll_;
@@ -469,7 +473,7 @@ SEXP parse_linestring(yyjson_val *obj, geo_parse_options *opt) {
   // Class
   //~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
   SEXP nms_ = PROTECT(allocVector(STRSXP, 3));
-  SET_STRING_ELT(nms_, 0, mkChar("XY"));
+  SET_STRING_ELT(nms_, 0, mkChar(COORD_SYSTEM[coord_type]));
   SET_STRING_ELT(nms_, 1, mkChar("LINESTRING"));
   SET_STRING_ELT(nms_, 2, mkChar("sfg"));
   setAttrib(mat_, R_ClassSymbol, nms_);
@@ -493,9 +497,10 @@ SEXP parse_multilinestring(yyjson_val *obj, geo_parse_options *opt) {
   yyjson_arr_iter ring_iter = yyjson_arr_iter_with(linestrings);
   yyjson_val *coords;
   unsigned int ring_idx = 0;
+  unsigned int coord_type;
   while ((coords = yyjson_arr_iter_next(&ring_iter))) {
     
-    unsigned int coord_type = calc_matrix_coord_type(coords, opt);
+    coord_type = calc_matrix_coord_type(coords, opt);
     SEXP mat_ = PROTECT(parse_coords_as_matrix(coords, coord_type, opt));
     SET_VECTOR_ELT(ll_, ring_idx, mat_);
     
@@ -507,7 +512,7 @@ SEXP parse_multilinestring(yyjson_val *obj, geo_parse_options *opt) {
   // Class
   //~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
   SEXP nms_ = PROTECT(allocVector(STRSXP, 3)); 
-  SET_STRING_ELT(nms_, 0, mkChar("XY"));
+  SET_STRING_ELT(nms_, 0, mkChar(COORD_SYSTEM[coord_type]));
   SET_STRING_ELT(nms_, 1, mkChar("MULTILINESTRING"));
   SET_STRING_ELT(nms_, 2, mkChar("sfg"));
   setAttrib(ll_, R_ClassSymbol, nms_);
@@ -524,13 +529,15 @@ SEXP parse_polygon(yyjson_val *obj, geo_parse_options *opt) {
   
   yyjson_val *coords = yyjson_obj_get(obj, "coordinates");
   
-  SEXP ll_ = PROTECT(parse_coords_as_matrix_list(coords, opt));
+  unsigned int coord_type = COORD_XY;
+  SEXP ll_ = PROTECT(parse_coords_as_matrix_list(coords, &coord_type, 
+                                                 opt));
   
   //~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
   // Class
   //~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
   SEXP nms_ = PROTECT(allocVector(STRSXP, 3)); 
-  SET_STRING_ELT(nms_, 0, mkChar("XY"));
+  SET_STRING_ELT(nms_, 0, mkChar(COORD_SYSTEM[coord_type]));
   SET_STRING_ELT(nms_, 1, mkChar("POLYGON"));
   SET_STRING_ELT(nms_, 2, mkChar("sfg"));
   setAttrib(ll_, R_ClassSymbol, nms_);
@@ -554,9 +561,11 @@ SEXP parse_multipolygon(yyjson_val *obj, geo_parse_options *opt) {
   yyjson_arr_iter ring_iter = yyjson_arr_iter_with(polygons);
   yyjson_val *coords;
   unsigned int polygon_idx = 0;
+  unsigned int coord_type = COORD_XY;
   while ((coords = yyjson_arr_iter_next(&ring_iter))) {
     
-    SEXP inner_ = PROTECT(parse_coords_as_matrix_list(coords, opt));
+    SEXP inner_ = PROTECT(parse_coords_as_matrix_list(coords, &coord_type, 
+                                                      opt));
     SET_VECTOR_ELT(ll_, polygon_idx, inner_);
     
     UNPROTECT(1);
@@ -567,7 +576,7 @@ SEXP parse_multipolygon(yyjson_val *obj, geo_parse_options *opt) {
   // Class
   //~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
   SEXP nms_ = PROTECT(allocVector(STRSXP, 3)); 
-  SET_STRING_ELT(nms_, 0, mkChar("XY"));
+  SET_STRING_ELT(nms_, 0, mkChar(COORD_SYSTEM[coord_type]));
   SET_STRING_ELT(nms_, 1, mkChar("MULTIPOLYGON"));
   SET_STRING_ELT(nms_, 2, mkChar("sfg"));
   setAttrib(ll_, R_ClassSymbol, nms_);
@@ -1050,6 +1059,14 @@ SEXP parse_feature_collection_geometry(yyjson_val *features, geo_parse_options *
   
   setAttrib(geom_col_, mkString("precision"), ScalarReal(0));
   setAttrib(geom_col_, mkString("bbox"), make_bbox(opt));
+  
+  if (needs_z_range(opt)) {
+    setAttrib(geom_col_, mkString("z_range"), make_z_range(opt));
+  }
+  
+  if (needs_m_range(opt)) {
+    setAttrib(geom_col_, mkString("m_range"), make_m_range(opt));
+  }
   
   UNPROTECT(nprotect);
   return geom_col_;

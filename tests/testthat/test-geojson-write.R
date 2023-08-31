@@ -109,6 +109,57 @@ test_that("Basic sf-to-geojson works", {
 })
 
 
+if (testthat::is_testing()) {
+  examples_dir <- "./geojson"
+} else {
+  # manually running during development
+  examples_dir <- "tests/testthat/geojson"
+}
+
+
+#~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+#' Determine list of JSON files to test
+#~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+json_files <- list.files(examples_dir, pattern = "json$", full.names = TRUE)
+
+json <- lapply(json_files, function(x) {
+  paste(readLines(x), collapse = "\n")
+})
+names(json) <- basename(tools::file_path_sans_ext(json_files))
+
+
+#~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+#' Re-introduce these tests after basics are working
+#~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+json$`geometry-collection` <- NULL
+json$`standard-example`    <- NULL
+json[grepl("proper", names(json))] <- NULL
+
+# json <- json['coord-class-linestring-xyz']
+# i <- 1
+
+test_that("Basic writing works for lots of different geojson", {
+  
+  for (i in seq_along(json)) {
+    # cat(names(json)[i], "\n")
+    flush.console()
+    js1 <- json[[i]]
+    
+    geojson0 <- geojsonsf::geojson_sf(js1)
+    geojson1 <- from_geojson_str(js1)
+
+    js2 <- to_geojson_str(geojson1)
+    geojson2 <- from_geojson_str(js2)
+    
+    # expect_equal(geojson1, geojson2, label = names(json)[i], ignore_attr = TRUE)
+    expect_equal(geojson1, geojson2, label = names(json)[i], ignore_attr = FALSE)
+  }
+})
+
+
+
+
+
 
 # if (FALSE) {
 #   library(sf)

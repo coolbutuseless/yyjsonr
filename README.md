@@ -54,26 +54,26 @@ more details.
 
 ### What’s in the box
 
-- Write R objects to JSON
-  - `to_json_str()`, `to_json_file()`
-- Read in JSON as R objects
+- Read/Write JSON as R objects
   - `from_json_str()`, `from_json_file()`, `from_json_conn()`,
     `from_json_raw()`
+  - `to_json_str()`, `to_json_file()`
 - Validate JSON
   - `validate_json_str()`, `validate_json_file()`
 - Read/Write GeoJSON to/from `{sf}` objects
   - `from_geojson_str()`, `from_geojson_file()`
   - `to_geojson_str()`, `to_geojson_file()`
-- Read in NDJSON
+- Read/Write NDJSON
   - `from_ndjson_file_as_list()`, `from_ndjson_file_as_df()`
-- `to_opts()`, `from_opts()` construct configuration options for
-  reading/writing JSON
+  - `to_ndjson_file()`, `to_ndjson_str()`
+- Construct configuration options for reading/writing JSON
+  - `to_opts()`, `from_opts()`
 
 ### Comparison to other JSON packages
 
 |              | R to JSON | JSON to R | ndjson read | ndjson write | geojson to/from `{sf}` |
 |--------------|-----------|-----------|-------------|--------------|------------------------|
-| yyjsonr      | Fast!     | Fast!     | Fast!       | Fast!        | Alpha code working     |
+| yyjsonr      | Fast!     | Fast!     | Fast!       | Fast!        | Fast!                  |
 | jsonlite     | Yes       | Yes       | Yes         | Yes          |                        |
 | RcppSimdJson |           | Fast!     |             |              |                        |
 | jsonify      | Yes       | Yes       | Yes         | Yes          |                        |
@@ -81,6 +81,9 @@ more details.
 | geojsonsf    |           |           |             |              | Yes                    |
 
 <img src="man/figures/benchmark-summary.png">
+
+Note: Benchmarks were run on Apple M2 Mac. See file
+“man/benchmark/benchmark.Rmd” for details.
 
 ## Installation
 

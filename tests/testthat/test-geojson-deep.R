@@ -41,6 +41,7 @@ expect_same_attributes <- function(tst, ref, ignore = c("names"),
 #    - each matching item in the list has the same contents
 #~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 expect_same_contents.list <- function(tst, ref, label = "list") {
+  # cat("^^^^^^^^^^^^^^^^ list\n")
   
   expect_equal(length(tst), length(ref), label = label)
   expect_same_names(tst, ref, label)
@@ -67,6 +68,13 @@ expect_same_contents.list <- function(tst, ref, label = "list") {
 #   - attributes are the same
 #~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 expect_same_contents.default <- function(tst, ref, label = "default") {
+  
+  if (is.list(tst)) {
+    expect_same_contents.list(tst, ref, label = label)
+    return()
+  }
+  
+  # cat("^^^^^^^^^^^ default\n")
   expect_same_attributes(tst, ref, label = label)
   
   if (is.character(tst)) {
@@ -214,7 +222,7 @@ test_that("Compare input to geojsonsf", {
 #   )
 # }
 
-
+ 
 
 
 

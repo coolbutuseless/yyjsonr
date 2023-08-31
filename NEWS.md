@@ -1,4 +1,11 @@
 
+
+# yyjsonr 0.1.5  2023-08-31
+
+* Bug fix for checking attributes on list columns.  This surfaced more
+  errors to do with setting XYZ geometry type.
+* More extensive testing of `to_geojson_str()`
+
 # yyjsonr 0.1.4  2023-08-27
 
 * Initial **alpha** GeoJSON support:
