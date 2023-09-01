@@ -145,7 +145,7 @@ test_that("Basic writing works for lots of different geojson", {
     flush.console()
     js1 <- json[[i]]
     
-    geojson0 <- geojsonsf::geojson_sf(js1)
+    # geojson0 <- geojsonsf::geojson_sf(js1)
     geojson1 <- from_geojson_str(js1)
 
     js2 <- to_geojson_str(geojson1)
