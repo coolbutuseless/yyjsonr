@@ -12,7 +12,7 @@ yyjsonr
 <!-- badges: end -->
 
 `{yyjsonr}` is a fast JSON parser/serializer, which converts R data
-to/from JSON and NDJSON.
+to/from JSON, GeoJSON and NDJSON.
 
 In most cases it is around 2x to 10x faster than `{jsonlite}` at both
 reading and writing JSON.
@@ -140,33 +140,6 @@ from_json_str(str)
 Numeric conversion is handled within the `yyjson` C library and is not
 configuraable.
 
-## Numeric types retained in presence of other strings
-
-`{yyjsonr}` does not promote numeric values in arrays to strings if the
-array contains a string. Instead the R container is promoted to a
-`list()` in order to retain original types.
-
-Note: this could be controlled by a flag if desired. Open an issue and
-let me know what you need!
-
-``` r
-json <- '[1,2,3,"apple"]'
-jsonlite::fromJSON(json)
-#> [1] "1"     "2"     "3"     "apple"
-yyjsonr::from_json_str(json)
-#> [[1]]
-#> [1] 1
-#> 
-#> [[2]]
-#> [1] 2
-#> 
-#> [[3]]
-#> [1] 3
-#> 
-#> [[4]]
-#> [1] "apple"
-```
-
 ## 3-d arrays are parsed as multiple 2-d matrices and combined
 
 In `{yyjsonr}` the order in which elements in an array are serialized to
@@ -178,7 +151,11 @@ consistent within each package, but not cross-compatible between them
 i.e. you cannot serialize an array in `{yyjsonr}` and re-create it
 exactly using `{jsonlite}`.
 
+The matrix handling in `{yyjsonr}` is compatible with the expectationf
+os GeoJSON coordinate handling.
+
 ``` r
+# A simple 3D array 
 mat <- array(1:12, dim = c(2,3,2))
 mat
 #> , , 1
@@ -192,10 +169,25 @@ mat
 #>      [,1] [,2] [,3]
 #> [1,]    7    9   11
 #> [2,]    8   10   12
+```
 
-str <- jsonlite::toJSON(mat)
-str
-#> [[[1,7],[3,9],[5,11]],[[2,8],[4,10],[6,12]]]
+``` r
+# jsonlite's serialization of matrices is internally consistent and re-parses
+# to the initial matrix.
+str <- jsonlite::toJSON(mat, pretty = TRUE)
+cat(str)
+#> [
+#>   [
+#>     [1, 7],
+#>     [3, 9],
+#>     [5, 11]
+#>   ],
+#>   [
+#>     [2, 8],
+#>     [4, 10],
+#>     [6, 12]
+#>   ]
+#> ]
 jsonlite::fromJSON(str)
 #> , , 1
 #> 
@@ -208,11 +200,40 @@ jsonlite::fromJSON(str)
 #>      [,1] [,2] [,3]
 #> [1,]    7    9   11
 #> [2,]    8   10   12
+```
 
-
-str <- yyjsonr::to_json_str(mat)
-str
-#> [1] "[[[1,3,5],[2,4,6]],[[7,9,11],[8,10,12]]]"
+``` r
+# yyjsonr's serialization of matrices is internally consistent and re-parses
+# to the initial matrix.
+# But note that it is *different* to what jsonlite does.
+str <- yyjsonr::to_json_str(mat, pretty = TRUE)
+cat(str)
+#> [
+#>   [
+#>     [
+#>       1,
+#>       3,
+#>       5
+#>     ],
+#>     [
+#>       2,
+#>       4,
+#>       6
+#>     ]
+#>   ],
+#>   [
+#>     [
+#>       7,
+#>       9,
+#>       11
+#>     ],
+#>     [
+#>       8,
+#>       10,
+#>       12
+#>     ]
+#>   ]
+#> ]
 yyjsonr::from_json_str(str)
 #> , , 1
 #> 

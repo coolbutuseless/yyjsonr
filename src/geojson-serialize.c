@@ -28,7 +28,7 @@ typedef struct {
 //~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 geo_serialize_options create_geo_serialize_options(SEXP to_geo_opts_) {
   geo_serialize_options opt = {
-    .yyjson_write_flag = 0,
+    .yyjson_write_flag = YYJSON_WRITE_PRETTY,
   };
   
   if (isNull(to_geo_opts_) || length(to_geo_opts_) == 0) {
@@ -73,6 +73,8 @@ yyjson_mut_val *serialize_geom(SEXP sf_, yyjson_mut_doc *doc, geo_serialize_opti
   
   yyjson_mut_val *obj = yyjson_mut_obj(doc);
   
+  bool geom_collection = false;
+  
   if (inherits(sf_, "POINT")) {
     yyjson_mut_obj_add_str(doc, obj, "type", "Point");
   } else if (inherits(sf_, "MULTIPOINT")) {
@@ -86,14 +88,35 @@ yyjson_mut_val *serialize_geom(SEXP sf_, yyjson_mut_doc *doc, geo_serialize_opti
   } else if (inherits(sf_, "MULTIPOLYGON")) {
     yyjson_mut_obj_add_str(doc, obj, "type", "MultiPolygon");
   } else if (inherits(sf_, "GEOMETRYCOLLECTION")) {
-    Rprintf("@@@@@@@ GeometryCollection\n");
+    geom_collection = true;
     yyjson_mut_obj_add_str(doc, obj, "type", "GeometryCollection");
   } else {
     error("@@@@@@@ serialize_geom Issue. Unhandled geometry type\n");
   }
   
-  yyjson_mut_val *key = yyjson_mut_str(doc, "coordinates");
-  yyjson_mut_obj_add(obj, key, serialize_core(sf_, doc, opt->serialize_opt));
+  
+  if (!geom_collection) {
+    yyjson_mut_val *key = yyjson_mut_str(doc, "coordinates");
+    yyjson_mut_obj_add(obj, key, serialize_core(sf_, doc, opt->serialize_opt));
+  } else{
+    
+    if (!isNewList(sf_)) {
+      error("Expecting geomcollection to be a VECSXP not: %s", type2char(TYPEOF(sf_)));
+    }
+    
+    // An array of geoms
+    yyjson_mut_val *geoms = yyjson_mut_arr(doc);
+    
+    // Unpack each element of the 'sf_' list as a geom and add to the array
+    for (unsigned int i = 0; i < length(sf_); i++) {
+      yyjson_mut_val *geom = serialize_geom(VECTOR_ELT(sf_, i), doc, opt);
+      yyjson_mut_arr_add_val(geoms, geom);
+    }
+    
+    yyjson_mut_val *key = yyjson_mut_str(doc, "geometries");
+    yyjson_mut_obj_add(obj, key, geoms);
+  }
+  
   
   return obj;
 }

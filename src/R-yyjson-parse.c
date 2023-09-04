@@ -20,12 +20,13 @@
 parse_options create_parse_options(SEXP parse_opts_) {
   
   parse_options opt = {
-    .int64              = INT64_AS_STR,
-    .missing_list_elem  = MISSING_AS_NULL,
-    .vectors_to_df      = true,
-    .str_specials       = STR_SPECIALS_AS_STRING,
-    .num_specials       = NUM_SPECIALS_AS_SPECIAL,
-    .yyjson_read_flag   = 0
+    .int64                 = INT64_AS_STR,
+    .missing_list_elem     = MISSING_AS_NULL,
+    .vectors_to_df         = true,
+    .str_specials          = STR_SPECIALS_AS_STRING,
+    .num_specials          = NUM_SPECIALS_AS_SPECIAL,
+    .promote_num_to_string = false,
+    .yyjson_read_flag      = 0
   };
   
   if (isNull(parse_opts_) || length(parse_opts_) == 0) {
@@ -63,6 +64,8 @@ parse_options create_parse_options(SEXP parse_opts_) {
     } else if (strcmp(opt_name, "num_specials") == 0) {
       const char *val = CHAR(STRING_ELT(val_, 0));
       opt.num_specials = strcmp(val, "string") == 0 ? NUM_SPECIALS_AS_STRING : NUM_SPECIALS_AS_SPECIAL;
+    } else if (strcmp(opt_name, "promote_num_to_string") == 0) {
+      opt.promote_num_to_string = asLogical(val_);
     } else {
       warning("Unknown option ignored: '%s'\n", opt_name);
     }
@@ -407,7 +410,9 @@ unsigned int get_best_sexp_to_represent_type_bitset(unsigned int type_bitset, pa
   // String
   //~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
   if ((type_bitset & VAL_STR) | (type_bitset & VAL_STR_INT)) {
-    if (type_bitset & (VAL_NONE | VAL_RAW | VAL_BOOL | VAL_INT | VAL_REAL | VAL_ARR | VAL_OBJ | VAL_INT64)) {
+    if ( opt->promote_num_to_string && (type_bitset & (VAL_REAL | VAL_INT | VAL_BOOL)) && !(type_bitset & (VAL_NONE | VAL_RAW | VAL_ARR | VAL_OBJ))) {
+      return STRSXP;
+    } else if (type_bitset & (VAL_NONE | VAL_RAW | VAL_BOOL | VAL_INT | VAL_REAL | VAL_ARR | VAL_OBJ | VAL_INT64)) {
       return VECSXP;
     } else {
       return STRSXP;

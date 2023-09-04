@@ -21,6 +21,37 @@ suppressPackageStartupMessages({
 })
 ```
 
+
+Mixture of numeric and string types
+-----------------------------------------------------------------------------
+
+```{r}
+# a JSON array of mixed string and numeric types
+json <- '[1,2,3,"apple"]'
+```
+
+
+```{r}
+# jsonlite returns an atomic character vector (by default)
+jsonlite::fromJSON(json)
+```
+
+
+```{r}
+# yyjsonr can behave the same as jsonlite's default
+yyjsonr::from_json_str(json, promote_num_to_string = TRUE)
+```
+
+
+```{r}
+# Keep all types as-is and return as a list
+yyjsonr::from_json_str(json, promote_num_to_string = FALSE)
+```
+
+
+
+
+
 Large integers
 -----------------------------------------------------------------------------
 

@@ -99,6 +99,7 @@ typedef struct {
   bool vectors_to_df;
   unsigned int str_specials;
   unsigned int num_specials;
+  bool promote_num_to_string;
   unsigned int yyjson_read_flag;
 } parse_options;
 

@@ -10,6 +10,7 @@ from_opts(
   vectors_to_df = TRUE,
   str_specials = c("string", "special"),
   num_specials = c("special", "string"),
+  promote_num_to_string = FALSE,
   yyjson_read_flag = 0L
 )
 }
@@ -34,6 +35,14 @@ result will be left as a list.}
 \item{num_specials}{Should jsong strings 'NA'/'Inf'/'NaN' in a numeric context
 be converted to the \code{'special'} R numeric values
 \code{NA, Inf, NaN}, or left as a \code{'string'}. Default: 'special'}
+
+\item{promote_num_to_string}{Should numeric values be promoted to strings
+when they occur within an array with other string values?  Default: FALSE
+means to keep numerics as numeric value and promote the \emph{container} to
+be a \code{list} rather than an atomic vector when types are mixed.  If \code{TRUE}
+then array of mixed string/numeric types will be promoted to all
+string values and returned as an atonic character vector.  Set this to \code{TRUE}
+if you want to emulate the behaviour of \code{jsonlite::fromJSON()}}
 
 \item{yyjson_read_flag}{integer vector of internal \code{yyjson}
 options.  See \code{read_flag} in this package, and read

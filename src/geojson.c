@@ -733,6 +733,32 @@ SEXP prop_to_vecsxp(yyjson_val *features, char *prop_name, geo_parse_options *op
 }
 
 
+
+//~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+// Parse a property as a INTSXP from a feature collection
+//~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+SEXP prop_to_lglsxp(yyjson_val *features, char *prop_name, geo_parse_options *opt) {
+  unsigned int N = yyjson_get_len(features);
+  SEXP vec_ = PROTECT(allocVector(LGLSXP, N)); 
+  int *ptr = INTEGER(vec_);
+  
+  yyjson_arr_iter feature_iter = yyjson_arr_iter_with(features);
+  yyjson_val *feature_obj;
+  while ((feature_obj = yyjson_arr_iter_next(&feature_iter))) {
+    yyjson_val *props_obj = yyjson_obj_get(feature_obj, "properties");
+    yyjson_val *prop_val  = yyjson_obj_get(props_obj, prop_name);
+    if (prop_val == NULL) {
+      *ptr++ = NA_INTEGER;
+    } else {
+      *ptr++ = yyjson_get_bool(prop_val);
+    }
+  }
+  
+  UNPROTECT(1);
+  return vec_;
+}
+
+
 //~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 // Parse a property as a INTSXP from a feature collection
 //~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
@@ -1007,6 +1033,9 @@ SEXP parse_feature_collection_geometry(yyjson_val *features, geo_parse_options *
     } else if (yyjson_equals_str(geom_type, "MultiPolygon")) {
       sf_type_bitset |= SF_MULTIPOLYGON;
       SET_STRING_ELT(geom_classes_, feature_idx, mkChar("MULTIPOLYGON"));
+    } else if (yyjson_equals_str(geom_type, "GeometryCollection")) {
+      sf_type_bitset |= SF_GEOMETRY_COLLECTION;
+      SET_STRING_ELT(geom_classes_, feature_idx, mkChar("GEOMETRYCOLLECTION"));
     } else {
       SET_STRING_ELT(geom_classes_, feature_idx, mkChar("UNKNOWN"));
     }
@@ -1192,9 +1221,9 @@ SEXP parse_feature_collection(yyjson_val *obj, geo_parse_options *opt) {
     }
     
     switch (sexp_type) {
-    // case LGLSXP:
-    //   SET_VECTOR_ELT(df_, idx, prop_to_lglsxp(features, prop_names[idx], opt));
-    //   break;
+    case LGLSXP:
+      SET_VECTOR_ELT(df_, idx, prop_to_lglsxp(features, prop_names[idx], opt));
+      break;
     case INTSXP:
       SET_VECTOR_ELT(df_, idx, prop_to_intsxp(features, prop_names[idx], opt));
       break;
@@ -1377,7 +1406,8 @@ SEXP parse_geometry_collection(yyjson_val *obj, geo_parse_options *opt) {
   
   yyjson_val *geoms = yyjson_obj_get(obj, "geometries");
   if (!yyjson_is_arr(geoms)) {
-    error("Expecting GeomCollection::geometries to be an array");
+    error("Expecting GeomCollection::geometries to be an array. not %s", 
+          yyjson_get_type_desc(geoms));
   }
   unsigned int ngeoms = yyjson_get_len(geoms);
   

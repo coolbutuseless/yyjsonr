@@ -1,4 +1,11 @@
 
+# yyjsonr 0.1.6 2023-09-04
+
+* FEATURE: Added `promote_num_to_string` in `from_opts()` to enable 
+  forced promotion of numerics to string
+* BUGFIX: fixes for handling of geometry collection when reading and writing.
+* TESTING: More tests included for output to geojson
+* TESTING: Refactored testing of 'sf' objects
 
 # yyjsonr 0.1.5  2023-08-31
 

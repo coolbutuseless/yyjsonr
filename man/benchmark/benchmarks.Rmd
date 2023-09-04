@@ -301,7 +301,7 @@ res09 <- bench::mark(
 ```
 
 ```{r echo=FALSE}
-res09$benchmark <- 'Rcppsimdjson'
+res09$benchmark <- 'Rcppsimdjson benchmark'
 knitr::kable(res09[, 1:5])
 plot(res09) + theme_bw() + theme(legend.position = 'none')
 ```
@@ -328,7 +328,7 @@ res10 <- bench::mark(
 ```
 
 ```{r echo=FALSE}
-res10$benchmark <- 'jsonify (1)'
+res10$benchmark <- 'jsonify benchmark (1)'
 knitr::kable(res10[,1:5])
 plot(res10) + theme_bw() + theme(legend.position = 'none')
 ```
@@ -360,7 +360,7 @@ res11 <- bench::mark(
 ```
 
 ```{r echo=FALSE}
-res11$benchmark <- 'jsonify (2)'
+res11$benchmark <- 'jsonify benchmark (2)'
 knitr::kable(res11[,1:5])
 plot(res11) + theme_bw() + theme(legend.position = 'none')
 ```
@@ -383,7 +383,7 @@ res12 <- bench::mark(
 ```
 
 ```{r echo=FALSE}
-res12$benchmark <- 'jsonify (3)'
+res12$benchmark <- 'jsonify benchmark (3)'
 knitr::kable(res12[,1:5])
 plot(res12) + theme_bw() + theme(legend.position = 'none')
 ```
