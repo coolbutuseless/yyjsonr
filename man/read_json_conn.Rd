@@ -34,9 +34,9 @@ read_json_conn(url("https://api.github.com/users/hadley/repos"))
 }
 \seealso{
 Other JSON Parsers: 
-\code{\link{from_ndjson_file_as_df}()},
 \code{\link{read_json_file}()},
 \code{\link{read_json_raw}()},
-\code{\link{read_json_str}()}
+\code{\link{read_json_str}()},
+\code{\link{read_ndjson_file}()}
 }
 \concept{JSON Parsers}

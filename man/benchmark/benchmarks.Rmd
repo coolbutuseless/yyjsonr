@@ -183,7 +183,7 @@ res06 <- bench::mark(
   ndjson   = ndjson::stream_in(ndjson_filename),
   jsonlite = jsonlite::stream_in(file(ndjson_filename), verbose = FALSE),
   jsonify  = jsonify::from_ndjson(ndjson_filename),
-  yyjsonr  = yyjsonr::from_ndjson_file_as_df  (ndjson_filename),
+  yyjsonr  = yyjsonr::read_ndjson_file  (ndjson_filename),
   check = FALSE
 )
 ```
@@ -206,7 +206,7 @@ df <- head( nycflights13::flights, 1000)
 
 res07 <- bench::mark(
   jsonlite = jsonlite::stream_out(df, file(ndjson_filename), verbose = FALSE),
-  yyjsonr  = yyjsonr::to_ndjson_file(df, ndjson_filename),
+  yyjsonr  = yyjsonr::write_ndjson_file(df, ndjson_filename),
   check = FALSE
 )
 ```
@@ -230,7 +230,7 @@ df <- head( nycflights13::flights, 1000)
 res08 <- bench::mark(
   jsonify  = jsonify::to_ndjson(df),
   jsonlite = jsonlite::stream_out(df, con = textConnection(NULL, "w"), name = "greg", local = TRUE),
-  yyjsonr  = yyjsonr::to_ndjson_str(df),
+  yyjsonr  = yyjsonr::write_ndjson_str(df),
   check = FALSE
 )
 ```

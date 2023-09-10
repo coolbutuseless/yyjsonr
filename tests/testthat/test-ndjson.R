@@ -16,22 +16,22 @@ if (FALSE) {
 #~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 test_that("ndjson works", {
   
-  nd  <- from_ndjson_file_as_df("./examples/iris.ndjson")
-  ndz <- from_ndjson_file_as_df("./examples/iris.ndjson.gz")
+  nd  <- read_ndjson_file("./examples/iris.ndjson", type = 'df')
+  ndz <- read_ndjson_file("./examples/iris.ndjson.gz", type = 'df')
   
   expect_identical(nd , ref)  
   expect_identical(ndz, ref)  
   expect_identical(nd , ndz)
   
   
-  ndl  <- from_ndjson_file_as_list("./examples/iris.ndjson")
+  ndl  <- read_ndjson_file("./examples/iris.ndjson", type = 'list')
   expect_length(ndl, 150)
   lens <- lengths(ndl)
   expect_equal(lens, rep(5, 150))
   
   
   
-  nd  <- from_ndjson_file_as_df("./examples/iris.ndjson", nprobe = 2, 
+  nd  <- read_ndjson_file("./examples/iris.ndjson", nprobe = 2, 
                                 nskip = 10, nread = 10)
   ref2 <- ref[11:20,]
   rownames(ref2) <- NULL
@@ -39,48 +39,48 @@ test_that("ndjson works", {
   
   
   
-  nd  <- from_ndjson_file_as_list("./examples/iris.ndjson",
+  nd  <- read_ndjson_file("./examples/iris.ndjson", type = 'list',
                                 nskip = 10, nread = 10)
   expect_length(nd, 10)  
-  expect_error(from_ndjson_file_as_list("does_not_exist.txt"))
+  expect_error(read_ndjson_file("does_not_exist.txt"))
 })
 
 
 #~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 # Serialize
 #~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
-test_that("to_ndjson_file df works", {
+test_that("write_ndjson_file df works", {
   file <- tempfile()
-  to_ndjson_file(iris, file)
-  res <- from_ndjson_file_as_df(file)  
+  write_ndjson_file(iris, file)
+  res <- read_ndjson_file(file)  
   expect_identical(res, ref)
   
-  res <- from_ndjson_file_as_list(file)
+  res <- read_ndjson_file(file, type = 'list')
   expect_identical(res, tref)
 })
  
 
-test_that("to_ndjson_str df works", {
+test_that("write_ndjson_str df works", {
   file <- tempfile()
-  to_ndjson_file(iris, file)
-  ref <- to_ndjson_str(iris)
+  write_ndjson_file(iris, file)
+  ref <- write_ndjson_str(iris)
   res <- paste(readLines(file), collapse = "\n")  
   expect_identical(res, ref)
 })
 
-test_that("to_ndjson_file list works", {
+test_that("write_ndjson_file list works", {
   file <- tempfile()
-  to_ndjson_file(tref, file)
-  res <- from_ndjson_file_as_list(file)  
+  write_ndjson_file(tref, file)
+  res <- read_ndjson_file(file, type = 'list')  
   expect_identical(res, tref)
 })
 
 
 
-test_that("to_ndjson_str list works", {
+test_that("write_ndjson_str list works", {
   file <- tempfile()
-  to_ndjson_file(tref, file)
-  ref <- to_ndjson_str(tref)
+  write_ndjson_file(tref, file)
+  ref <- write_ndjson_str(tref)
   res <- paste(readLines(file), collapse = "\n")  
   expect_identical(res, ref)
 })

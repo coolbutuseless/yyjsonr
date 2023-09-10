@@ -28,9 +28,9 @@ read_json_file("myfile.json")
 }
 \seealso{
 Other JSON Parsers: 
-\code{\link{from_ndjson_file_as_df}()},
 \code{\link{read_json_conn}()},
 \code{\link{read_json_raw}()},
-\code{\link{read_json_str}()}
+\code{\link{read_json_str}()},
+\code{\link{read_ndjson_file}()}
 }
 \concept{JSON Parsers}

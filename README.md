@@ -64,8 +64,8 @@ more details.
   - `from_geojson_str()`, `from_geojson_file()`
   - `to_geojson_str()`, `to_geojson_file()`
 - Read/Write NDJSON
-  - `from_ndjson_file_as_list()`, `from_ndjson_file_as_df()`
-  - `to_ndjson_file()`, `to_ndjson_str()`
+  - `read_ndjson_file()`, `read_ndjson_file()`
+  - `write_ndjson_file()`, `write_ndjson_str()`
 - Construct configuration options for reading/writing JSON
   - `to_opts()`, `from_opts()`
 
