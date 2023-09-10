@@ -55,7 +55,7 @@ Create named list of options for serializing R to JSON
 }
 \examples{
 \dontrun{
-to_json_str(iris, opts = to_opts(factor = 'integer'))
+write_json_str(iris, opts = to_opts(factor = 'integer'))
 }
 
 

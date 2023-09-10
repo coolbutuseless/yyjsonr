@@ -11,14 +11,14 @@
 #'
 #' @examples
 #' \dontrun{
-#' from_json_str(str, opts = parse_opts(int64 = 'string'))
+#' read_json_str(str, opts = parse_opts(int64 = 'string'))
 #' }
 #' 
 #' @family JSON Parsers
 #' @return R object
 #' @export
 #~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
-from_json_str <- function(str, opts = list(), ...) {
+read_json_str <- function(str, opts = list(), ...) {
   .Call(
     parse_from_str_, 
     str, 
@@ -29,21 +29,21 @@ from_json_str <- function(str, opts = list(), ...) {
 #~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 #' Convert JSON in a raw vector to R
 #' 
-#' @inheritParams from_json_str
+#' @inheritParams read_json_str
 #' @param raw_vec raw vector
 #'
 #'
 #' @examples
 #' \dontrun{
 #' a <- nanonext::ncurl("https://postman-echo.com/get", convert = FALSE)
-#' from_json_raw(a$raw)
+#' read_json_raw(a$raw)
 #' }
 #' 
 #' @family JSON Parsers
 #' @return R object
 #' @export
 #~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
-from_json_raw <- function(raw_vec, opts = list(), ...) {
+read_json_raw <- function(raw_vec, opts = list(), ...) {
   .Call(
     parse_from_raw_, 
     raw_vec, 
@@ -55,20 +55,20 @@ from_json_raw <- function(raw_vec, opts = list(), ...) {
 #~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 #' Convert JSON to R
 #' 
-#' @inheritParams from_json_str
+#' @inheritParams read_json_str
 #' @param filename full path to text file containing JSON.
 #' 
 #' 
 #' @examples
 #' \dontrun{
-#' from_json_file("myfile.json")
+#' read_json_file("myfile.json")
 #' }
 #' 
 #' @family JSON Parsers
 #' @return R object
 #' @export
 #~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
-from_json_file <- function(filename, opts = list(), ...) {
+read_json_file <- function(filename, opts = list(), ...) {
   .Call(
     parse_from_file_, 
     filename, 
@@ -84,15 +84,15 @@ from_json_file <- function(filename, opts = list(), ...) {
 #' read into R as a string and then the JSON parsed from there.
 #' 
 #' For plain text files it is faster to use
-#' \code{from_json_file()}.
+#' \code{read_json_file()}.
 #' 
-#' @inheritParams from_json_str
+#' @inheritParams read_json_str
 #' @param conn connection object.  e.g. \code{url('https://jsonplaceholder.typicode.com/todos/1')}
 #'
 #'
 #' @examples
 #' \dontrun{
-#' from_json_conn(url("https://api.github.com/users/hadley/repos"))
+#' read_json_conn(url("https://api.github.com/users/hadley/repos"))
 #' }
 #' 
 #' 
@@ -100,9 +100,9 @@ from_json_file <- function(filename, opts = list(), ...) {
 #' @return R object
 #' @export
 #~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
-from_json_conn <- function(conn, opts = list(), ...) {
+read_json_conn <- function(conn, opts = list(), ...) {
   str <- paste(readLines(conn), collapse = "")
-  from_json_str(str, opts, ...)
+  read_json_str(str, opts, ...)
 }
 
 
@@ -118,14 +118,14 @@ from_json_conn <- function(conn, opts = list(), ...) {
 #' 
 #' @examples
 #' \dontrun{
-#' to_json_str(iris, pretty = TRUE)
-#' to_json_str(iris, opts = to_opts(auto_unbox = FALSE))
+#' write_json_str(iris, pretty = TRUE)
+#' write_json_str(iris, opts = to_opts(auto_unbox = FALSE))
 #' }
 #' 
 #' @family JSON Serializer
 #' @export
 #~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
-to_json_str <- function(x, opts = list(), ...) {
+write_json_str <- function(x, opts = list(), ...) {
   .Call(
     serialize_to_str_, 
     x, 
@@ -137,18 +137,18 @@ to_json_str <- function(x, opts = list(), ...) {
 #~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 #' Convert R object to JSON file
 #' 
-#' @inheritParams to_json_str
+#' @inheritParams write_json_str
 #' @param filename filename
 #' 
 #' @examples
 #' \dontrun{
-#' to_json_str(iris, filename = "iris.json")
+#' write_json_str(iris, filename = "iris.json")
 #' }
 #' 
 #' @family JSON Serializer
 #' @export
 #~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
-to_json_file <- function(x, filename, opts = list(), ...) {
+write_json_file <- function(x, filename, opts = list(), ...) {
   .Call(
     serialize_to_file_, 
     x,
@@ -163,7 +163,7 @@ to_json_file <- function(x, filename, opts = list(), ...) {
 #~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 #' Validate JSON in file or string
 #'
-#' @inheritParams from_json_file
+#' @inheritParams read_json_file
 #' @param filename path to file containing JSON
 #' @param str character string containing JSON
 #' @param verbose logical. If the JSON is not valid, should a warning be 

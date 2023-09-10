@@ -79,7 +79,7 @@
 #'
 #' @examples
 #' \dontrun{
-#' from_json_str(str, opts = from_opts(yyjson_read_flag = read_flag$YYJSON_READ_NUMBER_AS_RAW))
+#' read_json_str(str, opts = from_opts(yyjson_read_flag = read_flag$YYJSON_READ_NUMBER_AS_RAW))
 #' }
 #' 
 #'
@@ -141,7 +141,7 @@ read_flag <- list(
 #'
 #' @examples
 #' \dontrun{
-#' to_json_str(str, opts = to_opts(yyjson_write_flag = write_flag$YYJSON_WRITE_ESCAPE_SLASHES))
+#' write_json_str(str, opts = to_opts(yyjson_write_flag = write_flag$YYJSON_WRITE_ESCAPE_SLASHES))
 #' }
 #' 
 #' @export
@@ -246,7 +246,7 @@ from_opts <- function(
 #' 
 #' @examples
 #' \dontrun{
-#' to_json_str(iris, opts = to_opts(factor = 'integer'))
+#' write_json_str(iris, opts = to_opts(factor = 'integer'))
 #' }
 #' 
 #' 

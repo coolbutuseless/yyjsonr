@@ -88,7 +88,7 @@ The flag will be overridden by "YYJSON_READ_NUMBER_AS_RAW" flag.
 }
 \examples{
 \dontrun{
-from_json_str(str, opts = from_opts(yyjson_read_flag = read_flag$YYJSON_READ_NUMBER_AS_RAW))
+read_json_str(str, opts = from_opts(yyjson_read_flag = read_flag$YYJSON_READ_NUMBER_AS_RAW))
 }
 
 

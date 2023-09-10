@@ -25,9 +25,9 @@ data.frame as rows or columns
 ```{r}
 df <- data.frame(a = 1:2, b=c('apple', 'banana'))
 
-cat(to_json_str(df, dataframe = 'rows'))
+cat(write_json_str(df, dataframe = 'rows'))
 
-cat(to_json_str(df, dataframe = 'cols'))
+cat(write_json_str(df, dataframe = 'cols'))
 ```
 
 factors as strings or integer
@@ -36,8 +36,8 @@ factors as strings or integer
 ```{r}
 ff <- as.factor(c("apple", "apple", "banana"))
 
-cat(to_json_str(ff, factor = 'string'))
-cat(to_json_str(ff, factor = 'integer'))
+cat(write_json_str(ff, factor = 'string'))
+cat(write_json_str(ff, factor = 'integer'))
 ```
 
 Auto unbox scalar values
@@ -46,9 +46,9 @@ Auto unbox scalar values
 ```{r}
 ll <- list(a = 1, b = "hello", c = 1:3)
 
-cat(to_json_str(ll, auto_unbox = TRUE))
+cat(write_json_str(ll, auto_unbox = TRUE))
 
-cat(to_json_str(ll, auto_unbox = FALSE))
+cat(write_json_str(ll, auto_unbox = FALSE))
 ```
 
 Pretty
@@ -57,9 +57,9 @@ Pretty
 ```{r}
 df <- data.frame(a = 1:2, b=c('apple', 'banana'))
 
-cat(to_json_str(df, pretty = FALSE))
+cat(write_json_str(df, pretty = FALSE))
 
-cat(to_json_str(df, pretty = TRUE))
+cat(write_json_str(df, pretty = TRUE))
 ```
 
 Repair names of partially named lists
@@ -68,8 +68,8 @@ Repair names of partially named lists
 ```{r}
 ll <- list(a = 1, "banana", c = "cat")
 
-cat(to_json_str(ll, name_repair = 'none'))
-cat(to_json_str(ll, name_repair = 'minimal'))
+cat(write_json_str(ll, name_repair = 'none'))
+cat(write_json_str(ll, name_repair = 'minimal'))
 ```
 
 Numeric special values e.g. "NA"
@@ -78,9 +78,9 @@ Numeric special values e.g. "NA"
 ```{r}
 vec <- c(1, 2, NA, NaN, Inf, -Inf)
 
-cat(to_json_str(vec, num_specials = 'null'))
+cat(write_json_str(vec, num_specials = 'null'))
 
-cat(to_json_str(vec, num_specials = 'string'))
+cat(write_json_str(vec, num_specials = 'string'))
 ```
 
 String special values i.e. "NA"
@@ -89,9 +89,9 @@ String special values i.e. "NA"
 ```{r}
 vec <- c("apple", "banana", NA)
 
-cat(to_json_str(vec, str_specials = 'null'))
+cat(write_json_str(vec, str_specials = 'null'))
 
-cat(to_json_str(vec, str_specials = 'string'))
+cat(write_json_str(vec, str_specials = 'string'))
 ```
 
 

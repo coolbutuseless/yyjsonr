@@ -58,15 +58,15 @@ from_ndjson_file_as_list("flights.ndjson", nskip = 1000, nread = 200)
 }
 \seealso{
 Other JSON Parsers: 
-\code{\link{from_json_conn}()},
-\code{\link{from_json_file}()},
-\code{\link{from_json_raw}()},
-\code{\link{from_json_str}()}
+\code{\link{read_json_conn}()},
+\code{\link{read_json_file}()},
+\code{\link{read_json_raw}()},
+\code{\link{read_json_str}()}
 
 Other JSON Parsers: 
-\code{\link{from_json_conn}()},
-\code{\link{from_json_file}()},
-\code{\link{from_json_raw}()},
-\code{\link{from_json_str}()}
+\code{\link{read_json_conn}()},
+\code{\link{read_json_file}()},
+\code{\link{read_json_raw}()},
+\code{\link{read_json_str}()}
 }
 \concept{JSON Parsers}

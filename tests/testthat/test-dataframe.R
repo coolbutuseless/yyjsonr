@@ -18,7 +18,7 @@ test_that("data.frame to-from json works", {
   df1$h <- list(a = 1:2, b = 2:3, c = 3:4)
   
   expect_equal(
-    to_json_str(df1),
+    write_json_str(df1),
     r"([{"a":1,"b":1.0,"c":1,"d":"a","e":"1970-01-02","f":"2020-01-01 01:02:03","g":1,"h":[1,2]},{"a":2,"b":2.0,"c":2,"d":"b","e":"1970-01-03","f":"2020-01-01 01:02:03","g":2,"h":[2,3]},{"a":3,"b":3.0,"c":3,"d":"c","e":"1970-01-04","f":"2020-01-01 01:02:03","g":3,"h":[3,4]}])"
   )
   
@@ -30,7 +30,7 @@ test_that("data.frame to-from json works", {
   #'  - POSIXct     -> str
   #~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
   df1_json <- r"([{"a":1,"b":1.0,"c":1,"d":"a","e":"1970-01-02","f":"2020-01-01 01:02:03","g":1,"h":[1,2]},{"a":2,"b":2.0,"c":2,"d":"b","e":"1970-01-03","f":"2020-01-01 01:02:03","g":2,"h":[2,3]},{"a":3,"b":3.0,"c":3,"d":"c","e":"1970-01-04","f":"2020-01-01 01:02:03","g":3,"h":[3,4]}])"
-  df2_check <- from_json_str(df1_json)
+  df2_check <- read_json_str(df1_json)
   
   df2_reference <- data.frame(
     a = 1:3,
@@ -53,7 +53,7 @@ test_that("array of nested json objects to data.frame", {
   #~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
   #' Data.frame with only atomic vectors.  No missing values.
   #~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
-  test <- from_json_str('[{"a":1,"b":10.1,"c":"fred"},{"a":2,"b":10.2,"c":"greg"}]')
+  test <- read_json_str('[{"a":1,"b":10.1,"c":"fred"},{"a":2,"b":10.2,"c":"greg"}]')
   df <- data.frame(
     a = c(1L, 2L),
     b = c(10.1, 10.2),
@@ -64,7 +64,7 @@ test_that("array of nested json objects to data.frame", {
   #~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
   #' Data.frame with only atomic vectors - and missing values
   #~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
-  test <- from_json_str('[{"b":10.1},{"a":2,"c":"greg"}]')
+  test <- read_json_str('[{"b":10.1},{"a":2,"c":"greg"}]')
   df <- data.frame(
     b = c(10.1, NA),
     a = c(NA, 2L),
@@ -76,7 +76,7 @@ test_that("array of nested json objects to data.frame", {
   #~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
   #' List column with NULL for missing values (default)
   #~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
-  test <- from_json_str('[{"a":10.1},{"a":"greg","b":4},{"b":4.1}]')
+  test <- read_json_str('[{"a":10.1},{"a":"greg","b":4},{"b":4.1}]')
   df <- data.frame(
     a = NA,
     b = c(NA, 4.0, 4.1)
@@ -87,7 +87,7 @@ test_that("array of nested json objects to data.frame", {
   #~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
   #' List column with "NA" for missing values
   #~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
-  test <- from_json_str('[{"a":10.1},{"a":"greg","b":4},{"b":4.1}]', missing_list_elem = 'na')
+  test <- read_json_str('[{"a":10.1},{"a":"greg","b":4},{"b":4.1}]', missing_list_elem = 'na')
   test
   df <- data.frame(
     a = NA,
@@ -100,7 +100,7 @@ test_that("array of nested json objects to data.frame", {
   #~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
   #' Data.frame with explicit NULL
   #~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
-  test <- from_json_str('[{"a":1,"b":2},{"a":2,"b":null}]')
+  test <- read_json_str('[{"a":1,"b":2},{"a":2,"b":null}]')
   test  
   df <- data.frame(
     a = 1:2,
@@ -112,7 +112,7 @@ test_that("array of nested json objects to data.frame", {
   #~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
   #' Data.frame with sub-data.frame
   #~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
-  test <- from_json_str('[{"a":1,"b":2},{"a":2,"b":[{"c":100},{"c":101}]}]')
+  test <- read_json_str('[{"a":1,"b":2},{"a":2,"b":[{"c":100},{"c":101}]}]')
   test
   
   df <- data.frame(
@@ -125,7 +125,7 @@ test_that("array of nested json objects to data.frame", {
   #~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
   #' Data.frame with sub list
   #~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
-  test <- from_json_str('[{"a":1,"b":2},{"a":2,"b":{"c":100}}]')
+  test <- read_json_str('[{"a":1,"b":2},{"a":2,"b":{"c":100}}]')
   test
   
   df <- data.frame(
@@ -138,7 +138,7 @@ test_that("array of nested json objects to data.frame", {
   #~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
   #' Data.frame with missing values
   #~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
-  test <- from_json_str(r"(
+  test <- read_json_str(r"(
 [
   {"a":1, "b":2.2, "c":"greg", "d":null},
   {}
@@ -157,7 +157,7 @@ test_that("array of nested json objects to data.frame", {
   #~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
   #' Data.frame with missing values
   #~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
-  test <- from_json_str(r"(
+  test <- read_json_str(r"(
 [
   {"a":1, "b":2.2, "c":"greg", "d":null},
   {}
@@ -177,7 +177,7 @@ test_that("array of nested json objects to data.frame", {
 test_that("data.frame by column", {
   # Should look the same as a named list in JSON
   df <- data.frame(a = 1:2, b = c('greg', 'jim'))
-  js <- to_json_str(df, dataframe = 'cols')  
+  js <- write_json_str(df, dataframe = 'cols')  
   expect_equal(js, '{\"a\":[1,2],\"b\":[\"greg\",\"jim\"]}')
 })
 
@@ -186,8 +186,8 @@ test_that("iris round trip works", {
   df <- head(iris)
   df$Species <- as.character(df$Species)  
   
-  json <- to_json_str(df)
-  df_out <- from_json_str(json)
+  json <- write_json_str(df)
+  df_out <- read_json_str(json)
   
   expect_identical(df, df_out)
 })

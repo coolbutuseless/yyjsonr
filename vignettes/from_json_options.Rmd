@@ -39,13 +39,13 @@ jsonlite::fromJSON(json)
 
 ```{r}
 # yyjsonr can behave the same as jsonlite's default
-yyjsonr::from_json_str(json, promote_num_to_string = TRUE)
+yyjsonr::read_json_str(json, promote_num_to_string = TRUE)
 ```
 
 
 ```{r}
 # Keep all types as-is and return as a list
-yyjsonr::from_json_str(json, promote_num_to_string = FALSE)
+yyjsonr::read_json_str(json, promote_num_to_string = FALSE)
 ```
 
 
@@ -58,9 +58,9 @@ Large integers
 ```{r}
 str <- '[1, 2, 274877906944]'
 
-from_json_str(str, int64 = 'string')
+read_json_str(str, int64 = 'string')
 
-from_json_str(str, int64 = 'bit64')
+read_json_str(str, int64 = 'bit64')
 ```
 
 
@@ -70,9 +70,9 @@ Missing list elements (when parsing data.frames)
 ```{r}
 str <- '[{"a":1, "b":[1,2]}, {"a":2}]'
 
-from_json_str(str, missing_list_elem = 'null')
+read_json_str(str, missing_list_elem = 'null')
 
-from_json_str(str, missing_list_elem = 'na')
+read_json_str(str, missing_list_elem = 'na')
 ```
 
 
@@ -82,9 +82,9 @@ Vectors to data.frame
 ```{r}
 str <- '{"a":[1,2],"b":["apple","banana"]}'
 
-from_json_str(str, vectors_to_df = FALSE)
+read_json_str(str, vectors_to_df = FALSE)
 
-from_json_str(str, vectors_to_df =  TRUE)
+read_json_str(str, vectors_to_df =  TRUE)
 ```
 
 
@@ -94,9 +94,9 @@ String special values: 'NA'
 ```{r}
 str <- '["apple", "banana", null, "NA"]'
 
-from_json_str(str, str_specials = 'string')
+read_json_str(str, str_specials = 'string')
 
-from_json_str(str, str_specials = 'special')
+read_json_str(str, str_specials = 'special')
 ```
 
 
@@ -106,9 +106,9 @@ Numeric special values: 'NA', 'NaN', 'Inf', '-Inf'
 ```{r}
 str <- '[1.0, 2.0, null, "NA", "Inf", "-Inf", "NaN"]'
 
-from_json_str(str, num_specials = 'string')
+read_json_str(str, num_specials = 'string')
 
-from_json_str(str, num_specials = 'special')
+read_json_str(str, num_specials = 'special')
 ```
 
 

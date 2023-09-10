@@ -34,5 +34,5 @@ ref <- '[
 
 
 test_that("serialization works", {
-  expect_equal(to_json_str(head(iris, 4), pretty = TRUE), ref)
+  expect_equal(write_json_str(head(iris, 4), pretty = TRUE), ref)
 })

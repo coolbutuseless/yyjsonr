@@ -55,9 +55,9 @@ more details.
 ### What’s in the box
 
 - Read/Write JSON as R objects
-  - `from_json_str()`, `from_json_file()`, `from_json_conn()`,
-    `from_json_raw()`
-  - `to_json_str()`, `to_json_file()`
+  - `read_json_str()`, `read_json_file()`, `read_json_conn()`,
+    `read_json_raw()`
+  - `write_json_str()`, `write_json_file()`
 - Validate JSON
   - `validate_json_str()`, `validate_json_file()`
 - Read/Write GeoJSON to/from `{sf}` objects
@@ -100,7 +100,7 @@ remotes::install_github('coolbutuseless/yyjsonr')
 ``` r
 library(yyjsonr)
 
-str <- to_json_str(head(iris, 3), pretty = TRUE)
+str <- write_json_str(head(iris, 3), pretty = TRUE)
 cat(str)
 #> [
 #>   {
@@ -126,7 +126,7 @@ cat(str)
 #>   }
 #> ]
 
-from_json_str(str)
+read_json_str(str)
 #>   Sepal.Length Sepal.Width Petal.Length Petal.Width Species
 #> 1          5.1         3.5          1.4         0.2  setosa
 #> 2          4.9         3.0          1.4         0.2  setosa
@@ -206,7 +206,7 @@ jsonlite::fromJSON(str)
 # yyjsonr's serialization of matrices is internally consistent and re-parses
 # to the initial matrix.
 # But note that it is *different* to what jsonlite does.
-str <- yyjsonr::to_json_str(mat, pretty = TRUE)
+str <- yyjsonr::write_json_str(mat, pretty = TRUE)
 cat(str)
 #> [
 #>   [
@@ -234,7 +234,7 @@ cat(str)
 #>     ]
 #>   ]
 #> ]
-yyjsonr::from_json_str(str)
+yyjsonr::read_json_str(str)
 #> , , 1
 #> 
 #>      [,1] [,2] [,3]

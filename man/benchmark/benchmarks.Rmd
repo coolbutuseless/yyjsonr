@@ -39,7 +39,7 @@ Validate JSON String
 
 
 ```{r}
-json_str <- to_json_str(iris)
+json_str <- write_json_str(iris)
 
 res00 <- bench::mark(
   jsonlite     = jsonlite::validate(json_str),
@@ -65,7 +65,7 @@ To JSON String
 res01 <- bench::mark(
   jsonlite = jsonlite::toJSON(iris),
   jsonify  = jsonify::to_json(iris),
-  yyjsonr  = yyjsonr::to_json_str(iris),
+  yyjsonr  = yyjsonr::write_json_str(iris),
   check = FALSE
 )
 ```
@@ -83,13 +83,13 @@ From JSON String
 ----------------------------------------------------------------------------
 
 ```{r}
-json_str <- to_json_str(iris)
+json_str <- write_json_str(iris)
 
 res02 <- bench::mark(
   jsonlite     = jsonlite::fromJSON(json_str),
   jsonify      = jsonify::from_json(json_str),
   rcppsimdjson = RcppSimdJson::fparse(json_str),
-  yyjsonr      = yyjsonr::from_json_str(json_str),
+  yyjsonr      = yyjsonr::read_json_str(json_str),
   check = TRUE
 )
 ```
@@ -110,7 +110,7 @@ a <- nanonext::ncurl("https://postman-echo.com/get", convert = FALSE)
 res03 <- bench::mark(
   jsonlite     = jsonlite::fromJSON(rawConnection(a$raw)),
   rcppsimdjson = RcppSimdJson::fparse(a$raw),
-  yyjsonr      = yyjsonr::from_json_raw(a$raw),
+  yyjsonr      = yyjsonr::read_json_raw(a$raw),
   check = FALSE
 )
 ```
@@ -133,7 +133,7 @@ json_file <- tempfile()
 
 res04 <- bench::mark(
   jsonlite = jsonlite::write_json(iris, json_file),
-  yyjsonr  = yyjsonr::to_json_file(iris, json_file),
+  yyjsonr  = yyjsonr::write_json_file(iris, json_file),
   check = FALSE
 )
 
@@ -156,7 +156,7 @@ jsonlite::write_json(iris, json_file)
 res05 <- bench::mark(
   jsonlite     = jsonlite::fromJSON(file(json_file)), 
   rcppsimdjson = RcppSimdJson::fload(json_file), 
-  yyjsonr      = yyjsonr::from_json_file(json_file),
+  yyjsonr      = yyjsonr::read_json_file(json_file),
   check = TRUE
 )
 
@@ -295,7 +295,7 @@ json <- paste(readLines(jsonfile), collapse = "\n")
 res09 <- bench::mark(
   jsonlite     = jsonlite::fromJSON(json),
   rcppsimdjson = RcppSimdJson::fparse(json),
-  yyjsonr      = yyjsonr::from_json_str(json),
+  yyjsonr      = yyjsonr::read_json_str(json),
   check = FALSE
 )
 ```
@@ -322,7 +322,7 @@ df <- data.frame(
 res10 <- bench::mark(
   jsonlite = jsonlite::toJSON( df ),
   jsonify  = jsonify::to_json( df ),
-  yyjsonr  = yyjsonr::to_json_str( df ),
+  yyjsonr  = yyjsonr::write_json_str( df ),
   check = FALSE
 )
 ```
@@ -354,7 +354,7 @@ x <- list(
 res11 <- bench::mark(
  jsonlite = jsonlite::toJSON( x ),
  jsonify  = jsonify::to_json( x ),
- yyjsonr  = yyjsonr::to_json_str(x),
+ yyjsonr  = yyjsonr::write_json_str(x),
  check = FALSE
 )
 ```
@@ -376,7 +376,7 @@ res12 <- bench::mark(
   jsonlite     = jsonlite::fromJSON( jlt ),
   jsonify      = jsonify::from_json( jlt ),
   rcppsimdjson = RcppSimdJson::fparse(jlt),
-  yyjsonr      = yyjsonr::from_json_str(jlt),
+  yyjsonr      = yyjsonr::read_json_str(jlt),
   check = FALSE
 )
 

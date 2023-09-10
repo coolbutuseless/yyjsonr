@@ -14,7 +14,7 @@
 #' 
 #' No flattening of the namespace is done i.e. nested object remain nested.
 #' 
-#' @inheritParams from_json_str
+#' @inheritParams read_json_str
 #' @param filename text file or gzipped file
 #' @param nread number of records to read. Default: -1 (reads all rows)
 #' @param nskip number of records to skip before starting to read. Default: 0
@@ -65,7 +65,7 @@ from_ndjson_file_as_list <- function(filename, nread = -1, nskip = 0, opts = lis
 #~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 #' Write list or data.frame object to ndjson 
 #' 
-#' @inherit to_json_file
+#' @inherit write_json_file
 #' @param x data.frame or list
 #' @param filename filename 
 #'

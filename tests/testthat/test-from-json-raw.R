@@ -28,10 +28,10 @@ raw_vec <- as.raw(c(
   0x2e, 0x63, 0x6f, 0x6d, 0x2f, 0x67, 0x65, 0x74, 0x22, 0x0a, 0x7d
 ))
 
-test_that("from_json_raw works", {
+test_that("read_json_raw works", {
   
-  res_str <- from_json_str(rawToChar(raw_vec))
-  res_raw <- from_json_raw(raw_vec)
+  res_str <- read_json_str(rawToChar(raw_vec))
+  res_raw <- read_json_raw(raw_vec)
   
   expect_identical(res_raw, res_str)
   

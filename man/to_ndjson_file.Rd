@@ -24,11 +24,11 @@ Write list or data.frame object to ndjson
 }
 \examples{
 \dontrun{
-to_json_str(iris, filename = "iris.json")
+write_json_str(iris, filename = "iris.json")
 }
 
 }
 \seealso{
 Other JSON Serializer: 
-\code{\link{to_json_str}()}
+\code{\link{write_json_str}()}
 }
