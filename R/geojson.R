@@ -58,7 +58,7 @@ to_geojson_opts <- function() {
 #' @return \code{sf} object
 #' @export
 #~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
-from_geojson_str <- function(str, opts = list(), ...) {
+read_geojson_str <- function(str, opts = list(), ...) {
   opts <- modify_list(opts, list(...))
   
   .Call(
@@ -71,10 +71,10 @@ from_geojson_str <- function(str, opts = list(), ...) {
 
 
 #~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
-#' @rdname from_geojson_str
+#' @rdname read_geojson_str
 #' @export
 #~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
-from_geojson_file <- function(filename, opts = list(), ...) {
+read_geojson_file <- function(filename, opts = list(), ...) {
   opts <- modify_list(opts, list(...))
   
   .Call(
@@ -97,7 +97,7 @@ from_geojson_file <- function(filename, opts = list(), ...) {
 #' @return character string containing json
 #' @export
 #~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
-to_geojson_str <- function(x, opts = list(), ...) {
+write_geojson_str <- function(x, opts = list(), ...) {
   opts <- modify_list(opts, list(...))
   
   .Call(
@@ -109,10 +109,10 @@ to_geojson_str <- function(x, opts = list(), ...) {
 }
 
 #~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
-#' @rdname to_geojson_str
+#' @rdname write_geojson_str
 #' @export
 #~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
-to_geojson_file <- function(x, filename, opts = list(), ...) {
+write_geojson_file <- function(x, filename, opts = list(), ...) {
   opts <- modify_list(opts, list(...))
   
   .Call(

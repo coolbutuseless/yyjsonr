@@ -61,8 +61,8 @@ more details.
 - Validate JSON
   - `validate_json_str()`, `validate_json_file()`
 - Read/Write GeoJSON to/from `{sf}` objects
-  - `from_geojson_str()`, `from_geojson_file()`
-  - `to_geojson_str()`, `to_geojson_file()`
+  - `read_geojson_str()`, `read_geojson_file()`
+  - `write_geojson_str()`, `write_geojson_file()`
 - Read/Write NDJSON
   - `read_ndjson_file()`, `read_ndjson_file()`
   - `write_ndjson_file()`, `write_ndjson_str()`

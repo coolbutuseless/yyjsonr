@@ -248,7 +248,7 @@ From GeoJSON String
 ```{r}
 res13 <- bench::mark(
   geojsonsf    = geojsonsf::geojson_sf(geojsonsf::geo_melbourne),
-  yyjsonr      = yyjsonr::from_geojson_str(geojsonsf::geo_melbourne),
+  yyjsonr      = yyjsonr::read_geojson_str(geojsonsf::geo_melbourne),
   check = FALSE
 )
 
@@ -269,7 +269,7 @@ sf_obj <- sf::st_read(system.file("shape/nc.shp", package="sf"), quiet = TRUE)
 
 res14 <- bench::mark(
   geojsonsf    = geojsonsf::sf_geojson(sf_obj),
-  yyjsonr      = yyjsonr::to_geojson_str(sf_obj),
+  yyjsonr      = yyjsonr::write_geojson_str(sf_obj),
   check = FALSE
 )
 

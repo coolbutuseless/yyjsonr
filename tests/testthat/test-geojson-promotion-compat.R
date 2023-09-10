@@ -38,13 +38,13 @@ js <- r"(
   
 test_that("multiplication works", {
   
-  tst <- from_geojson_str(js) # geojson compat
+  tst <- read_geojson_str(js) # geojson compat
   expect_identical(tst$value, c("1.000000", "a"))
   
-  tst <- from_geojson_str(js, property_promotion = 'string') # geojson compat
+  tst <- read_geojson_str(js, property_promotion = 'string') # geojson compat
   expect_identical(tst$value, c("1.000000", "a"))
   
-  tst <- from_geojson_str(js, property_promotion = 'list')
+  tst <- read_geojson_str(js, property_promotion = 'list')
   expect_identical(tst$value, list(1.0, "a"))
   
 })

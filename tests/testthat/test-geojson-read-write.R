@@ -77,7 +77,7 @@ test_that("Compare parsing of GeoJSON to {geojsonsf}", {
     nm <- basename(json_file)
 
     # Read as 'sf' data.frame object
-    sf <- from_geojson_file(json_file, type = 'sf')
+    sf <- read_geojson_file(json_file, type = 'sf')
     if (nm == 'standard-example.json') {
       # When geojsonsf promotos double 0.0 to string, it makes it '0'
       # whereas yyjsonr makes it "0.000000"
@@ -86,7 +86,7 @@ test_that("Compare parsing of GeoJSON to {geojsonsf}", {
     expect_equal_when_colnames_sorted(sf, ref$sf[[nm]], label = nm)
     
     # Read as 'sfc' list object  of just geometry
-    sfc <- from_geojson_file(json_file, type = 'sfc')
+    sfc <- read_geojson_file(json_file, type = 'sfc')
     expect_equal(sfc, ref$sfc[[nm]], label = nm)
   }
 })
@@ -109,13 +109,13 @@ test_that("Basic writing works for lots of different geojson", {
     js1 <- json[[i]]
     
     # Load it into R as 'sf'
-    geojson1 <- from_geojson_str(js1)
+    geojson1 <- read_geojson_str(js1)
     
     # Write it out to JSON str
-    js2 <- to_geojson_str(geojson1)
+    js2 <- write_geojson_str(geojson1)
     
     # Re-load it into R as 'sf'
-    geojson2 <- from_geojson_str(js2)
+    geojson2 <- read_geojson_str(js2)
     
     # Test 'sf' representations are equal
     expect_identical(geojson1, geojson2, label = names(json)[i])

@@ -11,14 +11,14 @@
 
 * Bug fix for checking attributes on list columns.  This surfaced more
   errors to do with setting XYZ geometry type.
-* More extensive testing of `to_geojson_str()`
+* More extensive testing of `write_geojson_str()`
 
 # yyjsonr 0.1.4  2023-08-27
 
 * Initial **alpha** GeoJSON support:
-    * `from_geojson_str()`, `from_geojson_file()`
+    * `read_geojson_str()`, `read_geojson_file()`
         * Needs more testing for corner cases
-    * `to_geojson_str()`, `to_geojson_file()`
+    * `write_geojson_str()`, `write_geojson_file()`
         * At a very alpha stage.
 
 # yyjsonr 0.1.3  2023-08-21
