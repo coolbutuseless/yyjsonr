@@ -9,10 +9,10 @@ read_json_conn(conn, opts = list(), ...)
 \arguments{
 \item{conn}{connection object.  e.g. \code{url('https://jsonplaceholder.typicode.com/todos/1')}}
 
-\item{opts}{Named list of options for parsing. Usually created by \code{from_opts()}}
+\item{opts}{Named list of options for parsing. Usually created by \code{opts_read_json()}}
 
 \item{...}{Other named options can be used to override any options in \code{opts}.
-The valid named options are identical to arguments to \code{\link[=from_opts]{from_opts()}}}
+The valid named options are identical to arguments to \code{\link[=opts_read_json]{opts_read_json()}}}
 }
 \value{
 R object

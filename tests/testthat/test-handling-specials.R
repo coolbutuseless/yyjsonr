@@ -10,12 +10,12 @@ test_that("to_json handling specials works", {
   )
   
   expect_identical(
-    write_json_str(c(TRUE, NA), opts = to_opts(num_specials = 'string')),
+    write_json_str(c(TRUE, NA), opts = opts_write_json(num_specials = 'string')),
     '[true,"NA"]'
   )
   
   expect_identical(
-    write_json_str(c(TRUE, NA), opts = to_opts(num_specials = 'null')),
+    write_json_str(c(TRUE, NA), opts = opts_write_json(num_specials = 'null')),
     '[true,null]'
   )
   
@@ -29,12 +29,12 @@ test_that("to_json handling specials works", {
   )
   
   expect_identical(
-    write_json_str(c(0L, NA_integer_), opts = to_opts(num_specials = 'string')),
+    write_json_str(c(0L, NA_integer_), opts = opts_write_json(num_specials = 'string')),
     '[0,"NA"]'
   )
   
   expect_identical(
-    write_json_str(c(0L, NA_integer_), opts = to_opts(num_specials = 'null')),
+    write_json_str(c(0L, NA_integer_), opts = opts_write_json(num_specials = 'null')),
     '[0,null]'
   )
   
@@ -48,12 +48,12 @@ test_that("to_json handling specials works", {
   )
   
   expect_identical(
-    write_json_str(c("a", NA_character_), opts = to_opts(str_specials = 'string')),
+    write_json_str(c("a", NA_character_), opts = opts_write_json(str_specials = 'string')),
     '["a","NA"]'
   )
   
   expect_identical(
-    write_json_str(c("a", NA_character_), opts = to_opts(str_specials = 'null')),
+    write_json_str(c("a", NA_character_), opts = opts_write_json(str_specials = 'null')),
     '["a",null]'
   )
   
@@ -67,12 +67,12 @@ test_that("to_json handling specials works", {
   )
   
   expect_identical(
-    write_json_str(c(0, NA_real_, Inf, -Inf, NaN), opts = to_opts(num_specials = 'string')),
+    write_json_str(c(0, NA_real_, Inf, -Inf, NaN), opts = opts_write_json(num_specials = 'string')),
     '[0.0,"NA","Inf","-Inf","NaN"]'
   )
   
   expect_identical(
-    write_json_str(c(0, NA_real_, Inf, -Inf, NaN), opts = to_opts(num_specials = 'null')),
+    write_json_str(c(0, NA_real_, Inf, -Inf, NaN), opts = opts_write_json(num_specials = 'null')),
     '[0.0,null,null,null,null]'
   )
 })
@@ -89,12 +89,12 @@ test_that("from_json handling specials works", {
   )  
   
   expect_identical(
-    read_json_str('[true,"NA"]', opts = from_opts(num_specials = "special")),
+    read_json_str('[true,"NA"]', opts = opts_read_json(num_specials = "special")),
     c(TRUE, NA)
   )  
   
   expect_identical(
-    read_json_str('[true,"NA"]', opts = from_opts(num_specials = "string")),
+    read_json_str('[true,"NA"]', opts = opts_read_json(num_specials = "string")),
     list(TRUE, "NA")
   )  
   
@@ -107,12 +107,12 @@ test_that("from_json handling specials works", {
   )  
   
   expect_identical(
-    read_json_str('[0, "NA"]', opts = from_opts(num_specials = "special")),
+    read_json_str('[0, "NA"]', opts = opts_read_json(num_specials = "special")),
     c(0L, NA_integer_)
   )  
   
   expect_identical(
-    read_json_str('[0, "NA"]', opts = from_opts(num_specials = "string")),
+    read_json_str('[0, "NA"]', opts = opts_read_json(num_specials = "string")),
     list(0L, "NA")
   )  
   
@@ -126,12 +126,12 @@ test_that("from_json handling specials works", {
   )  
   
   expect_identical(
-    read_json_str('[0.0, "NA", "Inf", "-Inf", "NaN"]', opts = from_opts(num_specials = "special")),
+    read_json_str('[0.0, "NA", "Inf", "-Inf", "NaN"]', opts = opts_read_json(num_specials = "special")),
     c(0, NA_real_, Inf, -Inf, NaN)
   )  
   
   expect_identical(
-    read_json_str('[0.0, "NA", "Inf", "-Inf", "NaN"]', opts = from_opts(num_specials = "string")),
+    read_json_str('[0.0, "NA", "Inf", "-Inf", "NaN"]', opts = opts_read_json(num_specials = "string")),
     list(0, "NA", "Inf", "-Inf", "NaN")
   )  
   
@@ -144,12 +144,12 @@ test_that("from_json handling specials works", {
   )
   
   expect_identical(
-    read_json_str('["a", "NA"]', opts = from_opts(str_specials = "string")),
+    read_json_str('["a", "NA"]', opts = opts_read_json(str_specials = "string")),
     c("a", "NA")
   )
   
   expect_identical(
-    read_json_str('["a", "NA"]', opts = from_opts(str_specials = "special")),
+    read_json_str('["a", "NA"]', opts = opts_read_json(str_specials = "special")),
     c("a", NA_character_)
   )
   

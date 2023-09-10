@@ -18,7 +18,7 @@ code directly.  This is an ADVANCED option and should be used with caution.
 Some of these settings overlap and conflict with code needed to handle
 the translation of JSON values to R.
 
-\code{from_opts(yyjson_read_flag = c(read_flag$x, read_flag$y, ...))}
+\code{opts_read_json(yyjson_read_flag = c(read_flag$x, read_flag$y, ...))}
 
 \describe{
 \item{YYJSON_READ_NOFLAG}{
@@ -88,7 +88,7 @@ The flag will be overridden by "YYJSON_READ_NUMBER_AS_RAW" flag.
 }
 \examples{
 \dontrun{
-read_json_str(str, opts = from_opts(yyjson_read_flag = read_flag$YYJSON_READ_NUMBER_AS_RAW))
+read_json_str(str, opts = opts_read_json(yyjson_read_flag = read_flag$YYJSON_READ_NUMBER_AS_RAW))
 }
 
 

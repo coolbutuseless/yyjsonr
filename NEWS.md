@@ -1,7 +1,12 @@
 
+
+# yyjsonr 0.1.7 2023-09-10
+
+* Unifed naming scheme
+
 # yyjsonr 0.1.6 2023-09-04
 
-* FEATURE: Added `promote_num_to_string` in `from_opts()` to enable 
+* FEATURE: Added `promote_num_to_string` in `opts_read_json()` to enable 
   forced promotion of numerics to string
 * BUGFIX: fixes for handling of geometry collection when reading and writing.
 * TESTING: More tests included for output to geojson

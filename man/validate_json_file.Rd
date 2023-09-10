@@ -15,10 +15,10 @@ validate_json_str(str, verbose = FALSE, opts = list(), ...)
 \item{verbose}{logical. If the JSON is not valid, should a warning be
 shown giving details?}
 
-\item{opts}{Named list of options for parsing. Usually created by \code{from_opts()}}
+\item{opts}{Named list of options for parsing. Usually created by \code{opts_read_json()}}
 
 \item{...}{Other named options can be used to override any options in \code{opts}.
-The valid named options are identical to arguments to \code{\link[=from_opts]{from_opts()}}}
+The valid named options are identical to arguments to \code{\link[=opts_read_json]{opts_read_json()}}}
 
 \item{str}{character string containing JSON}
 }

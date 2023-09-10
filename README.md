@@ -54,31 +54,26 @@ more details.
 
 ### What’s in the box
 
-- Read/Write JSON as R objects
-  - `read_json_str()`, `read_json_file()`, `read_json_conn()`,
-    `read_json_raw()`
-  - `write_json_str()`, `write_json_file()`
-- Validate JSON
-  - `validate_json_str()`, `validate_json_file()`
-- Read/Write GeoJSON to/from `{sf}` objects
-  - `read_geojson_str()`, `read_geojson_file()`
-  - `write_geojson_str()`, `write_geojson_file()`
-- Read/Write NDJSON
-  - `read_ndjson_file()`, `read_ndjson_file()`
-  - `write_ndjson_file()`, `write_ndjson_str()`
-- Construct configuration options for reading/writing JSON
-  - `to_opts()`, `from_opts()`
+|         |          | string              | file                 | raw             | conn             | options              |
+|---------|----------|---------------------|----------------------|-----------------|------------------|----------------------|
+| json    | read     | read_json_str()     | read_json_file()     | read_json_raw() | read_json_conn() | opts_read_json()     |
+|         | write    | write_json_str()    | write_json_file()    |                 |                  | opts_write_json()    |
+|         | validate | validate_json_str() | validate_json_file() |                 |                  |                      |
+| geojson | read     | read_geojson_str()  | read_geojson_file()  |                 |                  | opts_read_geojson()  |
+|         | write    | write_geojson_str() | write_geojson_file() |                 |                  | opts_write_geojson() |
+| ndjson  | read     |                     | read_ndjson_file()   |                 |                  |                      |
+|         | write    | write_ndjson_str()  | write_ndjson_file()  |                 |                  |                      |
 
 ### Comparison to other JSON packages
 
-|              | R to JSON | JSON to R | ndjson read | ndjson write | geojson to/from `{sf}` |
-|--------------|-----------|-----------|-------------|--------------|------------------------|
-| yyjsonr      | Fast!     | Fast!     | Fast!       | Fast!        | Fast!                  |
-| jsonlite     | Yes       | Yes       | Yes         | Yes          |                        |
-| RcppSimdJson |           | Fast!     |             |              |                        |
-| jsonify      | Yes       | Yes       | Yes         | Yes          |                        |
-| ndjson       |           |           | Yes         | Yes          |                        |
-| geojsonsf    |           |           |             |              | Yes                    |
+|              | Write JSON | Read JSON | READ ndjson | Write ndjson | R/W geojson `{sf}` |
+|--------------|------------|-----------|-------------|--------------|--------------------|
+| yyjsonr      | Fast!      | Fast!     | Fast!       | Fast!        | Fast!              |
+| jsonlite     | Yes        | Yes       | Yes         | Yes          |                    |
+| RcppSimdJson |            | Fast!     |             |              |                    |
+| jsonify      | Yes        | Yes       | Yes         | Yes          |                    |
+| ndjson       |            |           | Yes         | Yes          |                    |
+| geojsonsf    |            |           |             |              | Yes                |
 
 <img src="man/figures/benchmark-summary.png">
 

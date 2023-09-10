@@ -4,9 +4,9 @@
 #' Convert JSON in a character string to R
 #' 
 #' @param str a single character string
-#' @param opts Named list of options for parsing. Usually created by \code{from_opts()}
+#' @param opts Named list of options for parsing. Usually created by \code{opts_read_json()}
 #' @param ... Other named options can be used to override any options in \code{opts}.
-#'        The valid named options are identical to arguments to [from_opts()]
+#'        The valid named options are identical to arguments to [opts_read_json()]
 #'
 #'
 #' @examples
@@ -110,16 +110,16 @@ read_json_conn <- function(conn, opts = list(), ...) {
 #' Convert R object to JSON string
 #' 
 #' @param x the object to be encoded
-#' @param opts Named list of serialization options. Usually created by [to_opts()]
+#' @param opts Named list of serialization options. Usually created by [opts_write_json()]
 #' @param ... Other named options can be used to override any options in \code{opts}.
-#'        The valid named options are identical to arguments to [to_opts()]
+#'        The valid named options are identical to arguments to [opts_write_json()]
 #' 
 #' @return Character string
 #' 
 #' @examples
 #' \dontrun{
 #' write_json_str(iris, pretty = TRUE)
-#' write_json_str(iris, opts = to_opts(auto_unbox = FALSE))
+#' write_json_str(iris, opts = opts_write_json(auto_unbox = FALSE))
 #' }
 #' 
 #' @family JSON Serializer

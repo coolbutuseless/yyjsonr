@@ -9,7 +9,7 @@
 #' the translation of JSON values to R.
 #'
 #" Pass multiple options with 
-#' \code{from_opts(yyjson_read_flag = c(read_flag$x, read_flag$y, ...))}
+#' \code{opts_read_json(yyjson_read_flag = c(read_flag$x, read_flag$y, ...))}
 #' 
 #' \describe{
 #' \item{YYJSON_READ_NOFLAG}{
@@ -79,7 +79,7 @@
 #'
 #' @examples
 #' \dontrun{
-#' read_json_str(str, opts = from_opts(yyjson_read_flag = read_flag$YYJSON_READ_NUMBER_AS_RAW))
+#' read_json_str(str, opts = opts_read_json(yyjson_read_flag = read_flag$YYJSON_READ_NUMBER_AS_RAW))
 #' }
 #' 
 #'
@@ -108,7 +108,7 @@ read_flag <- list(
 #' the translation of JSON values to R.
 #'
 #" Pass multiple options with 
-#' \code{to_opts(yyjson_write_flag = c(write_flag$x, write_flag$y, ...))}
+#' \code{opts_write_json(yyjson_write_flag = c(write_flag$x, write_flag$y, ...))}
 #' 
 #' \describe{
 #' \item{YYJSON_WRITE_NOFLAG}{
@@ -141,7 +141,7 @@ read_flag <- list(
 #'
 #' @examples
 #' \dontrun{
-#' write_json_str(str, opts = to_opts(yyjson_write_flag = write_flag$YYJSON_WRITE_ESCAPE_SLASHES))
+#' write_json_str(str, opts = opts_write_json(yyjson_write_flag = write_flag$YYJSON_WRITE_ESCAPE_SLASHES))
 #' }
 #' 
 #' @export
@@ -193,7 +193,7 @@ write_flag <- list(
 #' @return Named list of options
 #' @export
 #~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
-from_opts <- function(
+opts_read_json <- function(
     int64                 = c('string', 'bit64'),
     missing_list_elem     = c('null', 'na'),
     vectors_to_df         = TRUE,
@@ -212,7 +212,7 @@ from_opts <- function(
       num_specials      = match.arg(num_specials),
       yyjson_read_flag  = as.integer(yyjson_read_flag)
     ),
-    class = "from_opts"
+    class = "opts_read_json"
   )
 }
 
@@ -246,7 +246,7 @@ from_opts <- function(
 #' 
 #' @examples
 #' \dontrun{
-#' write_json_str(iris, opts = to_opts(factor = 'integer'))
+#' write_json_str(iris, opts = opts_write_json(factor = 'integer'))
 #' }
 #' 
 #' 
@@ -254,7 +254,7 @@ from_opts <- function(
 #' @return Named list of options
 #' @export
 #~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
-to_opts <- function( 
+opts_write_json <- function( 
     dataframe         = c("rows", "columns"),
     factor            = c("string", "integer"),
     auto_unbox        = FALSE,
@@ -275,6 +275,6 @@ to_opts <- function(
       num_specials      = match.arg(num_specials),
       yyjson_write_flag = as.integer(yyjson_write_flag)
     ),
-    class = "to_opts"
+    class = "opts_write_json"
   )
 }

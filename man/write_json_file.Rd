@@ -11,10 +11,10 @@ write_json_file(x, filename, opts = list(), ...)
 
 \item{filename}{filename}
 
-\item{opts}{Named list of serialization options. Usually created by \code{\link[=to_opts]{to_opts()}}}
+\item{opts}{Named list of serialization options. Usually created by \code{\link[=opts_write_json]{opts_write_json()}}}
 
 \item{...}{Other named options can be used to override any options in \code{opts}.
-The valid named options are identical to arguments to \code{\link[=to_opts]{to_opts()}}}
+The valid named options are identical to arguments to \code{\link[=opts_write_json]{opts_write_json()}}}
 }
 \description{
 Convert R object to JSON file

@@ -12,7 +12,7 @@ read_geojson_file(filename, opts = list(), ...)
 \arguments{
 \item{str}{single character string containing GeoJSON}
 
-\item{opts}{named list of options. Usually created with \code{from_geojson_opts()}.
+\item{opts}{named list of options. Usually created with \code{opts_read_geojson()}.
 Default: empty \code{list()} to use the default options.}
 
 \item{...}{any extra named options override those in \code{opts}}

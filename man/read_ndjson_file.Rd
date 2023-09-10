@@ -26,10 +26,10 @@ read_ndjson_file(
 \item{nprobe}{Number of lines to read to determine types for data.frame
 columns.  Default: 100. Only valid for \code{read_ndjson_file()}}
 
-\item{opts}{Named list of options for parsing. Usually created by \code{from_opts()}}
+\item{opts}{Named list of options for parsing. Usually created by \code{opts_read_json()}}
 
 \item{...}{Other named options can be used to override any options in \code{opts}.
-The valid named options are identical to arguments to \code{\link[=from_opts]{from_opts()}}}
+The valid named options are identical to arguments to \code{\link[=opts_read_json]{opts_read_json()}}}
 }
 \value{
 list or data.frame

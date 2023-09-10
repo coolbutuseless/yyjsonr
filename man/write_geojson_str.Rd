@@ -12,7 +12,7 @@ write_geojson_file(x, filename, opts = list(), ...)
 \arguments{
 \item{x}{\code{sf} object. Supports \code{sf} or \code{sfc}}
 
-\item{opts}{named list of options. Usually created with \code{to_geojson_opts()}.
+\item{opts}{named list of options. Usually created with \code{opts_write_geojson()}.
 Default: empty \code{list()} to use the default options.}
 
 \item{...}{any extra named options override those in \code{opts}}

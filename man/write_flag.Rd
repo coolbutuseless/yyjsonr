@@ -18,7 +18,7 @@ code directly.  This is an ADVANCED option and should be used with caution.
 Some of these settings overlap and conflict with code needed to handle
 the translation of JSON values to R.
 
-\code{to_opts(yyjson_write_flag = c(write_flag$x, write_flag$y, ...))}
+\code{opts_write_json(yyjson_write_flag = c(write_flag$x, write_flag$y, ...))}
 
 \describe{
 \item{YYJSON_WRITE_NOFLAG}{
@@ -50,7 +50,7 @@ This flag will override \code{YYJSON_WRITE_PRETTY} flag.}
 }
 \examples{
 \dontrun{
-write_json_str(str, opts = to_opts(yyjson_write_flag = write_flag$YYJSON_WRITE_ESCAPE_SLASHES))
+write_json_str(str, opts = opts_write_json(yyjson_write_flag = write_flag$YYJSON_WRITE_ESCAPE_SLASHES))
 }
 
 }

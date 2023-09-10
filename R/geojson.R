@@ -16,7 +16,7 @@
 #' @return named list
 #' @export
 #~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
-from_geojson_opts <- function(type = c('sf', 'sfc'), 
+opts_read_geojson <- function(type = c('sf', 'sfc'), 
                           property_promotion = c('string', 'list'),
                           property_promotion_lgl_as_int = c('integer', 'string')) {
   structure(
@@ -24,7 +24,7 @@ from_geojson_opts <- function(type = c('sf', 'sfc'),
       type               = match.arg(type),
       property_promotion = match.arg(property_promotion)
     ),
-    class = "from_geojson_opts"
+    class = "opts_read_geojson"
   )
 }
 
@@ -36,12 +36,12 @@ from_geojson_opts <- function(type = c('sf', 'sfc'),
 #' @return named list of options
 #' @export
 #~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
-to_geojson_opts <- function() {
+opts_write_geojson <- function() {
   structure(
     list(
       
     ),
-    class = "to_geojson_opts"
+    class = "opts_write_geojson"
   )
 }
 
@@ -51,7 +51,7 @@ to_geojson_opts <- function() {
 #' 
 #' @param filename filename
 #' @param str single character string containing GeoJSON
-#' @param opts named list of options. Usually created with \code{from_geojson_opts()}.
+#' @param opts named list of options. Usually created with \code{opts_read_geojson()}.
 #'        Default: empty \code{list()} to use the default options.
 #' @param ... any extra named options override those in \code{opts}
 #'
@@ -90,7 +90,7 @@ read_geojson_file <- function(filename, opts = list(), ...) {
 #' 
 #' @param x \code{sf} object. Supports \code{sf} or \code{sfc}
 #' @param filename filename
-#' @param opts named list of options. Usually created with \code{to_geojson_opts()}.
+#' @param opts named list of options. Usually created with \code{opts_write_geojson()}.
 #'        Default: empty \code{list()} to use the default options.
 #' @param ... any extra named options override those in \code{opts}
 #'
