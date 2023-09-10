@@ -36,6 +36,8 @@
 read_ndjson_file <- function(filename, type = c('df', 'list'), nread = -1, nskip = 0, nprobe = 100, opts = list(), ...) {
   
   type <- match.arg(type)
+
+  filename <- path.expand(filename[1])
   
   if (type == 'list') {
     .Call(

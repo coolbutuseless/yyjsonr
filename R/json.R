@@ -69,6 +69,9 @@ read_json_raw <- function(raw_vec, opts = list(), ...) {
 #' @export
 #~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 read_json_file <- function(filename, opts = list(), ...) {
+
+  filename <- path.expand(filename[1])
+
   .Call(
     parse_from_file_, 
     filename, 
