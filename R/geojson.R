@@ -77,8 +77,6 @@ read_geojson_str <- function(str, opts = list(), ...) {
 read_geojson_file <- function(filename, opts = list(), ...) {
   opts <- modify_list(opts, list(...))
 
-  filename <- path.expand(filename[1])
-
   .Call(
     parse_geojson_file_,
     filename, 

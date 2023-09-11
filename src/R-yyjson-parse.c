@@ -1868,6 +1868,7 @@ SEXP parse_from_raw_(SEXP raw_, SEXP parse_opts_) {
 SEXP parse_from_file_(SEXP filename_, SEXP parse_opts_) {
   
   const char *filename = (const char *)CHAR( STRING_ELT(filename_, 0) );
+  filename = R_ExpandFileName(filename);
   parse_options opt = create_parse_options(parse_opts_);
   
   return parse_json_from_file(filename, &opt);

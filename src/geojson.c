@@ -1587,6 +1587,7 @@ SEXP parse_geojson_file_(SEXP filename_, SEXP geo_opts_, SEXP parse_opts_) {
   opt.parse_opt = &parse_opt;
   
   const char *filename = (const char *)CHAR( STRING_ELT(filename_, 0) );
+  filename = R_ExpandFileName(filename);
   yyjson_read_err err;
   yyjson_doc *doc = yyjson_read_file((char *)filename, opt.yyjson_read_flag, NULL, &err);
   

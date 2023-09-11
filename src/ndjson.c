@@ -114,7 +114,8 @@ SEXP parse_ndjson_file_as_list_(SEXP filename_, SEXP nread_, SEXP nskip_, SEXP p
   //~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
   // Check for file
   //~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
-  char *filename = (char *)CHAR(STRING_ELT(filename_, 0));
+  const char *filename = (const char *)CHAR(STRING_ELT(filename_, 0));
+  filename = R_ExpandFileName(filename);
   if (access(filename, R_OK) != 0) {
     error("Cannot read from file '%s'", filename);
   }
@@ -229,8 +230,8 @@ SEXP parse_ndjson_file_as_df_(SEXP filename_, SEXP nread_, SEXP nskip_, SEXP npr
   unsigned int nprotect = 0;
   char buf[MAX_LINE_LENGTH];
   parse_options opt = create_parse_options(parse_opts_);
-  char *filename = (char *)CHAR(STRING_ELT(filename_, 0));
-  
+  const char *filename = (const char *)CHAR(STRING_ELT(filename_, 0));
+  filename = R_ExpandFileName(filename);
   
   //~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
   // Check for file
