@@ -1,4 +1,11 @@
 
+# yyjsonr 0.1.8 2023-09-12
+
+* Added `path.expand()` when handling filenames. Thanks to
+    * https://github.com/shikokuchuo
+    * https://github.com/hrbrmstr
+* Added support for data.frames without column names to match 
+  behaviour of `jsonlite` (when working within the `plotly` package)
 
 # yyjsonr 0.1.7 2023-09-10
 

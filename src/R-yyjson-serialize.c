@@ -835,7 +835,7 @@ yyjson_mut_val *data_frame_row_to_json_object(SEXP df_, unsigned int row, int sk
       val = scalar_rawsxp_to_json_val(col_, row, doc, opt);
       break;
     default:
-      error("data_frame_to_json_array_of_objects(): Unhandled scalar SEXP: %s\n", type2char(TYPEOF(col_)));
+      error("data_frame_row_to_json_object(): Unhandled scalar SEXP: %s\n", type2char(TYPEOF(col_)));
     }
     // Add value to row obj
     if (val != NULL) {
@@ -847,6 +847,110 @@ yyjson_mut_val *data_frame_row_to_json_object(SEXP df_, unsigned int row, int sk
 }
 
 
+//===========================================================================
+yyjson_mut_val *data_frame_row_to_json_array(SEXP df_, unsigned int row, int skip_col, yyjson_mut_doc *doc, serialize_options *opt) {
+  
+  // get data.frame names
+  unsigned int ncols = length(df_);
+  
+  yyjson_mut_val *arr = yyjson_mut_arr(doc);
+  
+  for (int col = 0; col < ncols; col++) {
+    if (col == skip_col) continue;
+    yyjson_mut_val *val;
+    SEXP col_ = VECTOR_ELT(df_, col);
+    
+    switch(TYPEOF(col_)) {
+    case LGLSXP:
+      val = scalar_logical_to_json_val(INTEGER(col_)[row], doc, opt);
+      break;
+    case INTSXP:
+      if (isFactor(col_)) {
+        val = scalar_factor_to_json_val(col_, row, doc, opt);
+      } else if (inherits(col_, "Date")) {
+        val = scalar_date_to_json_val(col_, row, doc, opt);
+      } else if (inherits(col_, "POSIXct")) {
+        val = scalar_posixct_to_json_val(col_, row, doc, opt);
+      } else {
+        val = scalar_integer_to_json_val(INTEGER(col_)[row], doc, opt);
+      }
+      break;
+    case REALSXP: {
+      if (inherits(col_, "Date")) {
+      val = scalar_date_to_json_val(col_, row, doc, opt);
+    } else if (inherits(col_, "POSIXct")) {
+      val = scalar_posixct_to_json_val(col_, row, doc, opt);
+    } else if (inherits(col_, "integer64")) {
+      val = scalar_integer64_to_json_val(col_, row, doc, opt);
+    } else {
+      val = scalar_double_to_json_val(REAL(col_)[row], doc, opt);
+    }
+    }
+      break;
+    case STRSXP: {
+      val = scalar_strsxp_to_json_val(col_, row, doc, opt);
+    }
+      break;
+    case VECSXP: {
+      if (inherits(col_, "data.frame")) {
+      val = data_frame_row_to_json_object(col_, row, -1, doc, opt);
+    } else {
+      val = serialize_core(VECTOR_ELT(col_, row), doc, opt);
+    }
+    }
+      break;
+    case RAWSXP:
+      val = scalar_rawsxp_to_json_val(col_, row, doc, opt);
+      break;
+    default:
+      error("data_frame_row_to_json_array(): Unhandled scalar SEXP: %s\n", type2char(TYPEOF(col_)));
+    }
+    // Add value to row obj
+    if (val != NULL) {
+      yyjson_mut_arr_add_val(arr, val);
+    }
+  }
+  
+  return arr;
+}
+
+
+yyjson_mut_val *data_frame_to_json_array_of_arrays(SEXP df_, yyjson_mut_doc *doc, serialize_options *opt) {
+  
+  //~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+  // Sanity check
+  //~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+  if (!Rf_inherits(df_, "data.frame")) {
+    error("data_frame_to_json_array_of_objects(). Not a data.frame!! %s", type2char(TYPEOF(df_)));
+  }
+  
+  
+  // Create an array  
+  yyjson_mut_val *arr = yyjson_mut_arr(doc);
+  
+  // get size of data.frame
+  unsigned int nrows = length(VECTOR_ELT(df_, 0)); // length of first column
+  
+  //~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+  // For each row
+  //   create an array
+  //   for each column
+  //      add the value to the array
+  //   add the array to the overall array
+  //~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+  for (int row = 0; row < nrows; row++) {
+    
+    yyjson_mut_val *obj = data_frame_row_to_json_array(df_, row, -1, doc, opt);
+    
+    // Add row obj to array
+    yyjson_mut_arr_append(arr, obj);
+  }
+  
+  // Return the array of row objects
+  return arr;
+}
+
+
 yyjson_mut_val *data_frame_to_json_array_of_objects(SEXP df_, yyjson_mut_doc *doc, serialize_options *opt) {
 
   //~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
@@ -854,6 +958,11 @@ yyjson_mut_val *data_frame_to_json_array_of_objects(SEXP df_, yyjson_mut_doc *do
   //~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
   if (!Rf_inherits(df_, "data.frame")) {
     error("data_frame_to_json_array_of_objects(). Not a data.frame!! %s", type2char(TYPEOF(df_)));
+  }
+  
+  
+  if (isNull(getAttrib(df_, R_NamesSymbol))) {
+    return data_frame_to_json_array_of_arrays(df_, doc, opt);
   }
 
   // Create an array  
