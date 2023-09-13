@@ -1,7 +1,7 @@
 Package: yyjsonr
 Type: Package
 Title: Fast JSON, GeoJSON and NDJSON Parsing and Serialisation
-Version: 0.1.9
+Version: 0.1.10
 Authors@R: c(
     person("Mike", "FC", role = c("aut", "cre"), email = "mikefc@coolbutuseless.com"),
     person("Yao", "Yuan", role = "cph", email = "ibireme@gmail.com", 

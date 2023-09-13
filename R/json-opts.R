@@ -169,9 +169,12 @@ write_flag <- list(
 #'        be stored in this type.
 #' @param missing_list_elem how to handle missing elements in list columns in 
 #'        data.frames. Options, 'na', or 'null.  Default: 'null'
-#' @param vectors_to_df logical. Should a named list of equal-length
+#' @param obj_of_arrs_to_df logical. Should a named list of equal-length
 #'        vectors be promoted to a data.frame?  Default: TRUE.  If FALSE, then
 #'        result will be left as a list.
+#' @param arr_of_objs_to_df logical. Should an array or objects be promoted to a 
+#'        a data.frame? Default: TRUE. If FALSE, then results will be read as a
+#'        list-of-lists.
 #' @param yyjson_read_flag integer vector of internal \code{yyjson}
 #'        options.  See \code{read_flag} in this package, and read
 #'        the yyjson API documentation for more information.  This is considered
@@ -196,7 +199,8 @@ write_flag <- list(
 opts_read_json <- function(
     int64                 = c('string', 'bit64'),
     missing_list_elem     = c('null', 'na'),
-    vectors_to_df         = TRUE,
+    obj_of_arrs_to_df     = TRUE,
+    arr_of_objs_to_df     = TRUE,
     str_specials          = c('string', 'special'),
     num_specials          = c('special', 'string'),
     promote_num_to_string = FALSE,
@@ -207,7 +211,8 @@ opts_read_json <- function(
     list(
       int64             = match.arg(int64),
       missing_list_elem = match.arg(missing_list_elem),
-      vectors_to_df     = isTRUE(vectors_to_df),
+      obj_of_arrs_to_df = isTRUE(obj_of_arrs_to_df),
+      arr_of_objs_to_df = isTRUE(arr_of_objs_to_df),
       str_specials      = match.arg(str_specials),
       num_specials      = match.arg(num_specials),
       yyjson_read_flag  = as.integer(yyjson_read_flag)

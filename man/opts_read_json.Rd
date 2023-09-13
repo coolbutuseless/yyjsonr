@@ -7,7 +7,8 @@
 opts_read_json(
   int64 = c("string", "bit64"),
   missing_list_elem = c("null", "na"),
-  vectors_to_df = TRUE,
+  obj_of_arrs_to_df = TRUE,
+  arr_of_objs_to_df = TRUE,
   str_specials = c("string", "special"),
   num_specials = c("special", "string"),
   promote_num_to_string = FALSE,
@@ -25,9 +26,13 @@ be stored in this type.}
 \item{missing_list_elem}{how to handle missing elements in list columns in
 data.frames. Options, 'na', or 'null.  Default: 'null'}
 
-\item{vectors_to_df}{logical. Should a named list of equal-length
+\item{obj_of_arrs_to_df}{logical. Should a named list of equal-length
 vectors be promoted to a data.frame?  Default: TRUE.  If FALSE, then
 result will be left as a list.}
+
+\item{arr_of_objs_to_df}{logical. Should an array or objects be promoted to a
+a data.frame? Default: TRUE. If FALSE, then results will be read as a
+list-of-lists.}
 
 \item{str_specials}{Should \code{'NA'} in a JSON string be converted to the \code{'special'}
 \code{NA} value in R, or left as a \code{'string'}.  Default: 'string'}

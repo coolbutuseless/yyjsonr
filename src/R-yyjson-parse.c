@@ -22,7 +22,8 @@ parse_options create_parse_options(SEXP parse_opts_) {
   parse_options opt = {
     .int64                 = INT64_AS_STR,
     .missing_list_elem     = MISSING_AS_NULL,
-    .vectors_to_df         = true,
+    .obj_of_arrs_to_df     = true,
+    .arr_of_objs_to_df     = true,
     .str_specials          = STR_SPECIALS_AS_STRING,
     .num_specials          = NUM_SPECIALS_AS_SPECIAL,
     .promote_num_to_string = false,
@@ -56,8 +57,10 @@ parse_options create_parse_options(SEXP parse_opts_) {
       for (unsigned int idx = 0; idx < length(val_); idx++) {
         opt.yyjson_read_flag |= INTEGER(val_)[idx];
       }
-    } else if (strcmp(opt_name, "vectors_to_df") == 0) {
-      opt.vectors_to_df = asLogical(val_);
+    } else if (strcmp(opt_name, "obj_of_arrs_to_df") == 0) {
+      opt.obj_of_arrs_to_df = asLogical(val_);
+    } else if (strcmp(opt_name, "arr_of_objs_to_df") == 0) {
+      opt.arr_of_objs_to_df = asLogical(val_);
     } else if (strcmp(opt_name, "str_specials") == 0) {
       const char *val = CHAR(STRING_ELT(val_, 0));
       opt.str_specials = strcmp(val, "string") == 0 ? STR_SPECIALS_AS_STRING : STR_SPECIALS_AS_SPECIAL;
@@ -1241,7 +1244,7 @@ SEXP json_array_as_robj(yyjson_val *arr, parse_options *opt) {
       }
 
     }    
-  } else if (ctn_bitset == CTN_OBJ) {
+  } else if (ctn_bitset == CTN_OBJ && opt->arr_of_objs_to_df) {
     //~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
     // []-array ONLY contains {}-objects!
     // Parse as a data.frame
@@ -1600,7 +1603,7 @@ SEXP json_object_as_list(yyjson_val *obj, parse_options *opt) {
   // * All elements are atomic arrays or vecsxp
   // * All these elements are the same length
   //~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
-  if (opt->vectors_to_df) {
+  if (opt->obj_of_arrs_to_df) {
     R_xlen_t nrow = 0;
     bool possible_data_frame = true;
     for (unsigned int col = 0; col < idx; col++) {

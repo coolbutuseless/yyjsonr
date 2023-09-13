@@ -1,4 +1,10 @@
 
+# yyjsonr 0.1.10 2023-09-14
+
+* Refactored options for simplification to data.frame
+    * removed `vectors_to_df`
+    * replaced with `obj_of_arrs_to_df`
+    * added `arr_of_obs_to_df`
 
 # yyjsonr 0.1.9 2023-09-13
 

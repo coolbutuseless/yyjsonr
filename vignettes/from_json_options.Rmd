@@ -82,9 +82,9 @@ Vectors to data.frame
 ```{r}
 str <- '{"a":[1,2],"b":["apple","banana"]}'
 
-read_json_str(str, vectors_to_df = FALSE)
+read_json_str(str, obj_of_arrs_to_df = FALSE)
 
-read_json_str(str, vectors_to_df =  TRUE)
+read_json_str(str, obj_of_arrs_to_df =  TRUE)
 ```
 
 
