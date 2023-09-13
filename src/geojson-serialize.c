@@ -202,9 +202,10 @@ yyjson_mut_doc *sf_to_json(SEXP sf_, geo_serialize_options *opt) {
   //    - add it to the features JSON []-array
   //~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
   yyjson_mut_val *features = yyjson_mut_arr(doc);
+  unsigned int *col_type = detect_data_frame_types(sf_, opt->serialize_opt);
   
   for (unsigned int row = 0; row < nrow; row++) {
-    yyjson_mut_val *properties = data_frame_row_to_json_object(sf_, row, geom_col_idx, doc, opt->serialize_opt);
+    yyjson_mut_val *properties = data_frame_row_to_json_object(sf_, col_type, row, geom_col_idx, doc, opt->serialize_opt);
     yyjson_mut_val *geometry = serialize_geom(VECTOR_ELT(geom_col_, row), doc, opt);
     yyjson_mut_val *feature = yyjson_mut_obj(doc);
     yyjson_mut_obj_add_str(doc, feature, "type", "Feature");

@@ -1,4 +1,10 @@
 
+
+# yyjsonr 0.1.9 2023-09-13
+
+* Added pre-calculation and caching of data.frame column types for faster
+  serialization when outputting row-by-row.
+
 # yyjsonr 0.1.8 2023-09-12
 
 * Added `path.expand()` when handling filenames. Thanks to
