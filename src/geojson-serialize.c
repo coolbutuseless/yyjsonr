@@ -28,7 +28,7 @@ typedef struct {
 //~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 geo_serialize_options create_geo_serialize_options(SEXP to_geo_opts_) {
   geo_serialize_options opt = {
-    .yyjson_write_flag = YYJSON_WRITE_PRETTY,
+    // .yyjson_write_flag = YYJSON_WRITE_PRETTY,
   };
   
   if (isNull(to_geo_opts_) || length(to_geo_opts_) == 0) {
@@ -45,8 +45,8 @@ geo_serialize_options create_geo_serialize_options(SEXP to_geo_opts_) {
   }
   
   for (unsigned int i = 0; i < length(to_geo_opts_); i++) {
-    // const char *opt_name = CHAR(STRING_ELT(nms_, i));
-    // SEXP val_ = VECTOR_ELT(to_geo_opts_, i);
+    const char *opt_name = CHAR(STRING_ELT(nms_, i));
+    SEXP val_ = VECTOR_ELT(to_geo_opts_, i);
     
     // if (strcmp(opt_name, "property_promotion") == 0) {
     //   const char *val = CHAR(STRING_ELT(val_, 0));
@@ -57,9 +57,13 @@ geo_serialize_options create_geo_serialize_options(SEXP to_geo_opts_) {
     // } else if (strcmp(opt_name, "type") == 0) {
     //   const char *val = CHAR(STRING_ELT(val_, 0));
     //   opt.type = strcmp(val, "sf") == 0 ? SF_TYPE : SFC_TYPE;
-    // } else {
-    //   warning("geo_opt: Unknown option ignored: '%s'\n", opt_name);
-    // }
+    if (strcmp(opt_name, "pretty") == 0) {
+      if (asLogical(val_)) {
+        opt.yyjson_write_flag |= YYJSON_WRITE_PRETTY_TWO_SPACES;
+      }
+    } else {
+      warning("geo_opt: Unknown option ignored: '%s'\n", opt_name);
+    }
   }
   return opt;
 }
