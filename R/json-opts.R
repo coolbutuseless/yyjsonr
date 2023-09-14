@@ -191,6 +191,8 @@ write_flag <- list(
 #'        then array of mixed string/numeric types will be promoted to all 
 #'        string values and returned as an atonic character vector.  Set this to \code{TRUE}
 #'        if you want to emulate the behaviour of \code{jsonlite::fromJSON()}
+#' @param length1_array_asis logical. Should JSON arrays with length = 1 be 
+#'        marked with class \code{AsIs}.  Default: FALSE
 #'
 #' @seealso [read_flag()]
 #' @return Named list of options
@@ -201,6 +203,7 @@ opts_read_json <- function(
     missing_list_elem     = c('null', 'na'),
     obj_of_arrs_to_df     = TRUE,
     arr_of_objs_to_df     = TRUE,
+    length1_array_asis   = FALSE,
     str_specials          = c('string', 'special'),
     num_specials          = c('special', 'string'),
     promote_num_to_string = FALSE,
@@ -209,13 +212,14 @@ opts_read_json <- function(
   
   structure(
     list(
-      int64             = match.arg(int64),
-      missing_list_elem = match.arg(missing_list_elem),
-      obj_of_arrs_to_df = isTRUE(obj_of_arrs_to_df),
-      arr_of_objs_to_df = isTRUE(arr_of_objs_to_df),
-      str_specials      = match.arg(str_specials),
-      num_specials      = match.arg(num_specials),
-      yyjson_read_flag  = as.integer(yyjson_read_flag)
+      int64               = match.arg(int64),
+      missing_list_elem   = match.arg(missing_list_elem),
+      obj_of_arrs_to_df   = isTRUE(obj_of_arrs_to_df),
+      arr_of_objs_to_df   = isTRUE(arr_of_objs_to_df),
+      length1_array_asis = isTRUE(length1_array_asis),
+      str_specials        = match.arg(str_specials),
+      num_specials        = match.arg(num_specials),
+      yyjson_read_flag    = as.integer(yyjson_read_flag)
     ),
     class = "opts_read_json"
   )

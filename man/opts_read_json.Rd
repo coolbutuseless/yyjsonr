@@ -9,6 +9,7 @@ opts_read_json(
   missing_list_elem = c("null", "na"),
   obj_of_arrs_to_df = TRUE,
   arr_of_objs_to_df = TRUE,
+  length1_array_asis = FALSE,
   str_specials = c("string", "special"),
   num_specials = c("special", "string"),
   promote_num_to_string = FALSE,
@@ -33,6 +34,9 @@ result will be left as a list.}
 \item{arr_of_objs_to_df}{logical. Should an array or objects be promoted to a
 a data.frame? Default: TRUE. If FALSE, then results will be read as a
 list-of-lists.}
+
+\item{length1_array_asis}{logical. Should JSON arrays with length = 1 be
+marked with class \code{AsIs}.  Default: FALSE}
 
 \item{str_specials}{Should \code{'NA'} in a JSON string be converted to the \code{'special'}
 \code{NA} value in R, or left as a \code{'string'}.  Default: 'string'}

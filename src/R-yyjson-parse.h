@@ -98,6 +98,7 @@ typedef struct {
   unsigned int missing_list_elem;
   bool obj_of_arrs_to_df;
   bool arr_of_objs_to_df;
+  bool length1_array_asis;
   unsigned int str_specials;
   unsigned int num_specials;
   bool promote_num_to_string;

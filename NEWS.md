@@ -5,6 +5,11 @@
     * removed `vectors_to_df`
     * replaced with `obj_of_arrs_to_df`
     * added `arr_of_obs_to_df`
+* length-1 vectors marked with class `AsIs` (using a call to `I()`) will
+  never be unboxed i.e. will always be serialized as a JSON []-array with 
+  one element.
+* Added parse option `length1_array_asis`.  If `TRUE` then automatically add
+  the class `AsIs` to the object object.
 
 # yyjsonr 0.1.9 2023-09-13
 

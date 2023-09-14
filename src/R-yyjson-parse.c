@@ -24,6 +24,7 @@ parse_options create_parse_options(SEXP parse_opts_) {
     .missing_list_elem     = MISSING_AS_NULL,
     .obj_of_arrs_to_df     = true,
     .arr_of_objs_to_df     = true,
+    .length1_array_asis   = false,
     .str_specials          = STR_SPECIALS_AS_STRING,
     .num_specials          = NUM_SPECIALS_AS_SPECIAL,
     .promote_num_to_string = false,
@@ -47,7 +48,9 @@ parse_options create_parse_options(SEXP parse_opts_) {
     const char *opt_name = CHAR(STRING_ELT(nms_, i));
     SEXP val_ = VECTOR_ELT(parse_opts_, i);
     
-    if (strcmp(opt_name, "int64") == 0) {
+    if (strcmp(opt_name, "length1_array_asis") == 0) {
+      opt.length1_array_asis = asLogical(val_);
+    } else if (strcmp(opt_name, "int64") == 0) {
       const char *val = CHAR(STRING_ELT(val_, 0));
       opt.int64 = strcmp(val, "string") == 0 ? INT64_AS_STR : INT64_AS_BIT64;
     } else if (strcmp(opt_name, "missing_list_elem") == 0) {
@@ -1129,6 +1132,14 @@ SEXP json_array_as_robj(yyjson_val *arr, parse_options *opt) {
     default:
       error("json_array_as_robj(). Ooops\n");
     }
+    
+    //~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+    // Tag a length-1 array as class = 'AsIs'
+    //~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+    if (opt->length1_array_asis && length(res_) == 1 && !inherits(res_, "Integer64")) {
+      setAttrib(res_, R_ClassSymbol, mkString("AsIs"));
+    }
+    
   } else if (ctn_bitset == CTN_ARR) {
     unsigned int sexp_type = get_best_sexp_type_for_matrix(arr, opt);
     if (sexp_type != 0) {

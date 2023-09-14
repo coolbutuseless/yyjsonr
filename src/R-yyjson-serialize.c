@@ -173,7 +173,7 @@ yyjson_mut_val *scalar_date_to_json_val(SEXP vec_, unsigned int idx, yyjson_mut_
   double ndays = 0;
   if (isReal(vec_)) {
     ndays = REAL(vec_)[idx];
-  
+    
     if (!R_FINITE(ndays)) {
       return yyjson_mut_null(doc);
     }
@@ -206,7 +206,7 @@ yyjson_mut_val *scalar_posixct_to_json_val(SEXP vec_, unsigned int idx, yyjson_m
   
   if (isReal(vec_)) {
     seconds = REAL(vec_)[idx];
-  
+    
     if (!R_FINITE(seconds)) {
       return yyjson_mut_null(doc);
     }
@@ -308,7 +308,7 @@ yyjson_mut_val *scalar_double_to_json_val(double rdbl, yyjson_mut_doc *doc, seri
 // Scalar STRSRXP  to JSON value
 //===========================================================================
 yyjson_mut_val *scalar_strsxp_to_json_val(SEXP str_, unsigned int idx, yyjson_mut_doc *doc, serialize_options *opt) {
-
+  
   yyjson_mut_val *val;
   
   SEXP charsxp_ = STRING_ELT(str_, idx);
@@ -321,7 +321,7 @@ yyjson_mut_val *scalar_strsxp_to_json_val(SEXP str_, unsigned int idx, yyjson_mu
   } else {
     val = yyjson_mut_strcpy(doc, CHAR(charsxp_));
   }
-
+  
   return val;
 }
 
@@ -356,13 +356,13 @@ yyjson_mut_val *vector_lglsxp_to_json_array(SEXP vec_, yyjson_mut_doc *doc, seri
 // Serialize factor to JSON []-array
 //===========================================================================
 yyjson_mut_val *vector_factor_to_json_array(SEXP vec_, yyjson_mut_doc *doc, serialize_options *opt) {
-
+  
   yyjson_mut_val *arr = yyjson_mut_arr(doc);
   
   for (int i = 0; i < length(vec_); i++) {
     yyjson_mut_arr_append(arr, scalar_factor_to_json_val(vec_, i, doc, opt));
   }
-
+  
   return arr;
 }
 
@@ -546,19 +546,19 @@ yyjson_mut_val *vector_to_json_array(SEXP vec_, yyjson_mut_doc *doc, serialize_o
 // Write a matrix as an array of arrays in column-major order
 //===========================================================================
 yyjson_mut_val *matrix_to_col_major_array(SEXP mat_, unsigned int offset, yyjson_mut_doc *doc, serialize_options *opt) {
-
+  
   SEXP dims_ = getAttrib(mat_, R_DimSymbol);
   unsigned int nrow = INTEGER(dims_)[0];
   unsigned int ncol = INTEGER(dims_)[1];
   
   // 'Offset' is used for array processing where we want to start processing
   // elements at an index other than 0. i.e. the n-th layer of the 3-d array
-
+  
   //~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
   // Allocate an array within the document
   //~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
   yyjson_mut_val *arr = yyjson_mut_arr(doc);
-
+  
   switch(TYPEOF(mat_)) {
   case LGLSXP: {
     int32_t *ptr = INTEGER(mat_) + offset;
@@ -595,19 +595,19 @@ yyjson_mut_val *matrix_to_col_major_array(SEXP mat_, unsigned int offset, yyjson
     break;
   case STRSXP: {
     for (unsigned int row = 0; row < nrow; row++) {
-      yyjson_mut_val *row_arr = yyjson_mut_arr(doc);
-      for (unsigned int col = 0; col < ncol; col++) {
-        yyjson_mut_arr_append(row_arr, scalar_strsxp_to_json_val(mat_, offset + row + col * nrow, doc, opt));
-      }
-      yyjson_mut_arr_append(arr, row_arr);
+    yyjson_mut_val *row_arr = yyjson_mut_arr(doc);
+    for (unsigned int col = 0; col < ncol; col++) {
+      yyjson_mut_arr_append(row_arr, scalar_strsxp_to_json_val(mat_, offset + row + col * nrow, doc, opt));
     }
+    yyjson_mut_arr_append(arr, row_arr);
+  }
   }
     break;
   default:
     error("matrix_to_col_major_array(). Unhandled type: %s", type2char(TYPEOF(mat_)));
   }
-
-
+  
+  
   return arr;
 }
 
@@ -708,7 +708,7 @@ yyjson_mut_val *unnamed_list_to_json_array(SEXP list_, yyjson_mut_doc *doc, seri
   return arr;
 }
 
- 
+
 //===========================================================================
 //   #   #                           #  #        #            #    
 //   #   #                           #  #                     #    
@@ -1017,7 +1017,7 @@ yyjson_mut_val *data_frame_to_json_array_of_arrays(SEXP df_, yyjson_mut_doc *doc
 
 
 yyjson_mut_val *data_frame_to_json_array_of_objects(SEXP df_, yyjson_mut_doc *doc, serialize_options *opt) {
-
+  
   //~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
   // Sanity check
   //~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
@@ -1029,13 +1029,13 @@ yyjson_mut_val *data_frame_to_json_array_of_objects(SEXP df_, yyjson_mut_doc *do
   if (isNull(getAttrib(df_, R_NamesSymbol))) {
     return data_frame_to_json_array_of_arrays(df_, doc, opt);
   }
-
+  
   // Create an array  
   yyjson_mut_val *arr = yyjson_mut_arr(doc);
   
   // get size of data.frame
   unsigned int nrows = length(VECTOR_ELT(df_, 0)); // length of first column
-
+  
   //~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
   // For each row
   //   create an object
@@ -1058,9 +1058,9 @@ yyjson_mut_val *data_frame_to_json_array_of_objects(SEXP df_, yyjson_mut_doc *do
   // }
   
   for (int row = 0; row < nrows; row++) {
- 
+    
     yyjson_mut_val *obj = data_frame_row_to_json_object(df_, col_type, row, -1, doc, opt);
-
+    
     // Add row obj to array
     yyjson_mut_arr_append(arr, obj);
   }
@@ -1110,40 +1110,44 @@ yyjson_mut_val *serialize_core(SEXP robj_, yyjson_mut_doc *doc, serialize_option
     }
     val = dim3_matrix_to_col_major_array(robj_, doc, opt);
   } else if (opt->auto_unbox && isVectorAtomic(robj_) && length(robj_) == 1) {
-    switch(TYPEOF(robj_)) {
-    case LGLSXP:
-      val = scalar_logical_to_json_val(asLogical(robj_), doc, opt);
-      break;
-    case INTSXP:
-      if (isFactor(robj_)) {
-        val = scalar_factor_to_json_val(robj_, 0, doc, opt);
-      } else if (inherits(robj_, "Date")) {
-        val = scalar_date_to_json_val(robj_, 0, doc, opt);
-      } else if (inherits(robj_, "POSIXct")) {
-        val = scalar_posixct_to_json_val(robj_, 0, doc, opt);
-      } else {
-        val = scalar_integer_to_json_val(asInteger(robj_), doc, opt);
+    if (inherits(robj_, "AsIs")) {
+      val = vector_to_json_array(robj_, doc, opt);
+    } else {
+      switch(TYPEOF(robj_)) {
+      case LGLSXP:
+        val = scalar_logical_to_json_val(asLogical(robj_), doc, opt);
+        break;
+      case INTSXP:
+        if (isFactor(robj_)) {
+          val = scalar_factor_to_json_val(robj_, 0, doc, opt);
+        } else if (inherits(robj_, "Date")) {
+          val = scalar_date_to_json_val(robj_, 0, doc, opt);
+        } else if (inherits(robj_, "POSIXct")) {
+          val = scalar_posixct_to_json_val(robj_, 0, doc, opt);
+        } else {
+          val = scalar_integer_to_json_val(asInteger(robj_), doc, opt);
+        }
+        break;
+      case REALSXP:
+        if (inherits(robj_, "Date")) {
+          val = scalar_date_to_json_val(robj_, 0, doc, opt);
+        } else if (inherits(robj_, "POSIXct")) {
+          val = scalar_posixct_to_json_val(robj_, 0, doc, opt);
+        } else if (inherits(robj_, "integer64")) {
+          val = scalar_integer64_to_json_val(robj_, 0, doc, opt);
+        } else {
+          val = scalar_double_to_json_val(asReal(robj_), doc, opt);
+        }
+        break;
+      case STRSXP:
+        val = scalar_strsxp_to_json_val(robj_, 0, doc, opt);
+        break;
+      case RAWSXP:
+        val = scalar_rawsxp_to_json_val(robj_, 0, doc, opt);
+        break;
+      default:
+        error("Unhandled scalar SEXP: %s\n", type2char(TYPEOF(robj_)));
       }
-      break;
-    case REALSXP:
-      if (inherits(robj_, "Date")) {
-        val = scalar_date_to_json_val(robj_, 0, doc, opt);
-      } else if (inherits(robj_, "POSIXct")) {
-        val = scalar_posixct_to_json_val(robj_, 0, doc, opt);
-      } else if (inherits(robj_, "integer64")) {
-        val = scalar_integer64_to_json_val(robj_, 0, doc, opt);
-      } else {
-        val = scalar_double_to_json_val(asReal(robj_), doc, opt);
-      }
-      break;
-    case STRSXP:
-      val = scalar_strsxp_to_json_val(robj_, 0, doc, opt);
-      break;
-    case RAWSXP:
-      val = scalar_rawsxp_to_json_val(robj_, 0, doc, opt);
-      break;
-    default:
-      error("Unhandled scalar SEXP: %s\n", type2char(TYPEOF(robj_)));
     }
   } else if (isVectorAtomic(robj_)) {
     val = vector_to_json_array(robj_, doc, opt);
@@ -1170,11 +1174,11 @@ yyjson_mut_val *serialize_core(SEXP robj_, yyjson_mut_doc *doc, serialize_option
 // Serialize R object to JSON string.  Callable from R
 //===========================================================================
 SEXP serialize_to_str_(SEXP robj_, SEXP serialize_opts_) {
-
+  
   
   serialize_options opt = parse_serialize_options(serialize_opts_);
-    
-
+  
+  
   //~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
   // Create a mutable document.
   //~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
