@@ -50,7 +50,9 @@ This flag will override \code{YYJSON_WRITE_PRETTY} flag.}
 }
 \examples{
 \dontrun{
-write_json_str(str, opts = opts_write_json(yyjson_write_flag = write_flag$YYJSON_WRITE_ESCAPE_SLASHES))
+write_json_str(str, opts = opts_write_json(
+  yyjson_write_flag = write_flag$YYJSON_WRITE_ESCAPE_SLASHES
+))
 }
 
 }

@@ -1,4 +1,12 @@
 
+# yyjsonr 0.1.11 2023-10-27
+
+* Writing to JSON objects now supports a `digits` argument for rounding floating 
+  point values to the specified number of significant digits
+    * `digits = -1` means don't do any rounding
+    * `digits = 0` rounds floating point values to integers (and writes the 
+      values as JSON integers)
+
 # yyjsonr 0.1.10 2023-09-14
 
 * Refactored options for simplification to data.frame

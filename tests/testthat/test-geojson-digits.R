@@ -1,5 +1,4 @@
 
-
 js <- r"(
 {
     "type": "FeatureCollection",
@@ -35,16 +34,16 @@ js <- r"(
 )"
 
 
+test_that("geojson digits works", {
   
-test_that("geojson property promotion works", {
+  x <- read_geojson_str(js)
   
-  tst <- read_geojson_str(js) # geojson compat
-  expect_identical(tst$value, c("1.000000", "a"))
+  js2 <- write_geojson_str(x, digits = 0)
   
-  tst <- read_geojson_str(js, property_promotion = 'string') # geojson compat
-  expect_identical(tst$value, c("1.000000", "a"))
+  x2 <- read_geojson_str(js2)
   
-  tst <- read_geojson_str(js, property_promotion = 'list')
-  expect_identical(tst$value, list(1.0, "a"))
+  expect_equal(unclass(x2$geometry[[1]]), c(-81, 35))
+  expect_equal(unclass(x2$geometry[[2]]), c(-81, 35))
   
+    
 })

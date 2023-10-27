@@ -5,9 +5,9 @@
 \alias{write_geojson_file}
 \title{Write SF to geojson string}
 \usage{
-write_geojson_str(x, opts = list(), ...)
+write_geojson_str(x, opts = list(), ..., digits = -1)
 
-write_geojson_file(x, filename, opts = list(), ...)
+write_geojson_file(x, filename, opts = list(), ..., digits = -1)
 }
 \arguments{
 \item{x}{\code{sf} object. Supports \code{sf} or \code{sfc}}
@@ -16,6 +16,11 @@ write_geojson_file(x, filename, opts = list(), ...)
 Default: empty \code{list()} to use the default options.}
 
 \item{...}{any extra named options override those in \code{opts}}
+
+\item{digits}{decimal places to keep for floating point numbers. Default: -1.
+Positive values specify number of decimal places. Using zero will
+write the numeric value as an integer. Values less than zero mean that
+the floating point value should be written as-is (the default).}
 
 \item{filename}{filename}
 }

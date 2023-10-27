@@ -27,6 +27,7 @@ serialize_options parse_serialize_options(SEXP serialize_opts_) {
     .data_frame        = DATAFRAME_BY_ROW,
     .factor            = FACTOR_AS_STR,
     .auto_unbox        = FALSE,
+    .digits            = -1,
     .name_repair       = NAME_REPAIR_NONE,
     .num_specials      = NUM_SPECIALS_AS_NULL,
     .str_specials      = STR_SPECIALS_AS_NULL,
@@ -50,7 +51,9 @@ serialize_options parse_serialize_options(SEXP serialize_opts_) {
     const char *opt_name = CHAR(STRING_ELT(nms_, i));
     SEXP val_ = VECTOR_ELT(serialize_opts_, i);
     
-    if (strcmp(opt_name, "dataframe") == 0) {
+    if (strcmp(opt_name, "digits") == 0) {
+      opt.digits = asInteger(val_);
+    } else if (strcmp(opt_name, "dataframe") == 0) {
       const char *tmp = CHAR(STRING_ELT(val_, 0));
       opt.data_frame = strcmp(tmp, "rows") == 0 ? DATAFRAME_BY_ROW : DATAFRAME_BY_COL;
     } else if (strcmp(opt_name, "factor") == 0) {
@@ -263,6 +266,10 @@ yyjson_mut_val *scalar_factor_to_json_val(SEXP factor_, unsigned int idx,  yyjso
 }
 
 
+// Powers of 10 for rounding calculation
+static double fac[20] = {1, 10, 100, 1000, 10000, 1e+05, 1e+06, 1e+07, 1e+08, 
+                         1e+09, 1e+10, 1e+11, 1e+12, 1e+13, 1e+14, 1e+15, 
+                         1e+16, 1e+17, 1e+18, 1e+19};
 
 //===========================================================================
 // Scalar double to JSON value
@@ -286,7 +293,15 @@ yyjson_mut_val *scalar_double_to_json_val(double rdbl, yyjson_mut_doc *doc, seri
       }
     }
   } else if ( R_FINITE(rdbl) ) {
-    val = yyjson_mut_real(doc, rdbl);
+    if (opt->digits < 0) {
+      val = yyjson_mut_real(doc, rdbl);
+    } else if (opt->digits == 0) {
+      // round to integer
+      val = yyjson_mut_int(doc, round(rdbl));
+    } else {
+      // round to decimal places
+      val = yyjson_mut_real(doc, round(rdbl * fac[opt->digits])/fac[opt->digits]);
+    }
   } else {
     // Infinite
     if (opt->num_specials == NUM_SPECIALS_AS_NULL) {

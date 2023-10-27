@@ -5,6 +5,7 @@
 \title{Create named list of options for serializing R to JSON}
 \usage{
 opts_write_json(
+  digits = -1,
   dataframe = c("rows", "columns"),
   factor = c("string", "integer"),
   auto_unbox = FALSE,
@@ -16,6 +17,11 @@ opts_write_json(
 )
 }
 \arguments{
+\item{digits}{decimal places to keep for floating point numbers. Default: -1.
+Positive values specify number of decimal places. Using zero will
+write the numeric value as an integer. Values less than zero mean that
+the floating point value should be written as-is (the default).}
+
 \item{dataframe}{how to encode data.frame objects. Options 'rows' or
 columns'.  Default: 'rows'}
 

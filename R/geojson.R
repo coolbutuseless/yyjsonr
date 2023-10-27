@@ -93,18 +93,22 @@ read_geojson_file <- function(filename, opts = list(), ...) {
 #' @param opts named list of options. Usually created with \code{opts_write_geojson()}.
 #'        Default: empty \code{list()} to use the default options.
 #' @param ... any extra named options override those in \code{opts}
+#' @param digits decimal places to keep for floating point numbers. Default: -1.
+#'        Positive values specify number of decimal places. Using zero will
+#'        write the numeric value as an integer. Values less than zero mean that
+#'        the floating point value should be written as-is (the default).
 #'
 #' @return character string containing json
 #' @export
 #~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
-write_geojson_str <- function(x, opts = list(), ...) {
+write_geojson_str <- function(x, opts = list(), ..., digits = -1) {
   opts <- modify_list(opts, list(...))
   
   .Call(
     serialize_sf_to_str_,
     x,
     opts,                        # geojson serialize opts
-    list(yyjson_write_flag = 0L) # general serialize opts
+    list(yyjson_write_flag = 0L, digits = digits) # general serialize opts
   )
 }
 
@@ -112,7 +116,7 @@ write_geojson_str <- function(x, opts = list(), ...) {
 #' @rdname write_geojson_str
 #' @export
 #~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
-write_geojson_file <- function(x, filename, opts = list(), ...) {
+write_geojson_file <- function(x, filename, opts = list(), ..., digits = -1) {
   opts <- modify_list(opts, list(...))
   
   .Call(
@@ -120,7 +124,7 @@ write_geojson_file <- function(x, filename, opts = list(), ...) {
     x,
     filename,
     opts,                        # geojson serialize opts
-    list(yyjson_write_flag = 0L) # general serialize opts
+    list(yyjson_write_flag = 0L, digits = digits) # general serialize opts
   )
   
   invisible()

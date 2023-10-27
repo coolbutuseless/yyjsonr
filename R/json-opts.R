@@ -141,7 +141,9 @@ read_flag <- list(
 #'
 #' @examples
 #' \dontrun{
-#' write_json_str(str, opts = opts_write_json(yyjson_write_flag = write_flag$YYJSON_WRITE_ESCAPE_SLASHES))
+#' write_json_str(str, opts = opts_write_json(
+#'   yyjson_write_flag = write_flag$YYJSON_WRITE_ESCAPE_SLASHES
+#' ))
 #' }
 #' 
 #' @export
@@ -229,6 +231,10 @@ opts_read_json <- function(
 #~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 #' Create named list of options for serializing R to JSON
 #'
+#' @param digits decimal places to keep for floating point numbers. Default: -1.
+#'        Positive values specify number of decimal places. Using zero will
+#'        write the numeric value as an integer. Values less than zero mean that
+#'        the floating point value should be written as-is (the default).
 #' @param dataframe how to encode data.frame objects. Options 'rows' or 
 #'        columns'.  Default: 'rows'
 #' @param factor how to encode factor objects: must be one of 'string' or 'integer'
@@ -264,6 +270,7 @@ opts_read_json <- function(
 #' @export
 #~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 opts_write_json <- function( 
+    digits            = -1,
     dataframe         = c("rows", "columns"),
     factor            = c("string", "integer"),
     auto_unbox        = FALSE,
@@ -275,6 +282,7 @@ opts_write_json <- function(
   
   structure(
     list(
+      digits            = as.integer(digits),
       dataframe         = match.arg(dataframe),
       factor            = match.arg(factor),
       auto_unbox        = isTRUE(auto_unbox),

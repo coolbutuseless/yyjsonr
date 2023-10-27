@@ -69,6 +69,7 @@ typedef struct {
   unsigned int data_frame;
   unsigned int factor;
   unsigned int null;
+  int digits;
   bool auto_unbox; 
   unsigned int name_repair;
   unsigned int str_specials;
