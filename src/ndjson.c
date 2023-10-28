@@ -15,7 +15,7 @@
 #include "R-yyjson-parse.h"
 #include "R-yyjson-serialize.h"
 
-#define MAX_LINE_LENGTH 10000
+#define MAX_LINE_LENGTH 131072
 #define INIT_LIST_LENGTH 64
 
 
@@ -61,16 +61,14 @@ SEXP grow_list(SEXP oldlist) {
 // For now (2023-08-09), ndjson->list will use method (2) and 
 // ndjson->data.frame will use method (10)
 //~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
-#define BUF_SIZE 65536
-int count_lines(const char *filename)
-{
-  char buf[BUF_SIZE];
+int count_lines(const char *filename) {
+  char buf[MAX_LINE_LENGTH];
   int counter = 0;
   
   gzFile file = gzopen(filename, "r");
   
   for(;;) {
-    size_t res = gzfread(buf, 1, BUF_SIZE, file);
+    size_t res = gzfread(buf, 1, MAX_LINE_LENGTH, file);
     
     int i;
     for(i = 0; i < res; i++) {
@@ -179,7 +177,7 @@ SEXP parse_ndjson_file_as_list_(SEXP filename_, SEXP nread_, SEXP nskip_, SEXP p
     
     if (doc == NULL) {
       output_verbose_error(buf, err);
-      warning("Couldn't parse NDJSON row %i. Inserting 'NULL'\n", i);
+      warning("Couldn't parse NDJSON row %i. Inserting 'NULL'\n", i + 1);
       SET_VECTOR_ELT(list_, i, R_NilValue);
     } else {
       SET_VECTOR_ELT(list_, i, parse_json_from_str(buf, &opt));
@@ -311,7 +309,7 @@ SEXP parse_ndjson_file_as_df_(SEXP filename_, SEXP nread_, SEXP nskip_, SEXP npr
     yyjson_doc *doc = yyjson_read_opts(buf, strlen(buf), opt.yyjson_read_flag, NULL, &err);
     if (doc == NULL) {
       output_verbose_error(buf, err);
-      error("Couldn't parse JSON during probe line %i\n", i);
+      error("Couldn't parse JSON during probe line %i\n", i + 1);
     }
     
     yyjson_val *obj = yyjson_doc_get_root(doc);
@@ -413,7 +411,7 @@ SEXP parse_ndjson_file_as_df_(SEXP filename_, SEXP nread_, SEXP nskip_, SEXP npr
     yyjson_doc *doc = yyjson_read_opts(buf, strlen(buf), opt.yyjson_read_flag, NULL, &err);
     if (doc == NULL) {
       output_verbose_error(buf, err);
-      error("Couldn't parse JSON on line %i\n", i);
+      error("Couldn't parse JSON on line %i\n", i + 1);
     }
     
     yyjson_val *obj = yyjson_doc_get_root(doc);

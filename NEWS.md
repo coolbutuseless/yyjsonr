@@ -1,4 +1,10 @@
 
+# yyjsonr 0.1.12 2023-10-29
+
+* Fix an off-by-one error when reporting line numbers in NDJSON handling.
+* Increase buffer size when reading lines from NDJSON files.
+    * MAX_LINE_LENGTH now 131072 (was 10000)
+
 # yyjsonr 0.1.11 2023-10-27
 
 * Writing to JSON objects now supports a `digits` argument for rounding floating 
