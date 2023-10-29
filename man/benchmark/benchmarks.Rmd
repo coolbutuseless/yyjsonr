@@ -208,7 +208,9 @@ res06 <- bench::mark(
   ndjson   = ndjson::stream_in(ndjson_filename),
   jsonlite = jsonlite::stream_in(file(ndjson_filename), verbose = FALSE),
   jsonify  = jsonify::from_ndjson(ndjson_filename),
+  # arrow    = arrow::read_json_arrow(ndjson_filename),
   yyjsonr  = yyjsonr::read_ndjson_file  (ndjson_filename),
+  # relative = TRUE,
   check = FALSE
 )
 ```
@@ -218,6 +220,29 @@ res06$benchmark <- 'From NDJSON File'
 knitr::kable(res06[, 1:5])
 plot(res06) + theme_bw() + theme(legend.position = 'none')
 ```
+
+
+```{r echo=FALSE, eval=FALSE}
+library(dplyr)
+plot_df <- res06 %>%
+  mutate(package = as.character(expression)) %>%
+  rename(speed = `itr/sec`)
+
+ggplot(plot_df) + 
+  geom_col(aes(package, speed, fill = package), 
+           position = position_dodge2(preserve = "single")) + 
+  theme_bw(20) + 
+  theme(legend.position = 'none') + 
+  scale_fill_manual(values = c(rep(grey(0.5), 4), 'dodgerblue3')) +
+  geom_hline(yintercept = 1, color = 'red', alpha = 0.5, linetype = 2) + 
+  labs(
+    x = NULL,
+    y = "Factor speed increase over {jsonlite}",
+    title = "Reading NDJSON.  Speed-up compared to {jsonlite}",
+    subtitle = "Red line indicates reference implementation {jsonlite}"
+  )
+```
+
 
 
 

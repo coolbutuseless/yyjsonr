@@ -50,7 +50,7 @@ when they occur within an array with other string values?  Default: FALSE
 means to keep numerics as numeric value and promote the \emph{container} to
 be a \code{list} rather than an atomic vector when types are mixed.  If \code{TRUE}
 then array of mixed string/numeric types will be promoted to all
-string values and returned as an atonic character vector.  Set this to \code{TRUE}
+string values and returned as an atomic character vector.  Set this to \code{TRUE}
 if you want to emulate the behaviour of \code{jsonlite::fromJSON()}}
 
 \item{yyjson_read_flag}{integer vector of internal \code{yyjson}

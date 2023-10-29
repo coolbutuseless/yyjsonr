@@ -20,7 +20,7 @@ to a 'string', or contained as different types in a 'list'.
 Default: 'string' will behave like 'geojsonsf'}
 
 \item{property_promotion_lgl_as_int}{when promoting properties into a string,
-should logical values beccome strings e.g. "TRUE" or integers
+should logical values become strings e.g. "TRUE" or integers
 e.g. "1".  Default: "integer" in order to match \code{geojsonsf} packages}
 }
 \value{

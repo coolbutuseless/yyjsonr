@@ -3,7 +3,7 @@
 \name{write_ndjson_file}
 \alias{write_ndjson_file}
 \alias{write_ndjson_str}
-\title{Write list or data.frame object to ndjson}
+\title{Write list or data.frame object to NDJSON}
 \usage{
 write_ndjson_file(x, filename, opts = list(), ...)
 
@@ -20,7 +20,7 @@ write_ndjson_str(x, opts = list(), ...)
 The valid named options are identical to arguments to \code{\link[=opts_write_json]{opts_write_json()}}}
 }
 \description{
-Write list or data.frame object to ndjson
+Write list or data.frame object to NDJSON
 }
 \examples{
 \dontrun{

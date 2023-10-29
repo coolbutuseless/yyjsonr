@@ -1,12 +1,12 @@
 
 
 #~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
-#' Parse an ndjson file to a data.frame or list
+#' Parse an NDJSON file to a data.frame or list
 #' 
-#' If reading as data.frame, each row of ndjson becomes a row in the data.frame.  
+#' If reading as data.frame, each row of NDJSON becomes a row in the data.frame.  
 #' If reading as a list, then each row becomes an element in the list.
 #' 
-#' If parsing ndjson to a data.frame it is usually better if the json objects
+#' If parsing NDJSON to a data.frame it is usually better if the json objects
 #' are consistent from line-to-line.  Type inference for the data.frame is done
 #' during initialisation by reading through \code{nprobe} lines.  Warning: if
 #' there is a type-mismatch further into the file than it is probed, then you 
@@ -59,7 +59,7 @@ read_ndjson_file <- function(filename, type = c('df', 'list'), nread = -1, nskip
 
 
 #~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
-#' Write list or data.frame object to ndjson 
+#' Write list or data.frame object to NDJSON 
 #' 
 #' @inherit write_json_file
 #' @param x data.frame or list

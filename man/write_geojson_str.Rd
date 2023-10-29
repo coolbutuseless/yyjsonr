@@ -3,7 +3,7 @@
 \name{write_geojson_str}
 \alias{write_geojson_str}
 \alias{write_geojson_file}
-\title{Write SF to geojson string}
+\title{Write SF to GeoJSON string}
 \usage{
 write_geojson_str(x, opts = list(), ..., digits = -1)
 
@@ -28,5 +28,5 @@ the floating point value should be written as-is (the default).}
 character string containing json
 }
 \description{
-Write SF to geojson string
+Write SF to GeoJSON string
 }

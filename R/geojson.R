@@ -10,7 +10,7 @@
 #'        Default: 'string' will behave like 'geojsonsf'
 #' @param type 'sf' or 'sfc'
 #' @param property_promotion_lgl_as_int when promoting properties into a string,
-#'        should logical values beccome strings e.g. "TRUE" or integers
+#'        should logical values become strings e.g. "TRUE" or integers
 #'        e.g. "1".  Default: "integer" in order to match `geojsonsf` packages
 #' 
 #' @return named list
@@ -86,7 +86,7 @@ read_geojson_file <- function(filename, opts = list(), ...) {
 }
 
 #~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
-#' Write SF to geojson string
+#' Write SF to GeoJSON string
 #' 
 #' @param x \code{sf} object. Supports \code{sf} or \code{sfc}
 #' @param filename filename

@@ -128,12 +128,6 @@ read_json_str(str)
 Parsing differences compared to `{jsonlite}`
 =============================================================================
 
-No 'digits' argument
------------------------------------------------------------------------------
-
-Numeric conversion is handled within the `yyjson` C library and is not 
-configuraable.
-
 
 3-d arrays are parsed as multiple 2-d matrices and combined
 -----------------------------------------------------------------------------
@@ -146,7 +140,7 @@ consistent within each package, but not cross-compatible between them i.e.
 you cannot serialize an array in `{yyjsonr}` and re-create it exactly 
 using `{jsonlite}`.
 
-The matrix handling in `{yyjsonr}` is compatible with the expectationf os GeoJSON 
+The matrix handling in `{yyjsonr}` is compatible with the expectations of GeoJSON 
 coordinate handling.
 
 ```{r}

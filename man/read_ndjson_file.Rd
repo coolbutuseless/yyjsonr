@@ -2,7 +2,7 @@
 % Please edit documentation in R/ndjson.R
 \name{read_ndjson_file}
 \alias{read_ndjson_file}
-\title{Parse an ndjson file to a data.frame or list}
+\title{Parse an NDJSON file to a data.frame or list}
 \usage{
 read_ndjson_file(
   filename,
@@ -35,11 +35,11 @@ The valid named options are identical to arguments to \code{\link[=opts_read_jso
 list or data.frame
 }
 \description{
-If reading as data.frame, each row of ndjson becomes a row in the data.frame.
+If reading as data.frame, each row of NDJSON becomes a row in the data.frame.
 If reading as a list, then each row becomes an element in the list.
 }
 \details{
-If parsing ndjson to a data.frame it is usually better if the json objects
+If parsing NDJSON to a data.frame it is usually better if the json objects
 are consistent from line-to-line.  Type inference for the data.frame is done
 during initialisation by reading through \code{nprobe} lines.  Warning: if
 there is a type-mismatch further into the file than it is probed, then you
