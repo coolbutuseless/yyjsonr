@@ -12,37 +12,13 @@ yyjsonr
 <!-- badges: end -->
 
 `{yyjsonr}` is a fast JSON parser/serializer, which converts R data
-to/from JSON, GeoJSON and NDJSON.
+to/from JSON.
 
 In most cases it is around 2x to 10x faster than `{jsonlite}` at both
 reading and writing JSON.
 
-It is based around the [`yyjson`](https://github.com/ibireme/yyjson) C
+It is a wrapper for the [`yyjson`](https://github.com/ibireme/yyjson) C
 library.
-
-### Help needed!
-
-If you have an interest in fast JSON reading/writing in R, then **I need
-your help**.
-
-The scope of this package and options it supports are still in flux.
-What can I add to help your JSON needs? Open an issue on github and let
-me know!
-
-You can assist by:
-
-- Finding cases that give unexpected results for your JSON needs
-- Suggesting how you want to have a particular JSON object to appear in
-  R
-- Propose configuration options to control a particular aspect of how
-  *you* want JSON to translate to/from R
-- Trying it out in your package as an alternative to your current JSON
-  package.
-  - Is it worth the change?
-  - What functionality is lacking?
-  - What would you need to make the switch proper?
-- Suggesting additional interesting benchmarks/tests.
-- Creating/Donating a nice hex logo!
 
 ### The `yyjson` C library
 
@@ -54,26 +30,20 @@ more details.
 
 ### What’s in the box
 
-|         |          | string              | file                 | raw             | conn             | options              |
-|---------|----------|---------------------|----------------------|-----------------|------------------|----------------------|
-| json    | read     | read_json_str()     | read_json_file()     | read_json_raw() | read_json_conn() | opts_read_json()     |
-|         | write    | write_json_str()    | write_json_file()    |                 |                  | opts_write_json()    |
-|         | validate | validate_json_str() | validate_json_file() |                 |                  |                      |
-| geojson | read     | read_geojson_str()  | read_geojson_file()  |                 |                  | opts_read_geojson()  |
-|         | write    | write_geojson_str() | write_geojson_file() |                 |                  | opts_write_geojson() |
-| ndjson  | read     |                     | read_ndjson_file()   |                 |                  |                      |
-|         | write    | write_ndjson_str()  | write_ndjson_file()  |                 |                  |                      |
+|      |          | string              | file                 | raw             | conn             | options           |
+|------|----------|---------------------|----------------------|-----------------|------------------|-------------------|
+| json | read     | read_json_str()     | read_json_file()     | read_json_raw() | read_json_conn() | opts_read_json()  |
+|      | write    | write_json_str()    | write_json_file()    |                 |                  | opts_write_json() |
+|      | validate | validate_json_str() | validate_json_file() |                 |                  |                   |
 
 ### Comparison to other JSON packages
 
-|              | Write JSON | Read JSON | READ ndjson | Write ndjson | R/W geojson `{sf}` |
-|--------------|------------|-----------|-------------|--------------|--------------------|
-| yyjsonr      | Fast!      | Fast!     | Fast!       | Fast!        | Fast!              |
-| jsonlite     | Yes        | Yes       | Yes         | Yes          |                    |
-| RcppSimdJson |            | Fast!     |             |              |                    |
-| jsonify      | Yes        | Yes       | Yes         | Yes          |                    |
-| ndjson       |            |           | Yes         | Yes          |                    |
-| geojsonsf    |            |           |             |              | Yes                |
+|              | Write JSON | Read JSON |
+|--------------|------------|-----------|
+| yyjsonr      | Fast!      | Fast!     |
+| jsonlite     | Yes        | Yes       |
+| RcppSimdJson |            | Fast!     |
+| jsonify      | Yes        | Yes       |
 
 <img src="man/figures/benchmark-summary.png">
 
@@ -136,13 +106,11 @@ In `{yyjsonr}` the order in which elements in an array are serialized to
 JSON correspond to an array of row-major matrices in human-readable
 order.
 
-`{jsonlite}` does things differently. The array formats are internally
-consistent within each package, but not cross-compatible between them
-i.e. you cannot serialize an array in `{yyjsonr}` and re-create it
-exactly using `{jsonlite}`.
+`{jsonlite}` does things differently.
 
-The matrix handling in `{yyjsonr}` is compatible with the expectations
-of GeoJSON coordinate handling.
+The array formats are internally consistent within each package, but not
+cross-compatible between them i.e. you cannot serialize an array in
+`{yyjsonr}` and re-create it exactly using `{jsonlite}`.
 
 ``` r
 # A simple 3D array 
@@ -237,6 +205,17 @@ yyjsonr::read_json_str(str)
 #> [1,]    7    9   11
 #> [2,]    8   10   12
 ```
+
+## Future
+
+- Re-introduce NDJSON support
+  - NDJSON support was removed for the initial CRAN release for the sake
+    of my sanity.
+  - See the `ndjson` branch of this repository
+- Re-introduce GeoJSON support
+  - GeoJSON support was removed for the initial CRAN release for the
+    sake of my sanity.
+  - See the `geojson` branch of this repository
 
 ## Limitiations
 

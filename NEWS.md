@@ -1,4 +1,11 @@
 
+
+# yyjsonr 0.1.13 2024-01-05
+
+* Remove NDJSON and GeoJSON code to simplify preparation for CRAN.  Will 
+  re-introduce this code in future releases.
+* Updated to YYJSON v0.8.0
+
 # yyjsonr 0.1.12 2023-10-29
 
 * Fix an off-by-one error when reporting line numbers in NDJSON handling.

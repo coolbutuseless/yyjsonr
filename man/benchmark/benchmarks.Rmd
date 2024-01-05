@@ -195,145 +195,6 @@ plot(res05) + theme_bw() + theme(legend.position = 'none')
 
 
 
-From NDJSON file
--------------------------------------------------------------------------------
-
-
-```{r include = FALSE}
-ndjson_filename <- tempfile()
-df <- head( nycflights13::flights, 1000)
-jsonlite::stream_out(df, file(ndjson_filename), verbose = FALSE)
-
-res06 <- bench::mark(
-  ndjson   = ndjson::stream_in(ndjson_filename),
-  jsonlite = jsonlite::stream_in(file(ndjson_filename), verbose = FALSE),
-  jsonify  = jsonify::from_ndjson(ndjson_filename),
-  # arrow    = arrow::read_json_arrow(ndjson_filename),
-  yyjsonr  = yyjsonr::read_ndjson_file  (ndjson_filename),
-  # relative = TRUE,
-  check = FALSE
-)
-```
-
-```{r echo=FALSE}
-res06$benchmark <- 'From NDJSON File'
-knitr::kable(res06[, 1:5])
-plot(res06) + theme_bw() + theme(legend.position = 'none')
-```
-
-
-```{r echo=FALSE, eval=FALSE}
-library(dplyr)
-plot_df <- res06 %>%
-  mutate(package = as.character(expression)) %>%
-  rename(speed = `itr/sec`)
-
-ggplot(plot_df) + 
-  geom_col(aes(package, speed, fill = package), 
-           position = position_dodge2(preserve = "single")) + 
-  theme_bw(20) + 
-  theme(legend.position = 'none') + 
-  scale_fill_manual(values = c(rep(grey(0.5), 4), 'dodgerblue3')) +
-  geom_hline(yintercept = 1, color = 'red', alpha = 0.5, linetype = 2) + 
-  labs(
-    x = NULL,
-    y = "Factor speed increase over {jsonlite}",
-    title = "Reading NDJSON.  Speed-up compared to {jsonlite}",
-    subtitle = "Red line indicates reference implementation {jsonlite}"
-  )
-```
-
-
-
-
-To NDJSON File
--------------------------------------------------------------------------------
-
-
-```{r include = FALSE}
-ndjson_filename <- tempfile()
-df <- head( nycflights13::flights, 1000)
-
-res07 <- bench::mark(
-  jsonlite = jsonlite::stream_out(df, file(ndjson_filename), verbose = FALSE),
-  yyjsonr  = yyjsonr::write_ndjson_file(df, ndjson_filename),
-  check = FALSE
-)
-```
-
-
-```{r echo=FALSE}
-res07$benchmark <- 'To NDJSON File'
-knitr::kable(res07[, 1:5])
-plot(res07) + theme_bw() + theme(legend.position = 'none')
-```
-
-
-To NDJSON String
--------------------------------------------------------------------------------
-
-
-```{r message=FALSE, include = FALSE}
-ndjson_filename <- tempfile()
-df <- head( nycflights13::flights, 1000)
-
-res08 <- bench::mark(
-  jsonify  = jsonify::to_ndjson(df),
-  jsonlite = jsonlite::stream_out(df, con = textConnection(NULL, "w"), name = "greg", local = TRUE),
-  yyjsonr  = yyjsonr::write_ndjson_str(df),
-  check = FALSE
-)
-```
-
-```{r echo=FALSE}
-res08$benchmark <- 'To NDJSON String'
-knitr::kable(res08[, 1:5])
-plot(res08) + theme_bw() + theme(legend.position = 'none')
-```
-
-
-From GeoJSON String
-----------------------------------------------------------------------------
-
-```{r}
-res13 <- bench::mark(
-  geojsonsf    = geojsonsf::geojson_sf(geojsonsf::geo_melbourne),
-  yyjsonr      = yyjsonr::read_geojson_str(geojsonsf::geo_melbourne),
-  check = FALSE
-)
-
-```
-
-```{r echo=FALSE}
-res13$benchmark <- 'from GeoJSON string'
-knitr::kable(res13[,1:5])
-plot(res13) + theme_bw() + theme(legend.position = 'none')
-```
-
-
-To GeoJSON String
-----------------------------------------------------------------------------
-
-```{r}
-sf_obj <- sf::st_read(system.file("shape/nc.shp", package="sf"), quiet = TRUE)
-
-res14 <- bench::mark(
-  geojsonsf    = geojsonsf::sf_geojson(sf_obj),
-  yyjsonr      = yyjsonr::write_geojson_str(sf_obj),
-  check = FALSE
-)
-
-```
-
-```{r echo=FALSE}
-res14$benchmark <- 'to GeoJSON string'
-knitr::kable(res14[,1:5])
-plot(res14) + theme_bw() + theme(legend.position = 'none')
-```
-
-
-
-
 
 Benchmark from `{RcppSimdJson}`
 ----------------------------------------------------------------------------
@@ -446,8 +307,9 @@ Summary
 library(dplyr)
 plot_df <- bind_rows(
   res00, res01, res02, res03, res04, res05,
-  res13, res14, # geojson
-  res06, res07, res08, res09, res10, res11, res12,
+  # res13, res14, # geojson
+  #res06, res07, res08, 
+  res09, res10, res11, res12,
 )
 
 plot_df$benchmark <- factor(
@@ -477,13 +339,13 @@ ggplot(plot_df) +
   facet_wrap(~benchmark, scales = 'free_y', ncol = 3) + 
   theme_bw() + 
   theme(legend.position = 'none') + 
-  scale_fill_manual(values = c(rep(grey(0.5), 5), 'dodgerblue3')) +
+  scale_fill_manual(values = c(rep(grey(0.5), 3), 'dodgerblue3')) +
   geom_hline(yintercept = 1, color = 'red', alpha = 0.5, linetype = 2) + 
   labs(
     x = NULL,
     y = "Factor speed increase over reference implementation",
     title = "Speed-up compared to reference implementation",
-    subtitle = "Red line indicates reference implementation {jsonlite} or {geojsonsf}"
+    subtitle = "Red line indicates reference implementation {jsonlite}"
   )
 
 # ggsave("./man/figures/benchmark-summary.png", width = 12, height = 10)

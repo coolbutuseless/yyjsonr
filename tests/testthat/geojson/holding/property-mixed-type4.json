@@ -1,2 +1,0 @@
-[{"type" : "Feature","properties" : { "id" : "a"},"geometry" : { "type" : "Point", "coordinates" : [0,1] }},
-  {"type" : "Feature","properties" : { "id" : 1},"geometry" : { "type" : "Point", "coordinates" : [0,0] }}]
