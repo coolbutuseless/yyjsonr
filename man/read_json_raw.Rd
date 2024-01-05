@@ -23,7 +23,7 @@ Convert JSON in a raw vector to R
 \examples{
 \dontrun{
 a <- nanonext::ncurl("https://postman-echo.com/get", convert = FALSE)
-read_json_raw(a$raw)
+read_json_raw(a$data)
 }
 
 }
