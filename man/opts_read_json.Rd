@@ -41,7 +41,7 @@ marked with class \code{AsIs}.  Default: FALSE}
 \item{str_specials}{Should \code{'NA'} in a JSON string be converted to the \code{'special'}
 \code{NA} value in R, or left as a \code{'string'}.  Default: 'string'}
 
-\item{num_specials}{Should jsong strings 'NA'/'Inf'/'NaN' in a numeric context
+\item{num_specials}{Should JSON strings 'NA'/'Inf'/'NaN' in a numeric context
 be converted to the \code{'special'} R numeric values
 \code{NA, Inf, NaN}, or left as a \code{'string'}. Default: 'special'}
 
@@ -54,16 +54,19 @@ string values and returned as an atomic character vector.  Set this to \code{TRU
 if you want to emulate the behaviour of \code{jsonlite::fromJSON()}}
 
 \item{yyjson_read_flag}{integer vector of internal \code{yyjson}
-options.  See \code{read_flag} in this package, and read
+options.  See \code{yyjson_read_flag} in this package, and read
 the yyjson API documentation for more information.  This is considered
 an advanced option.}
 }
 \value{
-Named list of options
+Named list of options for reading JSON
 }
 \description{
 Create named list of options for parsing R from JSON
 }
+\examples{
+opts_read_json()
+}
 \seealso{
-\code{\link[=read_flag]{read_flag()}}
+\code{\link[=yyjson_read_flag]{yyjson_read_flag()}}
 }

@@ -21,11 +21,7 @@ Character string
 Convert R object to JSON string
 }
 \examples{
-\dontrun{
-write_json_str(iris, pretty = TRUE)
-write_json_str(iris, opts = opts_write_json(auto_unbox = FALSE))
-}
-
+write_json_str(head(iris, 3), pretty = TRUE)
 }
 \seealso{
 Other JSON Serializer: 

@@ -7,3 +7,6 @@
 ^.devcontainer$
 ^\.github$
 ^pkgdown$
+^LICENSE\.md$
+^doc$
+^Meta$

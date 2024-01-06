@@ -1,16 +1,24 @@
 Package: yyjsonr
 Type: Package
-Title: Fast JSON Parsing and Serialisation
+Title: A Fast JSON Parser and Generator 
 Version: 0.1.13
 Authors@R: c(
-    person("Mike", "FC", role = c("aut", "cre"), email = "mikefc@coolbutuseless.com"),
+    person("Mike", "Cheng", role = c("aut", "cre", 'cph'), 
+    email = "mikefc@coolbutuseless.com"),
     person("Yao", "Yuan", role = "cph", email = "ibireme@gmail.com", 
-    comment="author of bundled yyjson"))
-Maintainer: mikefc <mikefc@coolbutuseless.com>
-Description: Wrapper for yyjson - a JSON parsing and serialisation C library.
+    comment="Author of bundled yyjson"))
+Maintainer: Mike Cheng <mikefc@coolbutuseless.com>
+Description: A fast JSON parser, generator and validator which converts JSON 
+    data to/from R objects.  The standard R data types are supported 
+    (e.g. logical, numeric, integer) with configurable handling of NULL and NA 
+    values. Data frames, atomic vectors and  lists are all supported as data 
+    containers translated to/from JSON.
+    This implementation is a wrapper around the 'yyjson' C library.  
 License: MIT + file LICENSE
+URL: https://github.com/coolbutuseless/yyjsonr, https://coolbutuseless.github.io/package/yyjsonr/
+BugReports: https://github.com/coolbutuseless/yyjsonr/issues
 Encoding: UTF-8
-LazyData: true
+Language: en-AU
 Roxygen: list(markdown = TRUE)
 RoxygenNote: 7.2.3
 Suggests: 

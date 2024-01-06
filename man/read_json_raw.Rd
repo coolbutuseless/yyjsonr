@@ -21,11 +21,8 @@ R object
 Convert JSON in a raw vector to R
 }
 \examples{
-\dontrun{
-a <- nanonext::ncurl("https://postman-echo.com/get", convert = FALSE)
-read_json_raw(a$raw)
-}
-
+raw_str <- as.raw(utf8ToInt('[1, 2, 3, "four"]'))
+read_json_raw(raw_str)
 }
 \seealso{
 Other JSON Parsers: 

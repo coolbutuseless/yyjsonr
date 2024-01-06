@@ -9,7 +9,7 @@
 #' the translation of JSON values to R.
 #'
 #" Pass multiple options with 
-#' \code{opts_read_json(yyjson_read_flag = c(read_flag$x, read_flag$y, ...))}
+#' \code{opts_read_json(yyjson_read_flag = c(yyjson_read_flag$x, yyjson_read_flag$y, ...))}
 #' 
 #' \describe{
 #' \item{YYJSON_READ_NOFLAG}{
@@ -42,7 +42,7 @@
 #'
 #' \item{YYJSON_READ_ALLOW_TRAILING_COMMAS}{
 #' Allow single trailing comma at the end of an object or array,
-#' such as \code{"[1,2,3,]"},  "{"a":1,"b":2,}" (non-standard).
+#' such as \code{"[1,2,3,]"},  '{"a":1,"b":2,}' (non-standard).
 #' }
 #' 
 #' \item{YYJSON_READ_ALLOW_COMMENTS}{
@@ -76,16 +76,16 @@
 #' The flag will be overridden by "YYJSON_READ_NUMBER_AS_RAW" flag.
 #' }
 #' }
+#' 
+#' @export
 #'
 #' @examples
-#' \dontrun{
-#' read_json_str(str, opts = opts_read_json(yyjson_read_flag = read_flag$YYJSON_READ_NUMBER_AS_RAW))
-#' }
-#' 
-#'
-#' @export
+#' read_json_str(
+#'    '[12.3]', 
+#'    opts = opts_read_json(yyjson_read_flag = yyjson_read_flag$YYJSON_READ_ALLOW_TRAILING_COMMAS)
+#'  )
 #~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
-read_flag <- list(
+yyjson_read_flag <- list(
   YYJSON_READ_NOFLAG                =   0L,
   YYJSON_READ_INSITU                =   1L,
   YYJSON_READ_STOP_WHEN_DONE        =   2L,
@@ -138,17 +138,14 @@ read_flag <- list(
 #' This flag will override `YYJSON_WRITE_PRETTY` flag.}
 #' }
 #' 
-#'
-#' @examples
-#' \dontrun{
-#' write_json_str(str, opts = opts_write_json(
-#'   yyjson_write_flag = write_flag$YYJSON_WRITE_ESCAPE_SLASHES
-#' ))
-#' }
-#' 
 #' @export
+#' 
+#' @examples
+#' write_json_str("hello/there", opts = opts_write_json(
+#'   yyjson_write_flag = yyjson_write_flag$YYJSON_WRITE_ESCAPE_SLASHES
+#' ))
 #~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
-write_flag <- list(
+yyjson_write_flag <- list(
   YYJSON_WRITE_NOFLAG                  =  0L,
   YYJSON_WRITE_PRETTY                  =  1L,
   YYJSON_WRITE_ESCAPE_UNICODE          =  2L,
@@ -178,12 +175,12 @@ write_flag <- list(
 #'        a data.frame? Default: TRUE. If FALSE, then results will be read as a
 #'        list-of-lists.
 #' @param yyjson_read_flag integer vector of internal \code{yyjson}
-#'        options.  See \code{read_flag} in this package, and read
+#'        options.  See \code{yyjson_read_flag} in this package, and read
 #'        the yyjson API documentation for more information.  This is considered
 #'        an advanced option.
 #' @param str_specials Should \code{'NA'} in a JSON string be converted to the \code{'special'}
 #'        \code{NA} value in R, or left as a \code{'string'}.  Default: 'string'
-#' @param num_specials Should jsong strings 'NA'/'Inf'/'NaN' in a numeric context 
+#' @param num_specials Should JSON strings 'NA'/'Inf'/'NaN' in a numeric context 
 #'        be converted to the \code{'special'} R numeric values
 #'        \code{NA, Inf, NaN}, or left as a \code{'string'}. Default: 'special'
 #' @param promote_num_to_string Should numeric values be promoted to strings 
@@ -196,9 +193,12 @@ write_flag <- list(
 #' @param length1_array_asis logical. Should JSON arrays with length = 1 be 
 #'        marked with class \code{AsIs}.  Default: FALSE
 #'
-#' @seealso [read_flag()]
-#' @return Named list of options
+#' @seealso [yyjson_read_flag()]
+#' @return Named list of options for reading JSON
 #' @export
+#' 
+#' @examples
+#' opts_read_json()
 #~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 opts_read_json <- function(
     int64                 = c('string', 'bit64'),
@@ -255,19 +255,16 @@ opts_read_json <- function(
 #'        converted to a JSON \code{null} value or converted to a string 
 #'        representation e.g. "NA"/"NaN" etc.   Default: 'null'
 #' @param yyjson_write_flag integer vector corresponding to internal \code{yyjson}
-#'        options.  See \code{write_flag} in this package, and read
+#'        options.  See \code{yyjson_write_flag} in this package, and read
 #'        the yyjson API documentation for more information.  This is considered
 #'        an advanced option.
 #' 
-#' @examples
-#' \dontrun{
-#' write_json_str(iris, opts = opts_write_json(factor = 'integer'))
-#' }
-#' 
-#' 
-#' @seealso [write_flag()]
-#' @return Named list of options
+#' @seealso [yyjson_write_flag()]
+#' @return Named list of options for writing JSON
 #' @export
+#' 
+#' @examples
+#' write_json_str(head(iris, 3), opts = opts_write_json(factor = 'integer'))
 #~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 opts_write_json <- function( 
     digits            = -1,

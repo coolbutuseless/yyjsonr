@@ -28,3 +28,10 @@ Logical value. TRUE if JSON validates as OK, otherwise FALSE
 \description{
 Validate JSON in file or string
 }
+\examples{
+tmp <- tempfile()
+write_json_file(head(iris, 3), tmp)
+validate_json_file(tmp)
+str <- write_json_str(iris)
+validate_json_str(str)
+}

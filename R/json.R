@@ -8,15 +8,12 @@
 #' @param ... Other named options can be used to override any options in \code{opts}.
 #'        The valid named options are identical to arguments to [opts_read_json()]
 #'
-#'
-#' @examples
-#' \dontrun{
-#' read_json_str(str, opts = parse_opts(int64 = 'string'))
-#' }
-#' 
 #' @family JSON Parsers
 #' @return R object
 #' @export
+#'
+#' @examples
+#' read_json_str("4294967297", opts = opts_read_json(int64 = 'string'))
 #~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 read_json_str <- function(str, opts = list(), ...) {
   .Call(
@@ -31,17 +28,14 @@ read_json_str <- function(str, opts = list(), ...) {
 #' 
 #' @inheritParams read_json_str
 #' @param raw_vec raw vector
-#'
-#'
-#' @examples
-#' \dontrun{
-#' a <- nanonext::ncurl("https://postman-echo.com/get", convert = FALSE)
-#' read_json_raw(a$raw)
-#' }
 #' 
 #' @family JSON Parsers
 #' @return R object
 #' @export
+#' 
+#' @examples
+#' raw_str <- as.raw(utf8ToInt('[1, 2, 3, "four"]'))
+#' read_json_raw(raw_str)
 #~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 read_json_raw <- function(raw_vec, opts = list(), ...) {
   .Call(
@@ -58,15 +52,14 @@ read_json_raw <- function(raw_vec, opts = list(), ...) {
 #' @inheritParams read_json_str
 #' @param filename full path to text file containing JSON.
 #' 
-#' 
-#' @examples
-#' \dontrun{
-#' read_json_file("myfile.json")
-#' }
-#' 
 #' @family JSON Parsers
 #' @return R object
 #' @export
+#' 
+#' @examples
+#' tmp <- tempfile()
+#' write_json_file(head(iris, 3), tmp)
+#' read_json_file(tmp)
 #~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 read_json_file <- function(filename, opts = list(), ...) {
   .Call(
@@ -80,7 +73,7 @@ read_json_file <- function(filename, opts = list(), ...) {
 #~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 #' Parse JSON from an R connection object.
 #' 
-#' Currently, this isn't very efficient as the entire contents of the connection are 
+#' Currently, this is not very efficient as the entire contents of the connection are 
 #' read into R as a string and then the JSON parsed from there.
 #' 
 #' For plain text files it is faster to use
@@ -92,7 +85,9 @@ read_json_file <- function(filename, opts = list(), ...) {
 #'
 #' @examples
 #' \dontrun{
-#' read_json_conn(url("https://api.github.com/users/hadley/repos"))
+#' if (interactive()) {
+#'   read_json_conn(url("https://api.github.com/users/hadley/repos"))
+#' }
 #' }
 #' 
 #' 
@@ -116,14 +111,11 @@ read_json_conn <- function(conn, opts = list(), ...) {
 #' 
 #' @return Character string
 #' 
-#' @examples
-#' \dontrun{
-#' write_json_str(iris, pretty = TRUE)
-#' write_json_str(iris, opts = opts_write_json(auto_unbox = FALSE))
-#' }
-#' 
 #' @family JSON Serializer
 #' @export
+#' 
+#' @examples
+#' write_json_str(head(iris, 3), pretty = TRUE)
 #~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 write_json_str <- function(x, opts = list(), ...) {
   .Call(
@@ -140,13 +132,14 @@ write_json_str <- function(x, opts = list(), ...) {
 #' @inheritParams write_json_str
 #' @param filename filename
 #' 
-#' @examples
-#' \dontrun{
-#' write_json_str(iris, filename = "iris.json")
-#' }
-#' 
+#' @return NULL
 #' @family JSON Serializer
 #' @export
+#' 
+#' @examples
+#' tmp <- tempfile()
+#' write_json_file(head(iris, 3), tmp)
+#' read_json_file(tmp)
 #~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 write_json_file <- function(x, filename, opts = list(), ...) {
   .Call(
@@ -171,6 +164,11 @@ write_json_file <- function(x, filename, opts = list(), ...) {
 #'
 #' @return Logical value. TRUE if JSON validates as OK, otherwise FALSE
 #' @export 
+#' 
+#' @examples
+#' tmp <- tempfile()
+#' write_json_file(head(iris, 3), tmp)
+#' validate_json_file(tmp)
 #~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 validate_json_file <- function(filename, verbose = FALSE, opts = list(), ...) {
   opts <- modify_list(opts, list(...))
@@ -186,6 +184,10 @@ validate_json_file <- function(filename, verbose = FALSE, opts = list(), ...) {
 #~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 #' @rdname validate_json_file
 #' @export
+#' 
+#' @examples
+#' str <- write_json_str(iris)
+#' validate_json_str(str)
 #~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 validate_json_str <- function(str, verbose = FALSE, opts = list(), ...) {
   opts <- modify_list(opts, list(...))

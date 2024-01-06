@@ -18,7 +18,7 @@ The valid named options are identical to arguments to \code{\link[=opts_read_jso
 R object
 }
 \description{
-Currently, this isn't very efficient as the entire contents of the connection are
+Currently, this is not very efficient as the entire contents of the connection are
 read into R as a string and then the JSON parsed from there.
 }
 \details{
@@ -27,7 +27,9 @@ For plain text files it is faster to use
 }
 \examples{
 \dontrun{
-read_json_conn(url("https://api.github.com/users/hadley/repos"))
+if (interactive()) {
+  read_json_conn(url("https://api.github.com/users/hadley/repos"))
+}
 }
 
 

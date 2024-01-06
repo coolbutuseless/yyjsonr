@@ -21,10 +21,9 @@ R object
 Convert JSON to R
 }
 \examples{
-\dontrun{
-read_json_file("myfile.json")
-}
-
+tmp <- tempfile()
+write_json_file(head(iris, 3), tmp)
+read_json_file(tmp)
 }
 \seealso{
 Other JSON Parsers: 

@@ -14,6 +14,11 @@
 #include "R-yyjson-serialize.h"
 
 
+//~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+// Forward declaration
+//~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+yyjson_mut_val *serialize_core(SEXP robj_, yyjson_mut_doc *doc, serialize_options *opt);
+
 
 //===========================================================================
 // Parse the options from R list into a C struct
@@ -34,6 +39,7 @@ serialize_options parse_serialize_options(SEXP serialize_opts_) {
     .yyjson_write_flag = 0,
   };
   
+  // Sanity check and get option names
   if (isNull(serialize_opts_) || length(serialize_opts_) == 0) {
     return opt;
   }
@@ -47,6 +53,7 @@ serialize_options parse_serialize_options(SEXP serialize_opts_) {
     error("'serialize_opts' must be a named list");
   }
   
+  // Iterate over R options to populate C options struct
   for (int i = 0; i < length(serialize_opts_); i++) {
     const char *opt_name = CHAR(STRING_ELT(nms_, i));
     SEXP val_ = VECTOR_ELT(serialize_opts_, i);
@@ -85,11 +92,6 @@ serialize_options parse_serialize_options(SEXP serialize_opts_) {
   
   return opt;
 }
-
-//~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
-// Forward declaration
-//~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
-yyjson_mut_val *serialize_core(SEXP robj_, yyjson_mut_doc *doc, serialize_options *opt);
 
 
 //===========================================================================
@@ -146,7 +148,7 @@ yyjson_mut_val *scalar_integer_to_json_val(int32_t rint, yyjson_mut_doc *doc, se
 }
 
 //===========================================================================
-// Scalar bit64::integer64 stored in REALSXP to JSON value
+// Scalar bit64::integer64 (stored in REALSXP) to JSON value
 //===========================================================================
 yyjson_mut_val *scalar_integer64_to_json_val(SEXP vec_, unsigned int idx, yyjson_mut_doc *doc, serialize_options *opt) {
   
@@ -367,6 +369,7 @@ yyjson_mut_val *vector_lglsxp_to_json_array(SEXP vec_, yyjson_mut_doc *doc, seri
   return arr;
 }
 
+
 //===========================================================================
 // Serialize factor to JSON []-array
 //===========================================================================
@@ -380,8 +383,6 @@ yyjson_mut_val *vector_factor_to_json_array(SEXP vec_, yyjson_mut_doc *doc, seri
   
   return arr;
 }
-
-
 
 
 //===========================================================================
@@ -415,7 +416,6 @@ yyjson_mut_val *vector_posixct_to_json_array(SEXP vec_, yyjson_mut_doc *doc, ser
 }
 
 
-
 //===========================================================================
 // Serialize Date stored in REALSXP or INTSXP to JSON []-array
 //===========================================================================
@@ -429,7 +429,6 @@ yyjson_mut_val *vector_date_to_json_array(SEXP vec_, yyjson_mut_doc *doc, serial
   
   return arr;
 }
-
 
 
 //===========================================================================
@@ -670,7 +669,7 @@ yyjson_mut_val *dim3_matrix_to_col_major_array(SEXP mat_, yyjson_mut_doc *doc, s
 //===========================================================================
 yyjson_mut_val *env_to_json_object(SEXP env_, yyjson_mut_doc *doc, serialize_options *opt) {
   if (!isEnvironment(env_)) {
-    error("env_to_json_object(): Expected list. got %s", type2char(TYPEOF(env_)));
+    error("env_to_json_object(): Expected environment. got %s", type2char(TYPEOF(env_)));
   }
   
   unsigned int nprotect = 0;
@@ -705,7 +704,7 @@ yyjson_mut_val *env_to_json_object(SEXP env_, yyjson_mut_doc *doc, serialize_opt
 //    #   #  #   #  #   #  #   #  # # #  #      #  ##  #        #        #   #  # 
 //     ###   #   #  #   #   ####  #   #   ###    ## #  #####   ###   ####     ## 
 //
-// Serialize an unnamed list to an array
+// Serialize an unnamed list to a JSON []-array
 //===========================================================================
 yyjson_mut_val *unnamed_list_to_json_array(SEXP list_, yyjson_mut_doc *doc, serialize_options *opt) {
   if (!isNewList(list_)) {
@@ -992,13 +991,17 @@ yyjson_mut_val *data_frame_row_to_json_array(SEXP df_, unsigned int *col_type, u
 }
 
 
+//~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+// Special case for an unnamed-data.frame conversion to an 
+// array of arrays
+//~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 yyjson_mut_val *data_frame_to_json_array_of_arrays(SEXP df_, yyjson_mut_doc *doc, serialize_options *opt) {
   
   //~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
   // Sanity check
   //~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
   if (!Rf_inherits(df_, "data.frame")) {
-    error("data_frame_to_json_array_of_objects(). Not a data.frame!! %s", type2char(TYPEOF(df_)));
+    error("data_frame_to_json_array_of_arrays(). Not a data.frame!! %s", type2char(TYPEOF(df_)));
   }
   
   
@@ -1031,6 +1034,9 @@ yyjson_mut_val *data_frame_to_json_array_of_arrays(SEXP df_, yyjson_mut_doc *doc
 }
 
 
+//~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+// 
+//~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 yyjson_mut_val *data_frame_to_json_array_of_objects(SEXP df_, yyjson_mut_doc *doc, serialize_options *opt) {
   
   //~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~

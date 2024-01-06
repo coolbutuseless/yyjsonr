@@ -21,10 +21,7 @@ R object
 Convert JSON in a character string to R
 }
 \examples{
-\dontrun{
-read_json_str(str, opts = parse_opts(int64 = 'string'))
-}
-
+read_json_str("4294967297", opts = opts_read_json(int64 = 'string'))
 }
 \seealso{
 Other JSON Parsers: 

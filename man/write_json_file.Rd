@@ -20,10 +20,9 @@ The valid named options are identical to arguments to \code{\link[=opts_write_js
 Convert R object to JSON file
 }
 \examples{
-\dontrun{
-write_json_str(iris, filename = "iris.json")
-}
-
+tmp <- tempfile()
+write_json_file(head(iris, 3), tmp)
+read_json_file(tmp)
 }
 \seealso{
 Other JSON Serializer: 

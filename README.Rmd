@@ -152,9 +152,9 @@ yyjsonr::read_json_str(str)
     * GeoJSON support was removed for the initial CRAN release for the sake of my sanity.
     * See the `geojson` branch of this repository
     
-## Limitiations
+## Limitations
 
-* Some datatypes not currently supported. Please file an issue on github if
+* Some datatypes not currently supported. Please file an issue on GitHub if
   these types are critical for yoy:
     * Complex numbers
     * POSIXlt

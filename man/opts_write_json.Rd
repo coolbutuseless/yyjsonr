@@ -49,23 +49,19 @@ be converted to a
 JSON \code{null} value, or converted to a string "NA"?  Default: 'null'}
 
 \item{yyjson_write_flag}{integer vector corresponding to internal \code{yyjson}
-options.  See \code{write_flag} in this package, and read
+options.  See \code{yyjson_write_flag} in this package, and read
 the yyjson API documentation for more information.  This is considered
 an advanced option.}
 }
 \value{
-Named list of options
+Named list of options for writing JSON
 }
 \description{
 Create named list of options for serializing R to JSON
 }
 \examples{
-\dontrun{
-write_json_str(iris, opts = opts_write_json(factor = 'integer'))
-}
-
-
+write_json_str(head(iris, 3), opts = opts_write_json(factor = 'integer'))
 }
 \seealso{
-\code{\link[=write_flag]{write_flag()}}
+\code{\link[=yyjson_write_flag]{yyjson_write_flag()}}
 }

@@ -14,11 +14,21 @@
 
 
 
+//~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+// Forward declarations
+//~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+SEXP json_array_of_objects_to_data_frame(yyjson_val *arr, parse_options *opt);
+SEXP json_as_robj(yyjson_val *val, parse_options *opt);
+
+
 //===========================================================================
 // Pare the R list of options into the 'parse_options' struct
+//
+// @param parse_opts_ An R named list of options. Passed in from the user.
 //===========================================================================
 parse_options create_parse_options(SEXP parse_opts_) {
   
+  // Set default options
   parse_options opt = {
     .int64                 = INT64_AS_STR,
     .missing_list_elem     = MISSING_AS_NULL,
@@ -31,6 +41,7 @@ parse_options create_parse_options(SEXP parse_opts_) {
     .yyjson_read_flag      = 0
   };
   
+  // Sanity check and extract option names from the named list
   if (isNull(parse_opts_) || length(parse_opts_) == 0) {
     return opt;
   }
@@ -44,6 +55,7 @@ parse_options create_parse_options(SEXP parse_opts_) {
     error("'parse_opts' must be a named list");
   }
   
+  // Loop over options in R named list and assign to C struct
   for (int i = 0; i < length(parse_opts_); i++) {
     const char *opt_name = CHAR(STRING_ELT(nms_, i));
     SEXP val_ = VECTOR_ELT(parse_opts_, i);
@@ -82,14 +94,6 @@ parse_options create_parse_options(SEXP parse_opts_) {
 
 
 
-
-//~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
-// Forward declarations
-//~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
-SEXP json_array_of_objects_to_data_frame(yyjson_val *arr, parse_options *opt);
-SEXP json_as_robj(yyjson_val *val, parse_options *opt);
-
-
 //===========================================================================
 //   ###                  ##                 
 //  #   #                  #                 
@@ -98,12 +102,16 @@ SEXP json_as_robj(yyjson_val *val, parse_options *opt);
 //      #  #       ####    #     ####  #     
 //  #   #  #   #  #   #    #    #   #  #      
 //   ###    ###    ####   ###    ####  #     
+//
+// The following functions parse a single yyjson JSON value to a 
+// scalar R value
 //===========================================================================
 
 
 //===========================================================================
-// Convert JSON value to logical (for inclusion in LGLSXP)
-// This function *ONLY* returns a value valid for an INTSXP
+// Convert JSON value to logical 
+// 
+// @return value valid for inclusion in LGLSXP vector
 //===========================================================================
 int32_t json_val_to_logical(yyjson_val *val, parse_options *opt) {
   
@@ -137,8 +145,9 @@ int32_t json_val_to_logical(yyjson_val *val, parse_options *opt) {
 
 
 //===========================================================================
-// Convert JSON value to integer (for inclusion in INTSXP)
-// This function *ONLY* returns a value valid for an INTSXP
+// Convert JSON value to integer 
+//
+// @return value valid for inclusion in INTSXP vector
 //===========================================================================
 int32_t json_val_to_integer(yyjson_val *val, parse_options *opt) {
   
@@ -180,8 +189,9 @@ int32_t json_val_to_integer(yyjson_val *val, parse_options *opt) {
 
 
 //===========================================================================
-// Convert JSON value to DOUBLE (for inclusion in REALSXP)
-// This function *ONLY* returns a value valid for a REALSXP
+// Convert JSON value to DOUBLE 
+//
+// @return value valid for inclusion in REALSXP vector
 //===========================================================================
 double json_val_to_double(yyjson_val *val, parse_options *opt) {
   
@@ -233,9 +243,10 @@ double json_val_to_double(yyjson_val *val, parse_options *opt) {
 
 
 //===========================================================================
-// Convert JSON value to DOUBLE (for inclusion in REALSXP)
-// This function *ONLY* returns a value valid for an REALSXP (which will
-//   get classed as a bit64::integer64 object)
+// Convert JSON value to DOUBLE for Integet64 vector
+//
+// @return value valid for inclusion in REALSXP vector
+//         This vector will be classed as bit64::integer64 object
 //===========================================================================
 long long json_val_to_integer64(yyjson_val *val, parse_options *opt) {
   
@@ -279,7 +290,8 @@ long long json_val_to_integer64(yyjson_val *val, parse_options *opt) {
 
 //===========================================================================
 // Convert JSON value to CHARSXP
-// This function *ONLY* returns a value valid for inclusion in a STRSXP vec
+//
+// @return value valid for inclusion in STRSXP vector
 //===========================================================================
 SEXP json_val_to_charsxp(yyjson_val *val, parse_options *opt) {
 
@@ -351,11 +363,28 @@ SEXP json_val_to_charsxp(yyjson_val *val, parse_options *opt) {
 //    #     ## #  # ##   #          #  #    #     #  #      #  #       #  # 
 //    #        #  #       ###      ####    ###     ##   ####    ###     ##  
 //         #   #  #                                                         
-//          ###   #         
+//          ###   #        
+//
+// JSON []-arrays and {}-objects can hold any other JSON type.
+// When trying to match a JSON []-array or {}-object to an R type, we first iterate
+// over the JSON []-array or {}-object and use a bitset to keep track of
+// which JSON types have been seen.
+//
+// In simple cases only a single bit in the bitset will be turned on - 
+// which indicates that the []-array of {}-object only contains a single 
+// type of value and is thus easily matched to an R vector.
+//
+// In more complex cases, the bitset has multiple bit sets indicating that
+// there are multiple types within the container.  Then the bitset must
+// be examined to determine what R container should be used.
+// e.g. if a []-array contains integers and doubles we could either
+//      (1) promote all the integers to doubles and return an R REALSXP
+//      (2) use a list to store the values so that their original types are 
+//          maintained.
 //===========================================================================
 
 //===========================================================================
-// Helper functon to dump out the contents of a type_bitset
+// Helper function: dump out the contents of a `type_bitset` 
 // Used only for debugging.
 //===========================================================================
 void dump_type_bitset(unsigned int type_bitset) {
@@ -545,7 +574,7 @@ unsigned int update_type_bitset(unsigned int type_bitset, yyjson_val *val, parse
 
 //===========================================================================
 // Find the best SEXP type to represent values in a non-nested array.
-// Non-nested means that it is known a-priori thatthis array does 
+// Non-nested means that it is known a-priori that this array does 
 // not contain any JSON []-arrays or {}-objects.
 //
 // Arrays which contain only arrays could be a matrix (otherwise a list)
@@ -598,7 +627,7 @@ unsigned int get_json_array_sub_container_types(yyjson_val *arr, parse_options *
 
 
 //===========================================================================
-// Could this array be parsed as a matrix?
+// Could this non-nested array be parsed as a matrix?
 //   * Prior to this call, this []-Array has already been shown 
 //     to only contain other []-arrays.
 //   * Now check in this function:
@@ -675,6 +704,9 @@ unsigned int get_best_sexp_type_for_matrix(yyjson_val *arr, parse_options *opt) 
 //  #   #  #      #       ####      # 
 //                              #   # 
 //                               ###  
+//
+// The following functions parse JSON []-arrays to 
+// R lists or atomic vectors.
 //===========================================================================
 
 //===========================================================================
@@ -1294,7 +1326,7 @@ SEXP json_array_as_robj(yyjson_val *arr, parse_options *opt) {
 //
 // Pre-requisite: 
 //    'arr' is a JSON []-array
-//    []-arry only contains {}-objects
+//    []-array only contains {}-objects
 //===========================================================================
 
 //~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
@@ -1412,7 +1444,7 @@ SEXP json_array_of_objects_to_vecsxp(yyjson_val *arr, const char *key_name, pars
 
     if (val == NULL) {
       if (opt->missing_list_elem) {
-        SET_VECTOR_ELT(vec_, idx, ScalarLogical(INT32_MIN));
+        SET_VECTOR_ELT(vec_, idx, ScalarLogical(INT32_MIN)); // NA_logical_
       } else {
         SET_VECTOR_ELT(vec_, idx, R_NilValue);
       }
@@ -1582,6 +1614,8 @@ SEXP json_array_of_objects_to_data_frame(yyjson_val *arr, parse_options *opt) {
 //  #        #     ###    #    
 //  #        #        #   #  # 
 //  #####   ###   ####     ##  
+//
+// JSON {}-object to R List
 //===========================================================================
 SEXP json_object_as_list(yyjson_val *obj, parse_options *opt) {
   unsigned int nprotect = 0;
@@ -1608,7 +1642,7 @@ SEXP json_object_as_list(yyjson_val *obj, parse_options *opt) {
   Rf_setAttrib(res_, R_NamesSymbol, nms_);
   
   //~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
-  // Test if list is promotable to a data.frame
+  // Test if list is promote-able to a data.frame
   //
   // * Opt to promote {}-object of []-arrays to data.frame
   // * All elements are atomic arrays or vecsxp
@@ -1648,9 +1682,6 @@ SEXP json_object_as_list(yyjson_val *obj, parse_options *opt) {
       SET_CLASS(res_, mkString("data.frame"));
     }
   }
-  
-  
-  
   
   UNPROTECT(nprotect);
   return res_;
@@ -1868,7 +1899,7 @@ SEXP parse_from_raw_(SEXP raw_, SEXP parse_opts_) {
   const char *str = (const char *)RAW(raw_);
   parse_options opt = create_parse_options(parse_opts_);
   
-  // Raw string may or may not have a NULL byter terminator.
+  // Raw string may or may not have a NULL byte terminator.
   // So ask 'yyjson' to stop parsing when the json parsing naturally ends
   // rather than running over into dead space after the raw string ends
   opt.yyjson_read_flag |= YYJSON_READ_STOP_WHEN_DONE;
