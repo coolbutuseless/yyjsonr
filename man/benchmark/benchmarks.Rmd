@@ -283,7 +283,7 @@ ggplot(plot_df) +
   facet_wrap(~benchmark, scales = 'free_y', ncol = 3) + 
   theme_bw() + 
   theme(legend.position = 'none') + 
-  scale_fill_manual(values = c(rep(grey(0.5), 3), 'dodgerblue3')) +
+  scale_fill_manual(values = c(rep(grey(0.5), 2), 'dodgerblue3')) +
   geom_hline(yintercept = 1, color = 'red', alpha = 0.5, linetype = 2) + 
   labs(
     x = NULL,
