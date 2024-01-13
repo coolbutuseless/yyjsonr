@@ -166,8 +166,8 @@ yyjson_write_flag <- list(
 #'        'integer64' type is a \emph{signed} integer type, and a warning will
 #'        be issued if JSON contains an \emph{unsigned} integer which cannot
 #'        be stored in this type.
-#' @param missing_list_elem how to handle missing elements in list columns in 
-#'        data.frames. Options, 'na', or 'null.  Default: 'null'
+#' @param df_missing_list_elem R value to use when elements are missing in list 
+#'        columns in data.frames. Default: NULL
 #' @param obj_of_arrs_to_df logical. Should a named list of equal-length
 #'        vectors be promoted to a data.frame?  Default: TRUE.  If FALSE, then
 #'        result will be left as a list.
@@ -201,27 +201,28 @@ yyjson_write_flag <- list(
 #' opts_read_json()
 #~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 opts_read_json <- function(
-    int64                 = c('string', 'bit64'),
-    missing_list_elem     = c('null', 'na'),
+    promote_num_to_string = FALSE,
+    df_missing_list_elem  = NULL,
     obj_of_arrs_to_df     = TRUE,
     arr_of_objs_to_df     = TRUE,
-    length1_array_asis   = FALSE,
     str_specials          = c('string', 'special'),
     num_specials          = c('special', 'string'),
-    promote_num_to_string = FALSE,
+    int64                 = c('string', 'bit64'),
+    length1_array_asis    = FALSE,
     yyjson_read_flag      = 0L
 ) {
   
   structure(
     list(
-      int64               = match.arg(int64),
-      missing_list_elem   = match.arg(missing_list_elem),
-      obj_of_arrs_to_df   = isTRUE(obj_of_arrs_to_df),
-      arr_of_objs_to_df   = isTRUE(arr_of_objs_to_df),
-      length1_array_asis = isTRUE(length1_array_asis),
-      str_specials        = match.arg(str_specials),
-      num_specials        = match.arg(num_specials),
-      yyjson_read_flag    = as.integer(yyjson_read_flag)
+      promote_num_to_string = isTRUE(promote_num_to_string),
+      df_missing_list_elem  = df_missing_list_elem,
+      obj_of_arrs_to_df     = isTRUE(obj_of_arrs_to_df),
+      arr_of_objs_to_df     = isTRUE(arr_of_objs_to_df),
+      length1_array_asis    = isTRUE(length1_array_asis),
+      str_specials          = match.arg(str_specials),
+      num_specials          = match.arg(num_specials),
+      int64                 = match.arg(int64),
+      yyjson_read_flag      = as.integer(yyjson_read_flag)
     ),
     class = "opts_read_json"
   )
@@ -268,10 +269,10 @@ opts_read_json <- function(
 #~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 opts_write_json <- function( 
     digits            = -1,
+    pretty            = FALSE,
+    auto_unbox        = FALSE,
     dataframe         = c("rows", "columns"),
     factor            = c("string", "integer"),
-    auto_unbox        = FALSE,
-    pretty            = FALSE,
     name_repair       = c('none', 'minimal'),
     num_specials      = c('null', 'string'),
     str_specials      = c('null', 'string'),

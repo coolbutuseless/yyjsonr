@@ -15,7 +15,7 @@ write_json_str(x, opts = list(), ...)
 The valid named options are identical to arguments to \code{\link[=opts_write_json]{opts_write_json()}}}
 }
 \value{
-Character string
+Single string containing JSON
 }
 \description{
 Convert R object to JSON string

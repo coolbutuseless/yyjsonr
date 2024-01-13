@@ -31,10 +31,10 @@ parse_options create_parse_options(SEXP parse_opts_) {
   // Set default options
   parse_options opt = {
     .int64                 = INT64_AS_STR,
-    .missing_list_elem     = MISSING_AS_NULL,
+    .df_missing_list_elem  = R_NilValue,
     .obj_of_arrs_to_df     = true,
     .arr_of_objs_to_df     = true,
-    .length1_array_asis   = false,
+    .length1_array_asis    = false,
     .str_specials          = STR_SPECIALS_AS_STRING,
     .num_specials          = NUM_SPECIALS_AS_SPECIAL,
     .promote_num_to_string = false,
@@ -65,9 +65,8 @@ parse_options create_parse_options(SEXP parse_opts_) {
     } else if (strcmp(opt_name, "int64") == 0) {
       const char *val = CHAR(STRING_ELT(val_, 0));
       opt.int64 = strcmp(val, "string") == 0 ? INT64_AS_STR : INT64_AS_BIT64;
-    } else if (strcmp(opt_name, "missing_list_elem") == 0) {
-      const char *val = CHAR(STRING_ELT(val_, 0));
-      opt.missing_list_elem = strcmp(val, "na") == 0 ? MISSING_AS_NA : MISSING_AS_NULL;
+    } else if (strcmp(opt_name, "df_missing_list_elem") == 0) {
+      opt.df_missing_list_elem = val_;
     } else if (strcmp(opt_name, "yyjson_read_flag") == 0) {
       for (unsigned int idx = 0; idx < length(val_); idx++) {
         opt.yyjson_read_flag |= INTEGER(val_)[idx];
@@ -1443,11 +1442,7 @@ SEXP json_array_of_objects_to_vecsxp(yyjson_val *arr, const char *key_name, pars
     yyjson_val *val = yyjson_obj_get(obj, key_name);
 
     if (val == NULL) {
-      if (opt->missing_list_elem) {
-        SET_VECTOR_ELT(vec_, idx, ScalarLogical(INT32_MIN)); // NA_logical_
-      } else {
-        SET_VECTOR_ELT(vec_, idx, R_NilValue);
-      }
+        SET_VECTOR_ELT(vec_, idx, opt->df_missing_list_elem); // NA_logical_
     } else {
       SET_VECTOR_ELT(vec_, idx, json_as_robj(val, opt));
     }

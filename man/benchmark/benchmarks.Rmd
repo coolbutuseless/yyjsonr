@@ -50,7 +50,7 @@ res00 <- bench::mark(
 ```
 
 ```{r echo=FALSE}
-res00$benchmark <- 'Validate JSON String'
+res00$benchmark <- 'Validate "iris" in JSON String'
 knitr::kable(res00[,1:5])
 plot(res00) + theme_bw() + theme(legend.position = 'none')
 ```
@@ -72,7 +72,7 @@ res01 <- bench::mark(
 
 
 ```{r echo=FALSE}
-res01$benchmark <- 'To JSON String'
+res01$benchmark <- 'Convert "iris" to JSON String'
 knitr::kable(res01[,1:5])
 plot(res01) + theme_bw() + theme(legend.position = 'none')
 ```
@@ -88,14 +88,13 @@ json_str <- write_json_str(iris)
 res02 <- bench::mark(
   jsonlite     = jsonlite::fromJSON(json_str),
   jsonify      = jsonify::from_json(json_str),
-  rcppsimdjson = RcppSimdJson::fparse(json_str),
   yyjsonr      = yyjsonr::read_json_str(json_str),
   check = TRUE
 )
 ```
 
 ```{r echo=FALSE}
-res02$benchmark <- 'From JSON String'
+res02$benchmark <- 'Read "iris" from JSON String'
 knitr::kable(res02[,1:5])
 plot(res02) + theme_bw() + theme(legend.position = 'none')
 ```
@@ -134,7 +133,6 @@ raw_data <- as.raw(c(0x7b, 0x0a, 0x20, 0x20, 0x22, 0x61, 0x72, 0x67, 0x73,
 
 res03 <- bench::mark(
   jsonlite     = jsonlite::fromJSON(rawConnection(raw_data)),
-  rcppsimdjson = RcppSimdJson::fparse(raw_data),
   yyjsonr      = yyjsonr::read_json_raw(raw_data),
   check = FALSE
 )
@@ -165,7 +163,7 @@ res04 <- bench::mark(
 ```
 
 ```{r echo=FALSE}
-res04$benchmark <- 'To JSON File'
+res04$benchmark <- 'Write "iris" to JSON File'
 knitr::kable(res04[, 1:5])
 plot(res04) + theme_bw() + theme(legend.position = 'none')
 ```
@@ -180,7 +178,7 @@ jsonlite::write_json(iris, json_file)
 
 res05 <- bench::mark(
   jsonlite     = jsonlite::fromJSON(file(json_file)), 
-  rcppsimdjson = RcppSimdJson::fload(json_file), 
+  jsonify      = jsonify::from_json(json_file),
   yyjsonr      = yyjsonr::read_json_file(json_file),
   check = TRUE
 )
@@ -188,36 +186,14 @@ res05 <- bench::mark(
 ```
 
 ```{r echo=FALSE}
-res05$benchmark <- 'From JSON File'
+res05$benchmark <- 'Read "iris" from JSON File'
 knitr::kable(res05[, 1:5])
 plot(res05) + theme_bw() + theme(legend.position = 'none')
 ```
 
 
 
-
-Benchmark from `{RcppSimdJson}`
-----------------------------------------------------------------------------
-
-```{r}
-jsonfile <- system.file("jsonexamples", "twitter.json", package="RcppSimdJson")
-json <- paste(readLines(jsonfile), collapse = "\n")
-
-res09 <- bench::mark(
-  jsonlite     = jsonlite::fromJSON(json),
-  rcppsimdjson = RcppSimdJson::fparse(json),
-  yyjsonr      = yyjsonr::read_json_str(json),
-  check = FALSE
-)
-```
-
-```{r echo=FALSE}
-res09$benchmark <- 'Rcppsimdjson benchmark'
-knitr::kable(res09[, 1:5])
-plot(res09) + theme_bw() + theme(legend.position = 'none')
-```
-
-Benchmark 1 from `{jsonify}` 
+Write modest data.frame to string (10 thousand rows)
 ----------------------------------------------------------------------------
 
 ```{r}
@@ -239,64 +215,31 @@ res10 <- bench::mark(
 ```
 
 ```{r echo=FALSE}
-res10$benchmark <- 'jsonify benchmark (1)'
+res10$benchmark <- '10k row data.frame to file'
 knitr::kable(res10[,1:5])
 plot(res10) + theme_bw() + theme(legend.position = 'none')
 ```
 
-Benchmark 2 from `{jsonify}` 
+Read modest data.frame from string (10 thousand rows)
 ----------------------------------------------------------------------------
 
 ```{r}
-n <- 1e4
-x <- list(
-  x = rnorm(n = n)
-  , y = list(x = rnorm(n = n))
-  , z = list( list( x = rnorm(n = n)))
-  , xx = rnorm(n = n)
-  , yy = data.frame(
-      id = 1:n
-      , value = sample(letters, size = n, replace = T)
-      , val2 = rnorm(n = n)
-      , log = sample(c(T,F), size = n, replace = T)
-    )
-)
+str <-  jsonlite::toJSON( df )
 
 res11 <- bench::mark(
- jsonlite = jsonlite::toJSON( x ),
- jsonify  = jsonify::to_json( x ),
- yyjsonr  = yyjsonr::write_json_str(x),
- check = FALSE
+  jsonlite = jsonlite::fromJSON( str ),
+  jsonify  = jsonify::from_json( str ),
+  # rcppsimdjson = RcppSimdJson::fparse( str ),
+  yyjsonr  = yyjsonr::read_json_str( str ),
+  check = TRUE
 )
 ```
 
+
 ```{r echo=FALSE}
-res11$benchmark <- 'jsonify benchmark (2)'
+res11$benchmark <- '10k row data.frame from string'
 knitr::kable(res11[,1:5])
 plot(res11) + theme_bw() + theme(legend.position = 'none')
-```
-
-
-Benchmark 3 from `{jsonify}` 
-----------------------------------------------------------------------------
-
-```{r}
-jlt <- jsonlite::toJSON( x )
-
-res12 <- bench::mark(
-  jsonlite     = jsonlite::fromJSON( jlt ),
-  jsonify      = jsonify::from_json( jlt ),
-  rcppsimdjson = RcppSimdJson::fparse(jlt),
-  yyjsonr      = yyjsonr::read_json_str(jlt),
-  check = FALSE
-)
-
-```
-
-```{r echo=FALSE}
-res12$benchmark <- 'jsonify benchmark (3)'
-knitr::kable(res12[,1:5])
-plot(res12) + theme_bw() + theme(legend.position = 'none')
 ```
 
 
@@ -309,7 +252,8 @@ plot_df <- bind_rows(
   res00, res01, res02, res03, res04, res05,
   # res13, res14, # geojson
   #res06, res07, res08, 
-  res09, res10, res11, res12,
+  # res09, 
+  res10, res11 #, res12,
 )
 
 plot_df$benchmark <- factor(
@@ -348,8 +292,10 @@ ggplot(plot_df) +
     subtitle = "Red line indicates reference implementation {jsonlite}"
   )
 
-# ggsave("./man/figures/benchmark-summary.png", width = 12, height = 10)
-# saveRDS(plot_df, "man/benchmark/cache-df-types.rds")
+if (FALSE) {
+  ggsave("./man/figures/benchmark-summary.png", width = 12, height = 10)
+  saveRDS(plot_df, "man/benchmark/cache-df-types.rds")
+}
 ```
 
 

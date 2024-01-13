@@ -18,32 +18,30 @@ In most cases it is around 2x to 10x faster than `{jsonlite}` at both
 reading and writing JSON.
 
 It is a wrapper for the [`yyjson`](https://github.com/ibireme/yyjson) C
-library.
-
-### The `yyjson` C library
-
-This package includes the [`yyjson`](https://github.com/ibireme/yyjson)
-C library (version `YYJSON_VERSION_HEX = 0x000700`).
-
-`yysjon` is MIT licensed - see `LICENSE-yyjson.txt` in this package for
-more details.
+library (v0.8.0). `yysjon` is MIT licensed - see `LICENSE-yyjson.txt` in
+this package for more details.
 
 ### What’s in the box
 
-|      |          | string              | file                 | raw             | conn             | options           |
-|------|----------|---------------------|----------------------|-----------------|------------------|-------------------|
-| json | read     | read_json_str()     | read_json_file()     | read_json_raw() | read_json_conn() | opts_read_json()  |
-|      | write    | write_json_str()    | write_json_file()    |                 |                  | opts_write_json() |
-|      | validate | validate_json_str() | validate_json_file() |                 |                  |                   |
+This package contains specialised functions for each type of operation
+(read/write/validate) and the storage location of the JSON
+(string/file/raw vector/connection).
 
-### Comparison to other JSON packages
+The matrix of available operations and storage is shown below:
 
-|              | Write JSON | Read JSON |
-|--------------|------------|-----------|
-| yyjsonr      | Fast!      | Fast!     |
-| jsonlite     | Yes        | Yes       |
-| RcppSimdJson |            | Fast!     |
-| jsonify      | Yes        | Yes       |
+|          | string              | file                 | raw             | conn             | options           |
+|----------|---------------------|----------------------|-----------------|------------------|-------------------|
+| read     | read_json_str()     | read_json_file()     | read_json_raw() | read_json_conn() | opts_read_json()  |
+| write    | write_json_str()    | write_json_file()    |                 |                  | opts_write_json() |
+| validate | validate_json_str() | validate_json_file() |                 |                  |                   |
+
+### Comparison to other packages with read/write JSON
+
+|          | Write JSON | Read JSON |
+|----------|------------|-----------|
+| yyjsonr  | Fast!      | Fast!     |
+| jsonlite | Yes        | Yes       |
+| jsonify  | Yes        | Yes       |
 
 <img src="man/figures/benchmark-summary.png">
 
@@ -217,9 +215,9 @@ yyjsonr::read_json_str(str)
     sake of my sanity.
   - See the `geojson` branch of this repository
 
-## Limitiations
+## Limitations
 
-- Some datatypes not currently supported. Please file an issue on github
+- Some datatypes not currently supported. Please file an issue on GitHub
   if these types are critical for yoy:
   - Complex numbers
   - POSIXlt

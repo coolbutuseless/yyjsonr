@@ -1,0 +1,72 @@
+---
+title: "Comparison to jsonlite parsing"
+output: rmarkdown::html_vignette
+vignette: >
+  %\VignetteIndexEntry{Comparison to jsonlite parsing}
+  %\VignetteEngine{knitr::rmarkdown}
+  %\VignetteEncoding{UTF-8}
+---
+
+```{r, include = FALSE}
+knitr::opts_chunk$set(
+  collapse = TRUE,
+  comment = "#>"
+)
+```
+
+```{r setup}
+library(yyjsonr)
+```
+
+
+
+Parsing differences compared to `{jsonlite}`
+=============================================================================
+
+`{jsonlite}` and `{yyjsonr}` may read and write some JSON differently
+due to varying assumptions, data configurations or option settings.
+
+This document keeps a record of major differences to be aware of.
+
+
+
+In `yyjsonr` 3-d arrays are parsed as multiple 2-d matrices and combined
+-----------------------------------------------------------------------------
+
+In `{yyjsonr}` the order in which elements in an array are serialized to 
+JSON correspond to a JSON `[]` array of row-major matrices in human-readable order.
+
+`{jsonlite}` does things differently. 
+
+The array formats are internally
+consistent within each package, but not cross-compatible between them i.e.
+you cannot serialize an array in `{yyjsonr}` and re-create it exactly 
+using `{jsonlite}`.
+
+In the examples below, a simple 3d matrix is serialized with both 
+`jsonlite` and `yyjsonr`.
+
+```{r}
+# A simple 3D array 
+mat <- array(1:12, dim = c(2,3,2))
+mat
+```
+
+
+```{r}
+# jsonlite's serialization of matrices is internally consistent and re-parses
+# to the initial matrix.
+str <- jsonlite::toJSON(mat, pretty = TRUE)
+cat(str)
+jsonlite::fromJSON(str)
+```
+
+
+```{r}
+# yyjsonr's serialization of matrices is internally consistent and re-parses
+# to the initial matrix.
+# But note that it is *different* to what jsonlite does.
+str <- yyjsonr::write_json_str(mat, pretty = TRUE)
+cat(str)
+yyjsonr::read_json_str(str)
+```

@@ -16,6 +16,9 @@ write_json_file(x, filename, opts = list(), ...)
 \item{...}{Other named options can be used to override any options in \code{opts}.
 The valid named options are identical to arguments to \code{\link[=opts_write_json]{opts_write_json()}}}
 }
+\value{
+None
+}
 \description{
 Convert R object to JSON file
 }

@@ -5,27 +5,28 @@
 \title{Create named list of options for parsing R from JSON}
 \usage{
 opts_read_json(
-  int64 = c("string", "bit64"),
-  missing_list_elem = c("null", "na"),
+  promote_num_to_string = FALSE,
+  df_missing_list_elem = NULL,
   obj_of_arrs_to_df = TRUE,
   arr_of_objs_to_df = TRUE,
-  length1_array_asis = FALSE,
   str_specials = c("string", "special"),
   num_specials = c("special", "string"),
-  promote_num_to_string = FALSE,
+  int64 = c("string", "bit64"),
+  length1_array_asis = FALSE,
   yyjson_read_flag = 0L
 )
 }
 \arguments{
-\item{int64}{how to encode large integers which do not fit into R's integer
-type.  'string' imports them as a character vector.  'bit64' will
-use the 'integer64' type from the 'bit64' package.  Note that the
-'integer64' type is a \emph{signed} integer type, and a warning will
-be issued if JSON contains an \emph{unsigned} integer which cannot
-be stored in this type.}
+\item{promote_num_to_string}{Should numeric values be promoted to strings
+when they occur within an array with other string values?  Default: FALSE
+means to keep numerics as numeric value and promote the \emph{container} to
+be a \code{list} rather than an atomic vector when types are mixed.  If \code{TRUE}
+then array of mixed string/numeric types will be promoted to all
+string values and returned as an atomic character vector.  Set this to \code{TRUE}
+if you want to emulate the behaviour of \code{jsonlite::fromJSON()}}
 
-\item{missing_list_elem}{how to handle missing elements in list columns in
-data.frames. Options, 'na', or 'null.  Default: 'null'}
+\item{df_missing_list_elem}{R value to use when elements are missing in list
+columns in data.frames. Default: NULL}
 
 \item{obj_of_arrs_to_df}{logical. Should a named list of equal-length
 vectors be promoted to a data.frame?  Default: TRUE.  If FALSE, then
@@ -35,9 +36,6 @@ result will be left as a list.}
 a data.frame? Default: TRUE. If FALSE, then results will be read as a
 list-of-lists.}
 
-\item{length1_array_asis}{logical. Should JSON arrays with length = 1 be
-marked with class \code{AsIs}.  Default: FALSE}
-
 \item{str_specials}{Should \code{'NA'} in a JSON string be converted to the \code{'special'}
 \code{NA} value in R, or left as a \code{'string'}.  Default: 'string'}
 
@@ -45,13 +43,15 @@ marked with class \code{AsIs}.  Default: FALSE}
 be converted to the \code{'special'} R numeric values
 \code{NA, Inf, NaN}, or left as a \code{'string'}. Default: 'special'}
 
-\item{promote_num_to_string}{Should numeric values be promoted to strings
-when they occur within an array with other string values?  Default: FALSE
-means to keep numerics as numeric value and promote the \emph{container} to
-be a \code{list} rather than an atomic vector when types are mixed.  If \code{TRUE}
-then array of mixed string/numeric types will be promoted to all
-string values and returned as an atomic character vector.  Set this to \code{TRUE}
-if you want to emulate the behaviour of \code{jsonlite::fromJSON()}}
+\item{int64}{how to encode large integers which do not fit into R's integer
+type.  'string' imports them as a character vector.  'bit64' will
+use the 'integer64' type from the 'bit64' package.  Note that the
+'integer64' type is a \emph{signed} integer type, and a warning will
+be issued if JSON contains an \emph{unsigned} integer which cannot
+be stored in this type.}
+
+\item{length1_array_asis}{logical. Should JSON arrays with length = 1 be
+marked with class \code{AsIs}.  Default: FALSE}
 
 \item{yyjson_read_flag}{integer vector of internal \code{yyjson}
 options.  See \code{yyjson_read_flag} in this package, and read

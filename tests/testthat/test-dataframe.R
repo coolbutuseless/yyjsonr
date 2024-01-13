@@ -87,7 +87,7 @@ test_that("array of nested json objects to data.frame", {
   #~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
   #' List column with "NA" for missing values
   #~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
-  test <- read_json_str('[{"a":10.1},{"a":"greg","b":4},{"b":4.1}]', missing_list_elem = 'na')
+  test <- read_json_str('[{"a":10.1},{"a":"greg","b":4},{"b":4.1}]', df_missing_list_elem = NA)
   test
   df <- data.frame(
     a = NA,
@@ -161,7 +161,7 @@ test_that("array of nested json objects to data.frame", {
 [
   {"a":1, "b":2.2, "c":"greg", "d":null},
   {}
-])", missing_list_elem = 'na')
+])", df_missing_list_elem = NA)
   test
   df <- data.frame(
     a = c(1L, NA_integer_),

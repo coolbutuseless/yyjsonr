@@ -84,10 +84,8 @@ read_json_file <- function(filename, opts = list(), ...) {
 #'
 #'
 #' @examples
-#' \dontrun{
 #' if (interactive()) {
 #'   read_json_conn(url("https://api.github.com/users/hadley/repos"))
-#' }
 #' }
 #' 
 #' 
@@ -109,7 +107,7 @@ read_json_conn <- function(conn, opts = list(), ...) {
 #' @param ... Other named options can be used to override any options in \code{opts}.
 #'        The valid named options are identical to arguments to [opts_write_json()]
 #' 
-#' @return Character string
+#' @return Single string containing JSON
 #' 
 #' @family JSON Serializer
 #' @export
@@ -132,7 +130,7 @@ write_json_str <- function(x, opts = list(), ...) {
 #' @inheritParams write_json_str
 #' @param filename filename
 #' 
-#' @return NULL
+#' @return None
 #' @family JSON Serializer
 #' @export
 #' 

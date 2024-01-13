@@ -26,10 +26,8 @@ For plain text files it is faster to use
 \code{read_json_file()}.
 }
 \examples{
-\dontrun{
 if (interactive()) {
   read_json_conn(url("https://api.github.com/users/hadley/repos"))
-}
 }
 
 

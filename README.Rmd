@@ -41,33 +41,30 @@ if (FALSE) {
 
 In most cases it is around 2x to 10x faster than `{jsonlite}` at both reading and writing JSON.
 
-It is a wrapper for the [`yyjson`](https://github.com/ibireme/yyjson) C library.
-
-
-### The `yyjson` C library
-
-This package includes the [`yyjson`](https://github.com/ibireme/yyjson) C
-library (version `YYJSON_VERSION_HEX = 0x000700`).  
-
+It is a wrapper for the [`yyjson`](https://github.com/ibireme/yyjson) C library (v0.8.0).
 `yysjon` is MIT licensed - see `LICENSE-yyjson.txt` in this package for more details.
 
 ### What's in the box
 
-|         |          | string              | file                 | raw             | conn             | options              |
-|---------|----------|---------------------|----------------------|-----------------|------------------|----------------------|
-| json    | read     | read_json_str()     | read_json_file()     | read_json_raw() | read_json_conn() | opts_read_json()     |
-|         | write    | write_json_str()    | write_json_file()    |                 |                  | opts_write_json()    |
-|         | validate | validate_json_str() | validate_json_file() |                 |                  |                      |
+This package contains specialised functions for each type of operation (read/write/validate) and the 
+storage location of the JSON (string/file/raw vector/connection).
+
+The matrix of available operations and storage is shown below:
+
+|          | string              | file                 | raw             | conn             | options              |
+|----------|---------------------|----------------------|-----------------|------------------|----------------------|
+| read     | read_json_str()     | read_json_file()     | read_json_raw() | read_json_conn() | opts_read_json()     |
+| write    | write_json_str()    | write_json_file()    |                 |                  | opts_write_json()    |
+| validate | validate_json_str() | validate_json_file() |                 |                  |                      |
 
 
 
-### Comparison to other JSON packages
+### Comparison to other packages with read/write JSON
 
 |              | Write JSON| Read JSON | 
 |--------------|-----------|-----------|
 | yyjsonr      | Fast!     | Fast!     | 
 | jsonlite     | Yes       | Yes       | 
-| RcppSimdJson |           | Fast!     | 
 | jsonify      | Yes       | Yes       | 
 
 
@@ -99,49 +96,6 @@ read_json_str(str)
 ```
 
 
-Parsing differences compared to `{jsonlite}`
-=============================================================================
-
-
-3-d arrays are parsed as multiple 2-d matrices and combined
------------------------------------------------------------------------------
-
-In `{yyjsonr}` the order in which elements in an array are serialized to 
-JSON correspond to an array of row-major matrices in human-readable order.
-
-`{jsonlite}` does things differently. 
-
-The array formats are internally
-consistent within each package, but not cross-compatible between them i.e.
-you cannot serialize an array in `{yyjsonr}` and re-create it exactly 
-using `{jsonlite}`.
-
-
-```{r}
-# A simple 3D array 
-mat <- array(1:12, dim = c(2,3,2))
-mat
-```
-
-
-```{r}
-# jsonlite's serialization of matrices is internally consistent and re-parses
-# to the initial matrix.
-str <- jsonlite::toJSON(mat, pretty = TRUE)
-cat(str)
-jsonlite::fromJSON(str)
-```
-
-
-```{r}
-# yyjsonr's serialization of matrices is internally consistent and re-parses
-# to the initial matrix.
-# But note that it is *different* to what jsonlite does.
-str <- yyjsonr::write_json_str(mat, pretty = TRUE)
-cat(str)
-yyjsonr::read_json_str(str)
-```
-
 
 ## Future
 
@@ -155,7 +109,7 @@ yyjsonr::read_json_str(str)
 ## Limitations
 
 * Some datatypes not currently supported. Please file an issue on GitHub if
-  these types are critical for yoy:
+  these types are critical for you.  Providing test cases also appreciated!:
     * Complex numbers
     * POSIXlt
     * Matrices of POSIXct / Date

@@ -9,106 +9,338 @@ vignette: >
 
 ```{r, include = FALSE}
 knitr::opts_chunk$set(
-  collapse = TRUE,
+  collapse = FALSE,
   comment = "#>"
 )
 ```
 
 ```{r setup}
 suppressPackageStartupMessages({
-  library(bit64)
   library(yyjsonr)
 })
 ```
 
-
-Mixture of numeric and string types
+Overview
 -----------------------------------------------------------------------------
 
-```{r}
-# a JSON array of mixed string and numeric types
-json <- '[1,2,3,"apple"]'
+This vignette:
+
+* introduces the `opts` argument for reading JSON with the `read_json_X()` family 
+  of functions.
+* outlines the creation of default options with `opts_read_json()`
+* provides extended examples of how these options control parsing of JSON
+
+
+The `opts` argument - Specifying options when reading JSON
+-----------------------------------------------------------------------------
+
+All `read_json_x()` functions have an `opts` argument.  `opts` takes 
+a named list of options used to configure the way `yyjsonr` parses JSON 
+into R objects.
+
+The default argument for `opts` is an empty list, which internally sets the 
+default options for parsing.
+
+The default options for parsing can also be viewed by running
+`opts_read_json()`.
+
+The following three function calls are all equivalent ways of calling
+`read_json_str()` using the default options:
+
+```{r eval=FALSE}
+read_json_str(str)
+read_json_str(str, opts = list())
+read_json_str(str, opts = opts_read_json())
 ```
 
 
-```{r}
-# jsonlite returns an atomic character vector (by default)
-jsonlite::fromJSON(json)
+Setting arguments to override the default options
+-----------------------------------------------------------------------------
+
+Setting a single option (and keeping all other options at their default value)
+can be done in a number of ways.
+
+The following three function calls are all equivalent:
+
+```{r eval=FALSE}
+read_json_str(str, opts = list(str_specials = 'string'))
+read_json_str(str, opts = opts_read_json(str_specials = 'string'))
+read_json_str(str, str_specials = 'string')
 ```
 
 
+
+
+Option `promote_num_to_string` - mixtures of numeric and string types
+-----------------------------------------------------------------------------
+
+By default, `yyjsonr` does not promote string values to numerica values i.e.
+`promote_num_to_string = FALSE`.
+
+If an array contains mixed types, then an R *list* will be returned, so that
+all JSON values retain their original type.
+
 ```{r}
-# yyjsonr can behave the same as jsonlite's default
+json <- '[1,2,3.1,"apple", null]'
+read_json_str(json)
+```
+
+If `promote_num_to_string` is set to `TRUE`, then `yyjsonr` will promote 
+numeric types to strings if the following conditions are met:
+
+* values are stored in a JSON array
+* the JSON array only contains numerics, strings or the JSON `null` value
+
+
+```{r}
 yyjsonr::read_json_str(json, promote_num_to_string = TRUE)
 ```
 
 
+
+Option `df_missing_list_elem` - Missing list elements (when parsing data.frames)
+-----------------------------------------------------------------------------
+
+When JSON data is being parsed into an R data.frame some columns become
+*list-columns* if there are mixed types in the original JSON.
+
+It is possible that some values are completely missing in the JSON 
+representation, and the `df_missing_list_elem` specifies the replacement for 
+this missing value in the R data.frame.  The default value is 
+`df_missing_list_elem = NULL`.
+
+### JSON to data.frame (no *list columns* needed)
+
 ```{r}
-# Keep all types as-is and return as a list
-yyjsonr::read_json_str(json, promote_num_to_string = FALSE)
+str <- '[{"a":1, "b":2}, {"a":3, "b":4}]'
+read_json_str(str)
 ```
 
 
-
-
-
-Large integers
------------------------------------------------------------------------------
+### JSON to data.frame - *list-columns* required
 
 ```{r}
-str <- '[1, 2, 274877906944]'
-
-read_json_str(str, int64 = 'string')
-
-read_json_str(str, int64 = 'bit64')
+str <- '[{"a":1, "b":[1,2]}, {"a":3, "b":2}]'
+read_json_str(str)
 ```
 
-
-Missing list elements (when parsing data.frames)
------------------------------------------------------------------------------
 
 ```{r}
 str <- '[{"a":1, "b":[1,2]}, {"a":2}]'
-
-read_json_str(str, missing_list_elem = 'null')
-
-read_json_str(str, missing_list_elem = 'na')
+read_json_str(str)
+read_json_str(str, df_missing_list_elem = NA)
 ```
 
 
-Vectors to data.frame
+
+
+
+
+
+Option `obj_of_arrs_to_df` - Reading JSON as a data.frame
 -----------------------------------------------------------------------------
 
-```{r}
-str <- '{"a":[1,2],"b":["apple","banana"]}'
+By default, if JSON looks like it represents a data.frame it will be loaded
+as such. That is, a JSON `{}` object which contains only `[]` arrays (all of
+equal length) will be treated as data.frame.  This is the default i.e.
+`obj_of_arrs_to_df = TRUE`.
 
+If `obj_of_arrs_to_df = FALSE` then this data will be read in as a named list.
+In addition, if the `[]` arrays are not all the same length, then the data 
+will also be read in as a named list as no inference
+of missing values will be done.
+
+```{r}
+str <- '{"a":[1,2],"b":["apple", "banana"]}'
+read_json_str(str)
 read_json_str(str, obj_of_arrs_to_df = FALSE)
-
-read_json_str(str, obj_of_arrs_to_df =  TRUE)
 ```
 
 
-String special values: 'NA'
+```{r}
+str_unequal <- '{"a":[1,2],"b":["apple", "banana", "carrot"]}'
+read_json_str(str_unequal)
+```
+
+
+Option `arr_of_objs_to_df` - Reading JSON as a data.frame
 -----------------------------------------------------------------------------
 
 ```{r}
-str <- '["apple", "banana", null, "NA"]'
+str <- '[{"a":1, "b":2}, {"a":3, "b":4}]'
+read_json_str(str)
+read_json_str(str, arr_of_objs_to_df = FALSE)
+```
 
-read_json_str(str, str_specials = 'string')
+```{r}
+str <- '[{"a":1, "b":2}, {"a":3, "b":4, "c":99}]'
+read_json_str(str)
+```
 
+
+Option `str_specials` - Reading string `"NA"` from JSON
+-----------------------------------------------------------------------------
+
+JSON only really has the value `null` for representing special missing values, 
+and this is converted to an R `NA_character_` value when it is encountered in 
+a string-ish context.
+
+When `yyjsonr` encounters a literal `"NA"` value in a string-ish context, 
+its conversion to an R value is controlled by the `str_specials` options
+
+
+The possible values for the `str_specials` argument are:
+
+* `string` read in as the literal character string `"NA"`  (the default behaviour)
+* `special` read in as `NA_character_`
+
+```{r}
+str <- '["hello", "NA", null]'
+read_json_str(str) # default: str_specials = 'string'
 read_json_str(str, str_specials = 'special')
 ```
 
 
-Numeric special values: 'NA', 'NaN', 'Inf', '-Inf'
+Option `num_specials` - Reading numeric `"NA"`, `"NaN"` and `"Inf"`
 -----------------------------------------------------------------------------
 
+JSON only really has the value `null` for representing special missing values, 
+and this is converted to an R `NA_integer_` or `NA_real_` value when it is encountered in 
+a number-ish context.
+
+When `yyjsonr` encounters a literal `"NA"`, `"NaN"` or `"Inf"` value in a number-ish context, 
+its conversion to an R value is controlled by the `num_specials` options.
+
+
+The possible values for the `num_specials` argument are:
+
+* `special` read in as an actual numeric `NA`, `NaN` or `Inf` value (the default behaviour)
+* `string` read in as the literal character string `"NA"` etc
+
 ```{r}
-str <- '[1.0, 2.0, null, "NA", "Inf", "-Inf", "NaN"]'
-
+str <- '[1.23, "NA", "NaN", "Inf", "-Inf", null]'
+read_json_str(str) # default: num_specials = 'special'
 read_json_str(str, num_specials = 'string')
-
-read_json_str(str, num_specials = 'special')
 ```
 
 
+
+Option `int64` - large integer support
+-----------------------------------------------------------------------------
+
+JSON supports large integers outside the range of R's 32-bit integer type.
+
+When such a large value is encountered in JSON, the `int64` option controls the
+value's representation in R.
+
+The possible values for the `int64` option are:
+
+* `string` store JSON integer as a string in R
+* `bit64` convert to a 64-bit integer supported by the [`{bit64}`](https://cran.r-project.org/package=bit64)
+  package.
+
+```{r echo=FALSE}
+suppressPackageStartupMessages(
+  library(bit64)
+)
+```
+
+
+```{r}
+str <- '[1, 274877906944]'
+read_json_str(str) # default: int64 = 'string'
+library(bit64)
+read_json_str(str, int64 = 'bit64')
+```
+
+
+
+
+Option `length1_array_asis` - distinguishing scalars from length-1 vectors
+-----------------------------------------------------------------------------
+
+JSON supports the concept of both scalar and vector values i.e. in JSON 
+scalar `67` is different from an array of length 1 `[67]`.  The 
+`length1_array_asis` option is for situations where it is important to 
+distinguish these value types in R.
+
+However, R does not make this distinction between scalars and vectors of length 1.
+
+To assist in translating objects from JSON to R and back to JSON, setting
+`length1_array_asis = TRUE` will mark JSON arrays of length 1 with the 
+class `AsIs`.  This option defaults to `FALSE`.
+
+```{r}
+read_json_str('67')   |> str()
+read_json_str('[67]') |> str()
+
+read_json_str('67'  , length1_array_asis = TRUE) |> str()
+read_json_str('[67]', length1_array_asis = TRUE) |> str() # Has 'AsIs' class
+```
+
+
+This option is then used with the option `auto_unbox` when writing JSON in 
+order to control how length-1 R vectors are written.  Shown below, if the
+length-1 vector is marked with `AsIs` class when reading, then when writing
+out to JSON with `auto_unbox = TRUE` it becomes a JSON vector value.
+
+
+In the following example, only the second value (`[67]`) is affected by the option
+`length1_array_asis`.  When the option is `TRUE` the value is tagged with a 
+class of `AsIs`.  Then when the created R object is subsequently written out to a JSON string,
+its structure is determined by `auto_unbox` which understands how to handle
+this class.
+
+```{r}
+str <- '{"a":67, "b":[67], "c":[1,2]}'
+
+# Length-1 vectors output as JSON arrays
+read_json_str(str) |>
+  write_json_str(auto_unbox = FALSE) |>
+  cat()
+
+# Length-1 vectors output as JSON scalars
+read_json_str(str) |>
+  write_json_str(auto_unbox = TRUE) |>
+  cat()
+
+# Length-1 vectors output as JSON arrays
+read_json_str(str, length1_array_asis = TRUE) |>
+  write_json_str(auto_unbox = FALSE) |>
+  cat()
+
+# !!!!
+# Those values marked with 'AsIs' class when reading are output
+# as length-1 JSON arrays
+read_json_str(str, length1_array_asis = TRUE) |>
+  write_json_str(auto_unbox = TRUE) |>
+  cat()
+```
+
+
+
+
+
+Option `yyjson_read_flag` - internal `YYJSON` C library options
+-----------------------------------------------------------------------------
+
+The `yyjson` C library supports a number of internal options for reading JSON.
+
+These options are considered advanced, and the user is referred to the
+[`yyjson` documentation](https://ibireme.github.io/yyjson/doc/doxygen/html/md_doc__a_p_i.html#autotoc_md36) for further explanation on what they control.
+
+**Warning**: some of these advanced options do not make sense for interfacing with R,
+or otherwise conflict with how this package converts JSON to R objects. 
+
+```{r}
+# A reference list of all the possible YYJSON options
+yyjsonr::yyjson_read_flag
+
+read_json_str(
+  "[1, 2, 3, ] // A JSON comment not allowed by the standard",
+  opts = opts_read_json(yyjson_read_flag = c(
+    yyjson_read_flag$YYJSON_READ_ALLOW_TRAILING_COMMAS,
+    yyjson_read_flag$YYJSON_READ_ALLOW_COMMENTS
+  ))
+)
+```

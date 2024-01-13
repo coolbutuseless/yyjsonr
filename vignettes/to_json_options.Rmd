@@ -9,89 +9,231 @@ vignette: >
 
 ```{r, include = FALSE}
 knitr::opts_chunk$set(
-  collapse = TRUE,
+  collapse = FALSE,
   comment = "#>"
 )
 ```
 
 ```{r setup}
-library(yyjsonr)
+suppressPackageStartupMessages({
+  library(yyjsonr)
+})
 ```
 
 
-data.frame as rows or columns
+
+Overview
 -----------------------------------------------------------------------------
 
-```{r}
-df <- data.frame(a = 1:2, b=c('apple', 'banana'))
+This vignette:
 
-cat(write_json_str(df, dataframe = 'rows'))
+* introduces the `opts` argument for writing JSON with the `write_json_X()` family 
+  of functions.
+* outlines the creation of default options with `opts_write_json()`
+* provides extended examples of how these options control writing JSON
 
-cat(write_json_str(df, dataframe = 'cols'))
-```
 
-factors as strings or integer
+
+The `opts` argument - Specifying options when reading JSON
 -----------------------------------------------------------------------------
 
-```{r}
-ff <- as.factor(c("apple", "apple", "banana"))
+All `write_json_x()` functions have an `opts` argument.  `opts` takes 
+a named list of options used to configure the way `yyjsonr` writes JSON 
+from R objects.
 
-cat(write_json_str(ff, factor = 'string'))
-cat(write_json_str(ff, factor = 'integer'))
+The default argument for `opts` is an empty list, which internally sets the 
+default options for writing.
+
+The default options for writing JSON can also be viewed by running
+`opts_write_json()`.
+
+The following three function calls are all equivalent ways of calling
+`write_json_str()` using the default options:
+
+```{r eval=FALSE}
+write_json_str(iris)
+write_json_str(iris, opts = list())
+write_json_str(iris, opts = opts_write_json())
 ```
 
-Auto unbox scalar values
+
+Setting arguments to override the default options
 -----------------------------------------------------------------------------
 
-```{r}
-ll <- list(a = 1, b = "hello", c = 1:3)
+Setting a single option (and keeping all other options at their default value)
+can be done in a number of ways.
 
-cat(write_json_str(ll, auto_unbox = TRUE))
+The following three function calls are all equivalent:
 
-cat(write_json_str(ll, auto_unbox = FALSE))
+```{r eval=FALSE}
+write_json_str(iris, opts = list(str_specials = 'string'))
+write_json_str(iris, opts = opts_write_json(str_specials = 'string'))
+write_json_str(iris, str_specials = 'string')
 ```
 
-Pretty
+
+
+Option `digits` - Number of decimal places for numeric values
+-------------------------------------------------------------------------------
+
+The `digits` option controls the number of decimal places output for numeric
+values.  The default value of `digits = -1` indicates that the internal
+`yyjson` C library formatting should be used.
+
+```{r}
+robj <- c(1, 1.23, 3.141592654)
+write_json_str(robj)
+write_json_str(robj, digits = 2)
+write_json_str(robj, digits = 0)
+```
+
+
+Option `pretty` - Use whitespace to make the JSON pretty
+-------------------------------------------------------------------------------
+
+The `pretty` option is a logical value indicating whether or not whitespace
+should be used to make the resulting JSON more readable.
+
+```{r}
+robj <- head(iris, 2)
+write_json_str(robj) |> cat()
+write_json_str(robj, pretty = TRUE) |> cat()
+```
+
+
+Option `auto_unbox` - Handling for R vectors of length 1
+-------------------------------------------------------------------------------
+
+The `auto_unbox` option is a logical value indicating whether single values
+should be written as JSON scalars or JSON arrays (with length 1).
+
+When `auto_unbox = FALSE` (the default), single values are always written
+as a JSON array i.e. within `[]` brackets.
+
+When `auto_unbox = TRUE`, single values are written as bare JSON scalar values
+
+```{r}
+robj <- list(1, c(1, 2), NA)
+write_json_str(robj) |> cat()
+write_json_str(robj, auto_unbox = TRUE) |> cat()
+```
+
+
+Option `dataframe` - Orientation of data.frame output
+-------------------------------------------------------------------------------
+
+The `dataframe` option controls the orientation of the data output to JSON:
+
+* `dataframe = "rows"` (the default) writes the data one-row-at-a-time as a JSON `[]` array
+  containing a JSON `{}` object for each row.
+* `dataframe = "cols"` writes the data one-column-at-a-time as a JSON
+  `{}` object containing JSON `[]` arrays.
+
+```{r}
+robj <- head(iris, 3)
+write_json_str(robj, pretty = TRUE) |> cat()
+write_json_str(robj, pretty = TRUE, dataframe = "cols") |> cat()
+```
+
+
+Option `factor` - factor representation
+-------------------------------------------------------------------------------
+
+The `factor` option indicates whether factors should be output as `string` 
+(the default) or `integer` values.
+
+```{r echo=FALSE}
+set.seed(1)
+```
+
+
+```{r}
+robj <- sample(iris$Species, 10)
+write_json_str(robj) |> cat()
+write_json_str(robj, factor = 'integer') |> cat()
+```
+
+
+Option `name_repair` - Dealing with missing names in lists
+-------------------------------------------------------------------------------
+
+When writing R lists which are only partially named, `name_repair` controls
+the names which are generated for the JSON output.
+
+
+* `name_repair = "none"` (the default) means that no names are created, and
+  an empty string will be used as the key.
+* `name_repair = "minimal"` will generate default names for each unnamed list
+  item based upon its position in the list.
+  
+```{r}
+robj <- list(a = 1, b = 2, 67)
+write_json_str(robj, pretty = TRUE) |> cat()
+write_json_str(robj, pretty = TRUE, name_repair = 'minimal') |> cat()
+```
+
+
+Option `num_specials` - Writing numeric `NA`, `NaN` and `Inf`
+-------------------------------------------------------------------------------
+
+JSON only has a single `null` value as a representation of missing-ness or
+special-ness of a value.  That is, it has no natural representations to distinguish the special R numeric values like `NA`, `NaN` and `Inf`.    
+
+The `num_specials` option configures handling of these values in the JSON output:
+
+* `num_specials = "null"` (the default) will write special numeric values as JSON
+  `null` values.
+* `num_specials = "string"` will write string representations of these values.
+
+```{r}
+robj <- c(1.23, NA_real_, NaN, Inf, -Inf)
+write_json_str(robj) |> cat()
+write_json_str(robj, num_specials = 'string') |> cat()
+```
+
+
+Option `str_specials` - Writing character `NA`
+-------------------------------------------------------------------------------
+
+JSON only has a single `null` value as a representation of missing-ness or
+special-ness of a value.  That is, it has no specific representation of
+`NA_character_`.
+
+The `str_specials` option configures handling of `NA_character_` values in the JSON output:
+
+* `str_specials = "null"` (the default) will write `NA_character_` as JSON
+  `null`.
+* `str_specials = "string"` will write `NA_character_` as `"NA"`.
+
+```{r}
+robj <- c("hello", NA_character_)
+write_json_str(robj) |> cat()
+write_json_str(robj, str_specials = 'string') |> cat()
+```
+
+
+Option `yyjson_write_flag` - internal `YYJSON` C library options
 -----------------------------------------------------------------------------
 
-```{r}
-df <- data.frame(a = 1:2, b=c('apple', 'banana'))
+The `yyjson` C library supports a number of internal options for writing JSON.
 
-cat(write_json_str(df, pretty = FALSE))
+These options are considered advanced, and the user is referred to the
+[`yyjson` documentation](https://ibireme.github.io/yyjson/doc/doxygen/html/md_doc__a_p_i.html#autotoc_md43) for further explanation on what they control.
 
-cat(write_json_str(df, pretty = TRUE))
-```
-
-Repair names of partially named lists
------------------------------------------------------------------------------
+**Warning**: some of these advanced options do not make sense for interfacing with R,
+or otherwise conflict with how this package converts R objects to JSON. 
 
 ```{r}
-ll <- list(a = 1, "banana", c = "cat")
+# A reference list of all the possible YYJSON options
+yyjsonr::yyjson_write_flag
 
-cat(write_json_str(ll, name_repair = 'none'))
-cat(write_json_str(ll, name_repair = 'minimal'))
+write_json_str(
+  c('hello / there', '#RStats'),
+  opts = opts_write_json(yyjson_write_flag = c(
+    yyjson_write_flag$YYJSON_WRITE_ESCAPE_SLASHES
+  ))
+) |> cat()
 ```
 
-Numeric special values e.g. "NA"
------------------------------------------------------------------------------
-
-```{r}
-vec <- c(1, 2, NA, NaN, Inf, -Inf)
-
-cat(write_json_str(vec, num_specials = 'null'))
-
-cat(write_json_str(vec, num_specials = 'string'))
-```
-
-String special values i.e. "NA"
------------------------------------------------------------------------------
-
-```{r}
-vec <- c("apple", "banana", NA)
-
-cat(write_json_str(vec, str_specials = 'null'))
-
-cat(write_json_str(vec, str_specials = 'string'))
-```
 
 

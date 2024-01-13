@@ -6,10 +6,10 @@
 \usage{
 opts_write_json(
   digits = -1,
+  pretty = FALSE,
+  auto_unbox = FALSE,
   dataframe = c("rows", "columns"),
   factor = c("string", "integer"),
-  auto_unbox = FALSE,
-  pretty = FALSE,
   name_repair = c("none", "minimal"),
   num_specials = c("null", "string"),
   str_specials = c("null", "string"),
@@ -22,18 +22,18 @@ Positive values specify number of decimal places. Using zero will
 write the numeric value as an integer. Values less than zero mean that
 the floating point value should be written as-is (the default).}
 
+\item{pretty}{Logical value indicating if the created JSON string should have
+whitespace for indentation and linebreaks. Default: FALSE.
+Note: this option is equivalent to \code{yyjson_write_flag = write_flag$YYJSON_WRITE_PRETTY}}
+
+\item{auto_unbox}{automatically unbox all atomic vectors of length 1 such that
+they appear as atomic elements in JSON rather than arrays of length 1.}
+
 \item{dataframe}{how to encode data.frame objects. Options 'rows' or
 columns'.  Default: 'rows'}
 
 \item{factor}{how to encode factor objects: must be one of 'string' or 'integer'
 Default: 'string'}
-
-\item{auto_unbox}{automatically unbox all atomic vectors of length 1 such that
-they appear as atomic elements in JSON rather than arrays of length 1.}
-
-\item{pretty}{Logical value indicating if the created JSON string should have
-whitespace for indentation and linebreaks. Default: FALSE.
-Note: this option is equivalent to \code{yyjson_write_flag = write_flag$YYJSON_WRITE_PRETTY}}
 
 \item{name_repair}{How should unnamed items in a partially named list be handled?
 'none' means to leave their names blank in JSON (which may not be valid JSON).
