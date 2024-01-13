@@ -1,4 +1,8 @@
 
+# yyjson4 0.1.14 2024-01-13
+
+* Add `int64 = "double"` option to `opts_read_json()`
+* Preparations for CRAN
 
 # yyjsonr 0.1.13 2024-01-05
 

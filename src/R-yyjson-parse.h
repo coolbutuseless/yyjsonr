@@ -35,7 +35,8 @@
 // E.g. Maybe want to add "INT64_AS_DBL" or "STR_SPECIALS_AS_NULL" 
 //~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 #define INT64_AS_STR   1 << 0
-#define INT64_AS_BIT64 1 << 1
+#define INT64_AS_DBL   1 << 1
+#define INT64_AS_BIT64 1 << 2
 
 #define STR_SPECIALS_AS_SPECIAL 0
 #define STR_SPECIALS_AS_STRING  1

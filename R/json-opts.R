@@ -161,7 +161,8 @@ yyjson_write_flag <- list(
 #' Create named list of options for parsing R from JSON
 #' 
 #' @param int64 how to encode large integers which do not fit into R's integer
-#'        type.  'string' imports them as a character vector.  'bit64' will
+#'        type.  'string' imports them as a character vector. 'double' will
+#'        convert the integer to a double precision numeric value. 'bit64' will
 #'        use the 'integer64' type from the 'bit64' package.  Note that the
 #'        'integer64' type is a \emph{signed} integer type, and a warning will
 #'        be issued if JSON contains an \emph{unsigned} integer which cannot
@@ -207,7 +208,7 @@ opts_read_json <- function(
     arr_of_objs_to_df     = TRUE,
     str_specials          = c('string', 'special'),
     num_specials          = c('special', 'string'),
-    int64                 = c('string', 'bit64'),
+    int64                 = c('string', 'double', 'bit64'),
     length1_array_asis    = FALSE,
     yyjson_read_flag      = 0L
 ) {

@@ -64,7 +64,13 @@ parse_options create_parse_options(SEXP parse_opts_) {
       opt.length1_array_asis = asLogical(val_);
     } else if (strcmp(opt_name, "int64") == 0) {
       const char *val = CHAR(STRING_ELT(val_, 0));
-      opt.int64 = strcmp(val, "string") == 0 ? INT64_AS_STR : INT64_AS_BIT64;
+      if (strcmp(val, "double") == 0) {
+        opt.int64 = INT64_AS_DBL;
+      } else if (strcmp(val, "bit64") == 0) {
+        opt.int64 = INT64_AS_BIT64;
+      } else {
+        opt.int64 = INT64_AS_STR;
+      }
     } else if (strcmp(opt_name, "df_missing_list_elem") == 0) {
       opt.df_missing_list_elem = val_;
     } else if (strcmp(opt_name, "yyjson_read_flag") == 0) {
@@ -504,7 +510,9 @@ unsigned int update_type_bitset(unsigned int type_bitset, yyjson_val *val, parse
     {
       uint64_t tmp = yyjson_get_uint(val);
       if (tmp > INT32_MAX) {
-        if (opt->int64 == INT64_AS_BIT64) {
+        if (opt->int64 == INT64_AS_DBL) {
+          type_bitset |= VAL_REAL;
+        } else if (opt->int64 == INT64_AS_BIT64) {
           // Signed INT32_MAX
           // Signed INT64_MAX =  2^63-1 =  9223372036854775807
           // Signed INT64_MIN = -2^63   = -9223372036854775808
@@ -524,7 +532,9 @@ unsigned int update_type_bitset(unsigned int type_bitset, yyjson_val *val, parse
     {
       int64_t tmp = yyjson_get_sint(val);
       if (tmp < INT32_MIN || tmp > INT32_MAX) {
-        if (opt->int64 == INT64_AS_BIT64) {
+        if (opt->int64 == INT64_AS_DBL) {
+          type_bitset |= VAL_REAL;
+        } else if (opt->int64 == INT64_AS_BIT64) {
           type_bitset |= VAL_INT64;
         } else {
           type_bitset |= VAL_STR_INT;
@@ -1716,7 +1726,17 @@ SEXP json_as_robj(yyjson_val *val, parse_options *opt) {
     {
       uint64_t tmp = yyjson_get_uint(val);
       if (tmp > INT32_MAX) {
-        if (opt->int64 == INT64_AS_BIT64) {
+        if (opt->int64 == INT64_AS_STR) {
+#if defined(__APPLE__) || defined(_WIN32)
+          snprintf(buf, 128, "%llu", yyjson_get_uint(val));
+#else
+          snprintf(buf, 128, "%lu", yyjson_get_uint(val));
+#endif
+          res_ = PROTECT(mkString(buf)); nprotect++;  
+        } else if (opt->int64 == INT64_AS_DBL) {
+          double x = json_val_to_double(val, opt);
+          res_ = PROTECT(ScalarReal(x)); nprotect++;
+        } else if (opt->int64 == INT64_AS_BIT64) {
           if (tmp > INT64_MAX) {
             warning("64bit unsigned integer values exceed bit64::integer64. Expect overflow");
           }
@@ -1725,12 +1745,7 @@ SEXP json_as_robj(yyjson_val *val, parse_options *opt) {
           ((long long *)(REAL(res_)))[0] = x;
           setAttrib(res_, R_ClassSymbol, mkString("integer64"));
         } else {
-#if defined(__APPLE__) || defined(_WIN32)
-          snprintf(buf, 128, "%lld", yyjson_get_sint(val));
-#else
-          snprintf(buf, 128, "%lu", yyjson_get_uint(val));
-#endif
-          res_ = mkString(buf);
+          error("Unhandled opt.bit64 option for YYJSON_SUBTYPE_UINT");
         }
       } else {
         res_ = PROTECT(ScalarInteger(tmp)); nprotect++;
@@ -1741,12 +1756,27 @@ SEXP json_as_robj(yyjson_val *val, parse_options *opt) {
     {
       int64_t tmp = yyjson_get_sint(val);
       if (tmp < INT32_MIN || tmp > INT32_MAX) {
+        if (opt->int64 == INT64_AS_STR) {
 #if defined(__APPLE__) || defined(_WIN32)
         snprintf(buf, 128, "%lld", yyjson_get_sint(val));
 #else
         snprintf(buf, 128, "%ld", yyjson_get_sint(val));
 #endif
-        res_ = mkString(buf);
+        res_ = PROTECT(mkString(buf)); nprotect++;
+        } else if (opt->int64 == INT64_AS_DBL) {
+          double x = json_val_to_double(val, opt);
+          res_ = PROTECT(ScalarReal(x)); nprotect++;
+        } else if (opt->int64 == INT64_AS_BIT64) {
+          if (tmp > INT64_MAX || tmp < INT64_MIN) {
+            warning("64bit signed integer values exceed bit64::integer64. Expect overflow");
+          }
+          long long x = json_val_to_integer64(val, opt);
+          res_ = PROTECT(ScalarReal(0)); nprotect++;
+          ((long long *)(REAL(res_)))[0] = x;
+          setAttrib(res_, R_ClassSymbol, mkString("integer64"));
+        } else {
+          error("Unhandled opt.bit64 option for YYJSON_SUBTYPE_SINT");
+        }
       } else {
         res_ = PROTECT(ScalarInteger(tmp)); nprotect++;
       }

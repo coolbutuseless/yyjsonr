@@ -236,6 +236,9 @@ value's representation in R.
 The possible values for the `int64` option are:
 
 * `string` store JSON integer as a string in R
+* `double` will store the JSON integer as a double precisision numeric. If the 
+  integer is outside the range +/- 2^53, then it may not be stored perfectly in
+  the double.
 * `bit64` convert to a 64-bit integer supported by the [`{bit64}`](https://cran.r-project.org/package=bit64)
   package.
 
@@ -248,7 +251,17 @@ suppressPackageStartupMessages(
 
 ```{r}
 str <- '[1, 274877906944]'
-read_json_str(str) # default: int64 = 'string'
+
+# default: int64 = 'string'
+# Since result is a mix of types, a list is returned
+read_json_str(str) 
+
+# Read large integer as double
+robj <- read_json_str(str, int64 = 'double')
+class(robj)
+robj
+
+# Read large integer as 'bit64::integer64' type
 library(bit64)
 read_json_str(str, int64 = 'bit64')
 ```

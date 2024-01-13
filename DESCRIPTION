@@ -1,7 +1,7 @@
 Package: yyjsonr
 Type: Package
 Title: Fast JSON Parser and Generator 
-Version: 0.1.13
+Version: 0.1.14
 Authors@R: c(
     person("Mike", "Cheng", role = c("aut", "cre", 'cph'), 
     email = "mikefc@coolbutuseless.com"),
