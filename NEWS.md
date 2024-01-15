@@ -1,4 +1,11 @@
 
+
+# yyjson4 0.1.15 2024-01-15
+
+* Fixes for CRAN
+    * Simply example to remove checkRd NOTE
+    * Platform specific handling of error location format string to fix WARNING
+
 # yyjson4 0.1.14 2024-01-13
 
 * Add `int64 = "double"` option to `opts_read_json()`

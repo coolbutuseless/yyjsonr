@@ -51,7 +51,7 @@ in larger data, such as "NDJSON"
 
 \item{YYJSON_READ_ALLOW_TRAILING_COMMAS}{
 Allow single trailing comma at the end of an object or array,
-such as \code{"[1,2,3,]"},  '{"a":1,"b":2,}' (non-standard).
+such as \code{"[1,2,3,]"}
 }
 
 \item{YYJSON_READ_ALLOW_COMMENTS}{

@@ -1846,7 +1846,11 @@ SEXP parse_json_from_str(const char *str, parse_options *opt) {
   //~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
   if (doc == NULL) {
     output_verbose_error(str, err);
-    error("Error parsing JSON: %s code: %u at position: %ld\n", err.msg, err.code, err.pos);
+#if defined(__APPLE__) || defined(_WIN32)
+    error("Error parsing JSON: %s code: %u at position: %llu\n", err.msg, err.code, err.pos);
+#else
+    error("Error parsing JSON: %s code: %u at position: %lu\n", err.msg, err.code, err.pos);
+#endif
   }
   
   //~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
@@ -1879,8 +1883,11 @@ SEXP parse_json_from_file(const char *filename, parse_options *opt) {
   // If doc is NULL, then an error occurred during parsing.
   //~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
   if (doc == NULL) {
-    error("Error parsing JSON file '%s': %s code: %u at position: %ld\n", 
-          filename, err.msg, err.code, err.pos);
+#if defined(__APPLE__) || defined(_WIN32)
+    error("Error parsing JSON file '%s': %s code: %u at position: %llu\n", filename, err.msg, err.code, err.pos);
+#else
+    error("Error parsing JSON file '%s': %s code: %u at position: %lu\n", filename, err.msg, err.code, err.pos);
+#endif
     
   }
   
@@ -1961,8 +1968,11 @@ SEXP validate_json_file_(SEXP filename_, SEXP verbose_, SEXP parse_opts_) {
   //~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
   if (doc == NULL) {
     if (asLogical(verbose_)) {
-      warning("Error parsing JSON file '%s': %s code: %u at position: %ld\n", 
-            filename, err.msg, err.code, err.pos);
+#if defined(__APPLE__) || defined(_WIN32)
+      warning("Error parsing JSON file '%s': %s code: %u at position: %llu\n", filename, err.msg, err.code, err.pos);
+#else
+      warning("Error parsing JSON file '%s': %s code: %u at position: %lu\n", filename, err.msg, err.code, err.pos);
+#endif
     }
     return ScalarLogical(0);
     
@@ -1990,8 +2000,11 @@ SEXP validate_json_str_(SEXP str_, SEXP verbose_, SEXP parse_opts_) {
   if (doc == NULL) {
     if (asLogical(verbose_)) {
       output_verbose_error(str, err);
-      warning("Error parsing JSON: %s code: %u at position: %ld\n", 
-              err.msg, err.code, err.pos);
+#if defined(__APPLE__) || defined(_WIN32)
+      warning("Error parsing JSON: %s code: %u at position: %llu\n", err.msg, err.code, err.pos);
+#else
+      warning("Error parsing JSON: %s code: %u at position: %lu\n", err.msg, err.code, err.pos);
+#endif
     }
     return ScalarLogical(0);
   }
