@@ -20,7 +20,7 @@ BugReports: https://github.com/coolbutuseless/yyjsonr/issues
 Encoding: UTF-8
 Language: en-AU
 Roxygen: list(markdown = TRUE)
-RoxygenNote: 7.2.3
+RoxygenNote: 7.3.0
 Suggests: 
     bit64,
     knitr,
