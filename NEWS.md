@@ -1,9 +1,15 @@
 
+# yyjson4 0.1.16 2024-01-17
+
+* Fixes for CRAN
+    * DESCRIPTION fix: Write `C` as `'C'`
+    * Add link to original `yyjson` library
+    * Fix name in LICENSE
 
 # yyjson4 0.1.15 2024-01-15
 
 * Fixes for CRAN
-    * Simply example to remove checkRd NOTE
+    * Simplify example to remove `checkRd` NOTE
     * Platform specific handling of error location format string to fix WARNING
 
 # yyjson4 0.1.14 2024-01-13

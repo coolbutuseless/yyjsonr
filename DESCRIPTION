@@ -1,7 +1,7 @@
 Package: yyjsonr
 Type: Package
 Title: Fast JSON Parser and Generator 
-Version: 0.1.15
+Version: 0.1.16
 Authors@R: c(
     person("Mike", "Cheng", role = c("aut", "cre", 'cph'), 
     email = "mikefc@coolbutuseless.com"),
@@ -13,7 +13,8 @@ Description: A fast JSON parser, generator and validator which converts JSON
     (e.g. logical, numeric, integer) with configurable handling of NULL and NA 
     values. Data frames, atomic vectors and lists are all supported as data 
     containers translated to/from JSON.
-    This implementation is a wrapper around the 'yyjson' C library.  
+    This implementation is a wrapper around the 'yyjson' 'C' library which 
+    is available from <https://github.com/ibireme/yyjson>.
 License: MIT + file LICENSE
 URL: https://github.com/coolbutuseless/yyjsonr, https://coolbutuseless.github.io/package/yyjsonr/
 BugReports: https://github.com/coolbutuseless/yyjsonr/issues
