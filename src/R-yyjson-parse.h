@@ -112,7 +112,7 @@ typedef struct {
 #define ERR_CONTEXT 20
 
 parse_options create_parse_options(SEXP parse_opts_);
-SEXP parse_json_from_str(const char *str, parse_options *opt);
+SEXP parse_json_from_str(const char *str, size_t len, parse_options *opt);
 
 
 unsigned int update_type_bitset(unsigned int type_bitset, yyjson_val *val, parse_options *opt);

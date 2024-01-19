@@ -1831,10 +1831,10 @@ void output_verbose_error(const char *str, yyjson_read_err err) {
 //~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 // 
 //~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
-SEXP parse_json_from_str(const char *str, parse_options *opt) {
+SEXP parse_json_from_str(const char *str, size_t len, parse_options *opt) {
   
   yyjson_read_err err;
-  yyjson_doc *doc = yyjson_read_opts((char *)str, strlen(str), opt->yyjson_read_flag, NULL, &err);
+  yyjson_doc *doc = yyjson_read_opts((char *)str, len, opt->yyjson_read_flag, NULL, &err);
   
   //~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
   // If doc is NULL, then an error occurred during parsing.
@@ -1920,7 +1920,7 @@ SEXP parse_from_str_(SEXP str_, SEXP parse_opts_) {
   const char *str = (const char *)CHAR( STRING_ELT(str_, 0) );
   parse_options opt = create_parse_options(parse_opts_);
   
-  return parse_json_from_str(str, &opt);
+  return parse_json_from_str(str, strlen(str), &opt);
 }
 
 //===========================================================================
@@ -1936,7 +1936,7 @@ SEXP parse_from_raw_(SEXP raw_, SEXP parse_opts_) {
   // rather than running over into dead space after the raw string ends
   opt.yyjson_read_flag |= YYJSON_READ_STOP_WHEN_DONE;
   
-  return parse_json_from_str(str, &opt);
+  return parse_json_from_str(str, (size_t)length(raw_), &opt);
 }
 
 //===========================================================================
