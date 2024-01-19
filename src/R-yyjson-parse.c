@@ -75,7 +75,7 @@ parse_options create_parse_options(SEXP parse_opts_) {
       opt.df_missing_list_elem = val_;
     } else if (strcmp(opt_name, "yyjson_read_flag") == 0) {
       for (unsigned int idx = 0; idx < length(val_); idx++) {
-        opt.yyjson_read_flag |= INTEGER(val_)[idx];
+        opt.yyjson_read_flag |= (unsigned int)INTEGER(val_)[idx];
       }
     } else if (strcmp(opt_name, "obj_of_arrs_to_df") == 0) {
       opt.obj_of_arrs_to_df = asLogical(val_);
@@ -164,10 +164,10 @@ int32_t json_val_to_integer(yyjson_val *val, parse_options *opt) {
   case YYJSON_TYPE_NUM:
     switch (yyjson_get_subtype(val)) {
     case YYJSON_SUBTYPE_UINT:
-      return yyjson_get_uint(val);
+      return (int32_t)yyjson_get_uint(val);
       break;
     case YYJSON_SUBTYPE_SINT:
-      return yyjson_get_sint(val);
+      return (int32_t)yyjson_get_sint(val);
       break;
     default:
       warning("json_val_to_integer(). Unhandled numeric type: %i\n", yyjson_get_subtype(val));
@@ -256,14 +256,14 @@ double json_val_to_double(yyjson_val *val, parse_options *opt) {
 long long json_val_to_integer64(yyjson_val *val, parse_options *opt) {
   
   if (val == NULL) {
-    return NA_REAL;
+    return INT64_MIN;
   }
   
   switch (yyjson_get_type(val)) {
   case YYJSON_TYPE_NUM:
     switch (yyjson_get_subtype(val)) {
     case YYJSON_SUBTYPE_UINT:
-      return yyjson_get_uint(val);
+      return (long long)yyjson_get_uint(val);
       break;
     case YYJSON_SUBTYPE_SINT:
       return yyjson_get_sint(val);
@@ -655,7 +655,7 @@ unsigned int get_best_sexp_type_for_matrix(yyjson_val *arr, parse_options *opt) 
   // if all lengths match, then POSSIBLY an array.
   // if any lengths different then DEFINITELY NOT an array
   
-  unsigned int first_len = yyjson_get_len( yyjson_arr_get_first(arr) );
+  size_t first_len = yyjson_get_len( yyjson_arr_get_first(arr) );
   
   
   yyjson_val *val;
@@ -665,7 +665,7 @@ unsigned int get_best_sexp_type_for_matrix(yyjson_val *arr, parse_options *opt) 
   // Check lengths
   //~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
   while ((val = yyjson_arr_iter_next(&iter))) {
-    unsigned int len = yyjson_get_len( val );
+    size_t len = yyjson_get_len( val );
     if (len != first_len) {
       return 0;
     }
@@ -734,8 +734,8 @@ SEXP json_array_as_lglsxp(yyjson_val *arr, parse_options *opt) {
   //~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
   // Create R LGLSXP vector
   //~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
-  int N = yyjson_arr_size(arr);
-  SEXP res_ = PROTECT(allocVector(LGLSXP, N));
+  size_t N = yyjson_arr_size(arr);
+  SEXP res_ = PROTECT(allocVector(LGLSXP, (R_xlen_t)N));
   int32_t *res = INTEGER(res_);
   
   //~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
@@ -768,8 +768,8 @@ SEXP json_array_as_intsxp(yyjson_val *arr, parse_options *opt) {
   //~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
   // Create R INTSXP vector
   //~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
-  int N = yyjson_arr_size(arr);
-  SEXP res_ = PROTECT(allocVector(INTSXP, N));
+  size_t N = yyjson_arr_size(arr);
+  SEXP res_ = PROTECT(allocVector(INTSXP, (R_xlen_t)N));
   int32_t *res = INTEGER(res_);
   
   //~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
@@ -802,8 +802,8 @@ SEXP json_array_as_realsxp(yyjson_val *arr, parse_options *opt) {
   //~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
   // Create R REALSXP vector
   //~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
-  int N = yyjson_arr_size(arr);
-  SEXP res_ = PROTECT(allocVector(REALSXP, N));
+  size_t N = yyjson_arr_size(arr);
+  SEXP res_ = PROTECT(allocVector(REALSXP, (R_xlen_t)N));
   double *res = REAL(res_);
   
   //~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
@@ -837,8 +837,8 @@ SEXP json_array_as_integer64(yyjson_val *arr, parse_options *opt) {
   //~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
   // Create R REALSXP vector
   //~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
-  int N = yyjson_arr_size(arr);
-  SEXP res_ = PROTECT(allocVector(REALSXP, N));
+  size_t N = yyjson_arr_size(arr);
+  SEXP res_ = PROTECT(allocVector(REALSXP, (R_xlen_t)N));
   long long *res = (long long *)REAL(res_);
   
   //~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
@@ -873,8 +873,8 @@ SEXP json_array_as_strsxp(yyjson_val *arr, parse_options *opt) {
   //~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
   // Create R STRSXP vector
   //~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
-  int N = yyjson_arr_size(arr);
-  SEXP res_ = PROTECT(allocVector(STRSXP, N));
+  size_t N = yyjson_arr_size(arr);
+  SEXP res_ = PROTECT(allocVector(STRSXP, (R_xlen_t)N));
   
   //~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
   // Iterate over array
@@ -908,7 +908,7 @@ SEXP json_array_as_vecsxp(yyjson_val *arr, parse_options *opt) {
   //~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
   // Create R VECSXP vector (i.e. a list)
   //~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
-  SEXP res_ = PROTECT(allocVector(VECSXP, yyjson_arr_size(arr)));
+  SEXP res_ = PROTECT(allocVector(VECSXP, (R_xlen_t)yyjson_arr_size(arr)));
   
   //~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
   // Iterate over array and insert items into list
@@ -931,10 +931,10 @@ SEXP json_array_as_vecsxp(yyjson_val *arr, parse_options *opt) {
 //===========================================================================
 SEXP json_array_as_lglsxp_matrix(yyjson_val *arr, parse_options *opt) {
   
-  unsigned int nrow  = yyjson_get_len(arr);
-  unsigned int ncol  = yyjson_get_len(yyjson_arr_get_first(arr));
+  size_t nrow  = yyjson_get_len(arr);
+  size_t ncol  = yyjson_get_len(yyjson_arr_get_first(arr));
   
-  SEXP mat_ = PROTECT(allocVector(LGLSXP, nrow * ncol));
+  SEXP mat_ = PROTECT(allocVector(LGLSXP, (R_xlen_t)(nrow * ncol)));
   int32_t *matp = INTEGER(mat_);
   
   yyjson_arr_iter iter1 = yyjson_arr_iter_with( arr );
@@ -966,10 +966,10 @@ SEXP json_array_as_lglsxp_matrix(yyjson_val *arr, parse_options *opt) {
 //===========================================================================
 SEXP json_array_as_intsxp_matrix(yyjson_val *arr, parse_options *opt) {
   
-  unsigned int nrow  = yyjson_get_len(arr);
-  unsigned int ncol  = yyjson_get_len(yyjson_arr_get_first(arr));
+  size_t nrow  = yyjson_get_len(arr);
+  size_t ncol  = yyjson_get_len(yyjson_arr_get_first(arr));
   
-  SEXP mat_ = PROTECT(allocVector(INTSXP, nrow * ncol));
+  SEXP mat_ = PROTECT(allocVector(INTSXP, (R_xlen_t)(nrow * ncol)));
   int32_t *matp = INTEGER(mat_);
   
   yyjson_arr_iter iter1 = yyjson_arr_iter_with( arr );
@@ -1001,10 +1001,10 @@ SEXP json_array_as_intsxp_matrix(yyjson_val *arr, parse_options *opt) {
 //===========================================================================
 SEXP json_array_as_realsxp_matrix(yyjson_val *arr, parse_options *opt) {
   
-  unsigned int nrow  = yyjson_get_len(arr);
-  unsigned int ncol  = yyjson_get_len(yyjson_arr_get_first(arr));
+  size_t nrow  = yyjson_get_len(arr);
+  size_t ncol  = yyjson_get_len(yyjson_arr_get_first(arr));
   
-  SEXP mat_ = PROTECT(allocVector(REALSXP, nrow * ncol));
+  SEXP mat_ = PROTECT(allocVector(REALSXP, (R_xlen_t)(nrow * ncol)));
   double *matp = REAL(mat_);
   
   yyjson_arr_iter iter1 = yyjson_arr_iter_with( arr );
@@ -1036,10 +1036,10 @@ SEXP json_array_as_realsxp_matrix(yyjson_val *arr, parse_options *opt) {
 //===========================================================================
 SEXP json_array_as_strsxp_matrix(yyjson_val *arr, parse_options *opt) {
   
-  unsigned int nrow  = yyjson_get_len(arr);
-  unsigned int ncol  = yyjson_get_len(yyjson_arr_get_first(arr));
+  size_t nrow  = yyjson_get_len(arr);
+  size_t ncol  = yyjson_get_len(yyjson_arr_get_first(arr));
   
-  SEXP mat_ = PROTECT(allocVector(STRSXP, nrow * ncol));
+  SEXP mat_ = PROTECT(allocVector(STRSXP, (R_xlen_t)(nrow * ncol)));
   
   yyjson_arr_iter iter1 = yyjson_arr_iter_with( arr );
   yyjson_val *inner_arr;
@@ -1052,7 +1052,7 @@ SEXP json_array_as_strsxp_matrix(yyjson_val *arr, parse_options *opt) {
     
     unsigned int col = 0;
     while ((val = yyjson_arr_iter_next(&iter2))) {
-      SET_STRING_ELT(mat_, col * nrow + row, json_val_to_charsxp(val, opt));
+      SET_STRING_ELT(mat_, (R_xlen_t)(col * nrow + row), json_val_to_charsxp(val, opt));
       col++;
     }    
     
@@ -1069,7 +1069,7 @@ SEXP json_array_as_strsxp_matrix(yyjson_val *arr, parse_options *opt) {
 //===========================================================================
 SEXP json_array_as_matrix(yyjson_val *arr, unsigned int sexp_type, parse_options *opt) {
   
-  unsigned int nprotect = 0;
+  int nprotect = 0;
   SEXP mat_ = R_NilValue;
   
   switch(sexp_type) {
@@ -1090,12 +1090,12 @@ SEXP json_array_as_matrix(yyjson_val *arr, unsigned int sexp_type, parse_options
   }
   
   if (!isNull(mat_)) {
-    unsigned int ncol  = yyjson_get_len(arr);
-    unsigned int nrow  = yyjson_get_len(yyjson_arr_get_first(arr));
+    size_t ncol  = yyjson_get_len(arr);
+    size_t nrow  = yyjson_get_len(yyjson_arr_get_first(arr));
     
     SEXP dims_ = PROTECT(allocVector(INTSXP, 2)); nprotect++;
-    INTEGER(dims_)[0] = ncol; // JSON arrays are column-major
-    INTEGER(dims_)[1] = nrow;
+    INTEGER(dims_)[0] = (int32_t)ncol; // JSON arrays are column-major
+    INTEGER(dims_)[1] = (int32_t)nrow;
     
     setAttrib(mat_, R_DimSymbol, dims_);
   }
@@ -1120,7 +1120,7 @@ SEXP json_array_as_matrix(yyjson_val *arr, unsigned int sexp_type, parse_options
 //===========================================================================
 SEXP json_array_as_robj(yyjson_val *arr, parse_options *opt) {
   
-  unsigned int nprotect = 0;
+  int nprotect = 0;
   SEXP res_ = R_NilValue;
   
   if (!yyjson_is_arr(arr)) {
@@ -1197,9 +1197,9 @@ SEXP json_array_as_robj(yyjson_val *arr, parse_options *opt) {
       //      and promote all types to that for the final 3d matrix.
       //      For now, just keeping it basic.  Mike 2023-08-12
       bool is_3d_matrix = true;
-      unsigned int dim0 = 0;
-      unsigned int dim1 = 0;
-      unsigned int nlayer = length(res_);
+      int dim0 = 0;
+      int dim1 = 0;
+      int nlayer = length(res_);
       unsigned int sexp_type = 0;
       
       if (nlayer > 1) {
@@ -1226,7 +1226,7 @@ SEXP json_array_as_robj(yyjson_val *arr, parse_options *opt) {
           
           // check type
           if (layer == 0) {
-            sexp_type = TYPEOF(elem_);
+            sexp_type = (unsigned int)TYPEOF(elem_);
           } else {
             if (TYPEOF(elem_) != sexp_type) {
               is_3d_matrix = false;
@@ -1244,7 +1244,7 @@ SEXP json_array_as_robj(yyjson_val *arr, parse_options *opt) {
             arr_ = PROTECT(allocVector(LGLSXP, N)); nprotect++;
             int *ptr = INTEGER(arr_);
             for (unsigned int layer = 0; layer < nlayer; layer++) {
-              memcpy(ptr, INTEGER(VECTOR_ELT(res_, layer)), dim0 * dim1 * sizeof(int));
+              memcpy(ptr, INTEGER(VECTOR_ELT(res_, layer)), (size_t)dim0 * (size_t)dim1 * sizeof(int));
               ptr += dim0 * dim1;
             }
           }
@@ -1253,7 +1253,7 @@ SEXP json_array_as_robj(yyjson_val *arr, parse_options *opt) {
             arr_ = PROTECT(allocVector(INTSXP, N)); nprotect++;
             int *ptr = INTEGER(arr_);
             for (unsigned int layer = 0; layer < nlayer; layer++) {
-              memcpy(ptr, INTEGER(VECTOR_ELT(res_, layer)), dim0 * dim1 * sizeof(int));
+              memcpy(ptr, INTEGER(VECTOR_ELT(res_, layer)), (size_t)dim0 * (size_t)dim1 * sizeof(int));
               ptr += dim0 * dim1;
             }
           }
@@ -1262,7 +1262,7 @@ SEXP json_array_as_robj(yyjson_val *arr, parse_options *opt) {
             arr_ = PROTECT(allocVector(REALSXP, N)); nprotect++;
             double *ptr = REAL(arr_);
             for (unsigned int layer = 0; layer < nlayer; layer++) {
-              memcpy(ptr, REAL(VECTOR_ELT(res_, layer)), dim0 * dim1 * sizeof(double));
+              memcpy(ptr, REAL(VECTOR_ELT(res_, layer)), (size_t)dim0 * (size_t)dim1 * sizeof(double));
               ptr += dim0 * dim1;
             }
           }
@@ -1345,8 +1345,8 @@ SEXP json_array_as_robj(yyjson_val *arr, parse_options *opt) {
 //~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 SEXP json_array_of_objects_to_lglsxp(yyjson_val *arr, const char *key_name, parse_options *opt) {
   
-  unsigned int nrow = yyjson_get_len(arr);
-  SEXP vec_ = PROTECT(allocVector(LGLSXP, nrow)); 
+  size_t nrow = yyjson_get_len(arr);
+  SEXP vec_ = PROTECT(allocVector(LGLSXP, (R_xlen_t)nrow)); 
   int *vecp = INTEGER(vec_);
   
   yyjson_arr_iter iter = yyjson_arr_iter_with(arr);
@@ -1369,8 +1369,8 @@ SEXP json_array_of_objects_to_lglsxp(yyjson_val *arr, const char *key_name, pars
 //~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 SEXP json_array_of_objects_to_intsxp(yyjson_val *arr, const char *key_name, parse_options *opt) {
   
-  unsigned int nrow = yyjson_get_len(arr);
-  SEXP vec_ = PROTECT(allocVector(INTSXP, nrow)); 
+  size_t nrow = yyjson_get_len(arr);
+  SEXP vec_ = PROTECT(allocVector(INTSXP, (R_xlen_t)nrow)); 
   int *vecp = INTEGER(vec_);
   
   yyjson_arr_iter iter = yyjson_arr_iter_with(arr);
@@ -1393,8 +1393,8 @@ SEXP json_array_of_objects_to_intsxp(yyjson_val *arr, const char *key_name, pars
 //~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 SEXP json_array_of_objects_to_realsxp(yyjson_val *arr, const char *key_name, parse_options *opt) {
   
-  unsigned int nrow = yyjson_get_len(arr);
-  SEXP vec_ = PROTECT(allocVector(REALSXP, nrow));
+  size_t nrow = yyjson_get_len(arr);
+  SEXP vec_ = PROTECT(allocVector(REALSXP, (R_xlen_t)nrow));
   double *vecp = REAL(vec_);
   
   yyjson_arr_iter iter = yyjson_arr_iter_with(arr);
@@ -1417,8 +1417,8 @@ SEXP json_array_of_objects_to_realsxp(yyjson_val *arr, const char *key_name, par
 //~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 SEXP json_array_of_objects_to_strsxp(yyjson_val *arr, const char *key_name, parse_options *opt) {
   
-  unsigned int nrow = yyjson_get_len(arr);
-  SEXP vec_ = PROTECT(allocVector(STRSXP, nrow)); 
+  size_t nrow = yyjson_get_len(arr);
+  SEXP vec_ = PROTECT(allocVector(STRSXP, (R_xlen_t)nrow)); 
   
   unsigned int idx = 0;
   yyjson_arr_iter iter = yyjson_arr_iter_with(arr);
@@ -1441,8 +1441,8 @@ SEXP json_array_of_objects_to_strsxp(yyjson_val *arr, const char *key_name, pars
 //~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 SEXP json_array_of_objects_to_vecsxp(yyjson_val *arr, const char *key_name, parse_options *opt) {
   
-  unsigned int nrow = yyjson_get_len(arr);
-  SEXP vec_ = PROTECT(allocVector(VECSXP, nrow));
+  size_t nrow = yyjson_get_len(arr);
+  SEXP vec_ = PROTECT(allocVector(VECSXP, (R_xlen_t)nrow));
   
   unsigned int idx = 0;
   yyjson_arr_iter iter = yyjson_arr_iter_with(arr);
@@ -1477,7 +1477,7 @@ SEXP json_array_of_objects_to_vecsxp(yyjson_val *arr, const char *key_name, pars
 //===========================================================================
 SEXP json_array_of_objects_to_data_frame(yyjson_val *arr, parse_options *opt) {
   
-  unsigned nprotect = 0;
+  int nprotect = 0;
   
   //~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
   // Accumulation of unique key-names in the objects
@@ -1492,7 +1492,7 @@ SEXP json_array_of_objects_to_data_frame(yyjson_val *arr, parse_options *opt) {
   //~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
   // Prepare to iterate over all {}-objects within the []-array
   //~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
-  unsigned int nrows = yyjson_get_len(arr);
+  unsigned int nrows = (unsigned int)yyjson_get_len(arr);
   yyjson_arr_iter iter = yyjson_arr_iter_with(arr);
   yyjson_val *obj;
   
@@ -1519,7 +1519,7 @@ SEXP json_array_of_objects_to_data_frame(yyjson_val *arr, parse_options *opt) {
       }
       if (name_idx < 0) {
         // Name has not been seen yet. so add it.
-        name_idx = ncols;
+        name_idx = (int)ncols;
         colname[ncols] = (char *)yyjson_get_str(key);
         ncols++;
         if (ncols == MAX_DF_COLS) {
@@ -1595,7 +1595,7 @@ SEXP json_array_of_objects_to_data_frame(yyjson_val *arr, parse_options *opt) {
   //~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
   SEXP rownames = PROTECT(allocVector(INTSXP, 2)); nprotect++;
   SET_INTEGER_ELT(rownames, 0, NA_INTEGER);
-  SET_INTEGER_ELT(rownames, 1, -nrows);
+  SET_INTEGER_ELT(rownames, 1, -(int)nrows);
   setAttrib(df_, R_RowNamesSymbol, rownames);
   
   //~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
@@ -1623,13 +1623,13 @@ SEXP json_array_of_objects_to_data_frame(yyjson_val *arr, parse_options *opt) {
 // JSON {}-object to R List
 //===========================================================================
 SEXP json_object_as_list(yyjson_val *obj, parse_options *opt) {
-  unsigned int nprotect = 0;
+  int nprotect = 0;
   
   if (!yyjson_is_obj(obj)) {
     error("json_object(): Must be object. Not %i -> %s\n", yyjson_get_type(obj), 
           yyjson_get_type_desc(obj));
   }
-  unsigned int n = yyjson_get_len(obj);
+  R_xlen_t n = (R_xlen_t)yyjson_get_len(obj);
   
   SEXP res_ = PROTECT(allocVector(VECSXP, n)); nprotect++;
   SEXP nms_ = PROTECT(allocVector(STRSXP, n)); nprotect++;
@@ -1678,7 +1678,7 @@ SEXP json_object_as_list(yyjson_val *obj, parse_options *opt) {
       //~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
       SEXP rownames = PROTECT(allocVector(INTSXP, 2)); nprotect++;
       SET_INTEGER_ELT(rownames, 0, NA_INTEGER);
-      SET_INTEGER_ELT(rownames, 1, -nrow);
+      SET_INTEGER_ELT(rownames, 1, -(int)nrow);
       setAttrib(res_, R_RowNamesSymbol, rownames);
       
       //~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
@@ -1706,7 +1706,7 @@ SEXP json_object_as_list(yyjson_val *obj, parse_options *opt) {
 //===========================================================================
 SEXP json_as_robj(yyjson_val *val, parse_options *opt) {
   
-  unsigned int nprotect = 0;
+  int nprotect = 0;
   static char buf[128];
   SEXP res_ = R_NilValue;
   
@@ -1748,7 +1748,7 @@ SEXP json_as_robj(yyjson_val *val, parse_options *opt) {
           error("Unhandled opt.bit64 option for YYJSON_SUBTYPE_UINT");
         }
       } else {
-        res_ = PROTECT(ScalarInteger(tmp)); nprotect++;
+        res_ = PROTECT(ScalarInteger((int32_t)tmp)); nprotect++;
       }
     }
       break;
@@ -1778,7 +1778,7 @@ SEXP json_as_robj(yyjson_val *val, parse_options *opt) {
           error("Unhandled opt.bit64 option for YYJSON_SUBTYPE_SINT");
         }
       } else {
-        res_ = PROTECT(ScalarInteger(tmp)); nprotect++;
+        res_ = PROTECT(ScalarInteger((int32_t)tmp)); nprotect++;
       }
     }
       break;
@@ -1807,9 +1807,9 @@ SEXP json_as_robj(yyjson_val *val, parse_options *opt) {
 #define ERR_CONTEXT 20
 void output_verbose_error(const char *str, yyjson_read_err err) {
   // Slice off a bit of the string within +/- ERR_CONTEXT of the error pos
-  int min_idx = err.pos - ERR_CONTEXT;
+  size_t min_idx = err.pos - ERR_CONTEXT;
   min_idx = min_idx < 0 ? 0 : min_idx;
-  int max_idx = err.pos + ERR_CONTEXT;
+  size_t max_idx = err.pos + ERR_CONTEXT;
   max_idx = max_idx > strlen(str) ? strlen(str) : max_idx;
   
   // copy this context into a temp string. ensure it ends in '\0'
@@ -1819,7 +1819,7 @@ void output_verbose_error(const char *str, yyjson_read_err err) {
   Rprintf("%s\n", err_string);
   
   // Print a "^" to point to the error
-  unsigned int pos = ERR_CONTEXT;
+  size_t pos = ERR_CONTEXT;
   pos = err.pos < ERR_CONTEXT ? err.pos - 1 : ERR_CONTEXT;
   for (unsigned int i = 0; i < pos; i++) {
     Rprintf(" ");
@@ -1846,7 +1846,7 @@ SEXP parse_json_from_str(const char *str, parse_options *opt) {
   //~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
   if (doc == NULL) {
     output_verbose_error(str, err);
-#if defined(__APPLE__) || defined(_WIN32)
+#if defined(_WIN32)
     error("Error parsing JSON: %s code: %u at position: %llu\n", err.msg, err.code, err.pos);
 #else
     error("Error parsing JSON: %s code: %u at position: %lu\n", err.msg, err.code, err.pos);
@@ -1883,7 +1883,7 @@ SEXP parse_json_from_file(const char *filename, parse_options *opt) {
   // If doc is NULL, then an error occurred during parsing.
   //~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
   if (doc == NULL) {
-#if defined(__APPLE__) || defined(_WIN32)
+#if defined(_WIN32)
     error("Error parsing JSON file '%s': %s code: %u at position: %llu\n", filename, err.msg, err.code, err.pos);
 #else
     error("Error parsing JSON file '%s': %s code: %u at position: %lu\n", filename, err.msg, err.code, err.pos);
@@ -1968,7 +1968,7 @@ SEXP validate_json_file_(SEXP filename_, SEXP verbose_, SEXP parse_opts_) {
   //~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
   if (doc == NULL) {
     if (asLogical(verbose_)) {
-#if defined(__APPLE__) || defined(_WIN32)
+#if defined(_WIN32)
       warning("Error parsing JSON file '%s': %s code: %u at position: %llu\n", filename, err.msg, err.code, err.pos);
 #else
       warning("Error parsing JSON file '%s': %s code: %u at position: %lu\n", filename, err.msg, err.code, err.pos);
@@ -2000,7 +2000,7 @@ SEXP validate_json_str_(SEXP str_, SEXP verbose_, SEXP parse_opts_) {
   if (doc == NULL) {
     if (asLogical(verbose_)) {
       output_verbose_error(str, err);
-#if defined(__APPLE__) || defined(_WIN32)
+#if defined(_WIN32)
       warning("Error parsing JSON: %s code: %u at position: %llu\n", err.msg, err.code, err.pos);
 #else
       warning("Error parsing JSON: %s code: %u at position: %lu\n", err.msg, err.code, err.pos);

@@ -77,7 +77,7 @@ serialize_options parse_serialize_options(SEXP serialize_opts_) {
       opt.name_repair = strcmp(tmp, "none") == 0 ? NAME_REPAIR_NONE : NAME_REPAIR_MINIMAL;
     } else if (strcmp(opt_name, "yyjson_write_flag") == 0) {
       for (unsigned int idx = 0; idx < length(val_); idx++) {
-        opt.yyjson_write_flag |= INTEGER(val_)[idx];
+        opt.yyjson_write_flag |= (unsigned int)INTEGER(val_)[idx];
       }
     } else if (strcmp(opt_name, "str_specials") == 0) {
       const char *val = CHAR(STRING_ELT(val_, 0));
@@ -183,7 +183,7 @@ yyjson_mut_val *scalar_date_to_json_val(SEXP vec_, unsigned int idx, yyjson_mut_
       return yyjson_mut_null(doc);
     }
   } else if (isInteger(vec_)) {
-    uint32_t ndays_int = INTEGER(vec_)[idx];
+    uint32_t ndays_int = (uint32_t)INTEGER(vec_)[idx];
     if (ndays_int == INT32_MIN) { // NA
       return yyjson_mut_null(doc);
     }
@@ -193,7 +193,7 @@ yyjson_mut_val *scalar_date_to_json_val(SEXP vec_, unsigned int idx, yyjson_mut_
   }
   
   // Convert days-since-epoch to seconds-since-epoch, then handle like posixct
-  time_t tt = ndays * 24 * 60 * 60;
+  time_t tt = (time_t)(ndays * 24.0 * 60.0 * 60.0);
   struct tm *st = gmtime(&tt);
   strftime(buf, 50, "%Y-%m-%d", st);
   yyjson_mut_val *val = yyjson_mut_strcpy(doc, buf);
@@ -216,7 +216,7 @@ yyjson_mut_val *scalar_posixct_to_json_val(SEXP vec_, unsigned int idx, yyjson_m
       return yyjson_mut_null(doc);
     }
   } else if (isInteger(vec_)) {
-    uint32_t seconds_int = INTEGER(vec_)[idx];
+    uint32_t seconds_int = (uint32_t)INTEGER(vec_)[idx];
     if (seconds_int == INT32_MIN) { // NA
       return yyjson_mut_null(doc);
     }
@@ -225,7 +225,7 @@ yyjson_mut_val *scalar_posixct_to_json_val(SEXP vec_, unsigned int idx, yyjson_m
     error("scalar_posixct_to_json_val(): Nope");
   }
   
-  time_t tt = seconds;
+  time_t tt = (time_t)seconds;
   struct tm *st = gmtime(&tt);
   strftime(buf, 50, "%Y-%m-%d %H:%M:%S", st);
   yyjson_mut_val *val = yyjson_mut_strcpy(doc, buf);
@@ -254,7 +254,7 @@ yyjson_mut_val *scalar_rawsxp_to_json_val(SEXP vec_, unsigned int idx, yyjson_mu
 yyjson_mut_val *scalar_factor_to_json_val(SEXP factor_, unsigned int idx,  yyjson_mut_doc *doc, serialize_options *opt) {
   
   yyjson_mut_val *val ;
-  unsigned int factor = INTEGER(factor_)[idx];
+  int32_t factor = INTEGER(factor_)[idx];
   
   if (opt->factor == FACTOR_AS_INT) {
     val =  scalar_integer_to_json_val(factor, doc, opt);
@@ -299,7 +299,7 @@ yyjson_mut_val *scalar_double_to_json_val(double rdbl, yyjson_mut_doc *doc, seri
       val = yyjson_mut_real(doc, rdbl);
     } else if (opt->digits == 0) {
       // round to integer
-      val = yyjson_mut_int(doc, round(rdbl));
+      val = yyjson_mut_int(doc, (int64_t)round(rdbl));
     } else {
       // round to decimal places
       val = yyjson_mut_real(doc, round(rdbl * fac[opt->digits])/fac[opt->digits]);
@@ -377,7 +377,7 @@ yyjson_mut_val *vector_factor_to_json_array(SEXP vec_, yyjson_mut_doc *doc, seri
   
   yyjson_mut_val *arr = yyjson_mut_arr(doc);
   
-  for (int i = 0; i < length(vec_); i++) {
+  for (unsigned int i = 0; i < length(vec_); i++) {
     yyjson_mut_arr_append(arr, scalar_factor_to_json_val(vec_, i, doc, opt));
   }
   
@@ -408,7 +408,7 @@ yyjson_mut_val *vector_posixct_to_json_array(SEXP vec_, yyjson_mut_doc *doc, ser
   
   yyjson_mut_val *arr = yyjson_mut_arr(doc);
   
-  for (int i = 0; i < length(vec_); i++) {
+  for (unsigned int i = 0; i < length(vec_); i++) {
     yyjson_mut_arr_append(arr, scalar_posixct_to_json_val(vec_, i, doc, opt));
   }
   
@@ -423,7 +423,7 @@ yyjson_mut_val *vector_date_to_json_array(SEXP vec_, yyjson_mut_doc *doc, serial
   
   yyjson_mut_val *arr = yyjson_mut_arr(doc);
   
-  for (int i = 0; i < length(vec_); i++) {
+  for (unsigned int i = 0; i < length(vec_); i++) {
     yyjson_mut_arr_append(arr, scalar_date_to_json_val(vec_, i, doc, opt));
   }
   
@@ -438,7 +438,7 @@ yyjson_mut_val *vector_integer64_to_json_array(SEXP vec_, yyjson_mut_doc *doc, s
   
   yyjson_mut_val *arr = yyjson_mut_arr(doc);
   
-  for (int i = 0; i < length(vec_); i++) {
+  for (unsigned int i = 0; i < length(vec_); i++) {
     yyjson_mut_arr_append(arr, scalar_integer64_to_json_val(vec_, i, doc, opt));
   }
   
@@ -500,7 +500,7 @@ yyjson_mut_val *vector_realsxp_to_json_array(SEXP vec_, yyjson_mut_doc *doc, ser
 yyjson_mut_val *vector_strsxp_to_json_array(SEXP vec_, yyjson_mut_doc *doc, serialize_options *opt) {
   
   yyjson_mut_val *arr = yyjson_mut_arr(doc);
-  for (int i = 0; i < length(vec_); i++) {
+  for (unsigned int i = 0; i < length(vec_); i++) {
     yyjson_mut_arr_append(arr, scalar_strsxp_to_json_val(vec_, i, doc, opt));
   }
   
@@ -540,7 +540,7 @@ yyjson_mut_val *vector_to_json_array(SEXP vec_, yyjson_mut_doc *doc, serialize_o
     arr = vector_rawsxp_to_json_array(vec_, doc, opt);
     break;
   default:
-    error("serialize_array(): Unknown array type: %s", type2char(TYPEOF(vec_)));
+    error("serialize_array(): Unknown array type: %s", type2char((SEXPTYPE)TYPEOF(vec_)));
   }
   
   return arr;
@@ -562,8 +562,8 @@ yyjson_mut_val *vector_to_json_array(SEXP vec_, yyjson_mut_doc *doc, serialize_o
 yyjson_mut_val *matrix_to_col_major_array(SEXP mat_, unsigned int offset, yyjson_mut_doc *doc, serialize_options *opt) {
   
   SEXP dims_ = getAttrib(mat_, R_DimSymbol);
-  unsigned int nrow = INTEGER(dims_)[0];
-  unsigned int ncol = INTEGER(dims_)[1];
+  unsigned int nrow = (unsigned int)INTEGER(dims_)[0];
+  unsigned int ncol = (unsigned int)INTEGER(dims_)[1];
   
   // 'Offset' is used for array processing where we want to start processing
   // elements at an index other than 0. i.e. the n-th layer of the 3-d array
@@ -618,7 +618,7 @@ yyjson_mut_val *matrix_to_col_major_array(SEXP mat_, unsigned int offset, yyjson
   }
     break;
   default:
-    error("matrix_to_col_major_array(). Unhandled type: %s", type2char(TYPEOF(mat_)));
+    error("matrix_to_col_major_array(). Unhandled type: %s", type2char((SEXPTYPE)TYPEOF(mat_)));
   }
   
   
@@ -633,9 +633,9 @@ yyjson_mut_val *matrix_to_col_major_array(SEXP mat_, unsigned int offset, yyjson
 yyjson_mut_val *dim3_matrix_to_col_major_array(SEXP mat_, yyjson_mut_doc *doc, serialize_options *opt) {
   
   SEXP dims_ = getAttrib(mat_, R_DimSymbol);
-  unsigned int nrow   = INTEGER(dims_)[0];
-  unsigned int ncol   = INTEGER(dims_)[1];
-  unsigned int nlayer = INTEGER(dims_)[2];
+  unsigned int nrow   = (unsigned int)INTEGER(dims_)[0];
+  unsigned int ncol   = (unsigned int)INTEGER(dims_)[1];
+  unsigned int nlayer = (unsigned int)INTEGER(dims_)[2];
   
   //~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
   // Allocate an array within the document
@@ -669,10 +669,10 @@ yyjson_mut_val *dim3_matrix_to_col_major_array(SEXP mat_, yyjson_mut_doc *doc, s
 //===========================================================================
 yyjson_mut_val *env_to_json_object(SEXP env_, yyjson_mut_doc *doc, serialize_options *opt) {
   if (!isEnvironment(env_)) {
-    error("env_to_json_object(): Expected environment. got %s", type2char(TYPEOF(env_)));
+    error("env_to_json_object(): Expected environment. got %s", type2char((SEXPTYPE)TYPEOF(env_)));
   }
   
-  unsigned int nprotect = 0;
+  int nprotect = 0;
   
   yyjson_mut_val *obj = yyjson_mut_obj(doc);
   
@@ -708,7 +708,7 @@ yyjson_mut_val *env_to_json_object(SEXP env_, yyjson_mut_doc *doc, serialize_opt
 //===========================================================================
 yyjson_mut_val *unnamed_list_to_json_array(SEXP list_, yyjson_mut_doc *doc, serialize_options *opt) {
   if (!isNewList(list_)) {
-    error("unnamed_list_to_json_array(): Expected list. got %s", type2char(TYPEOF(list_)));
+    error("unnamed_list_to_json_array(): Expected list. got %s", type2char((SEXPTYPE)TYPEOF(list_)));
   }
   
   yyjson_mut_val *arr = yyjson_mut_arr(doc);
@@ -736,7 +736,7 @@ yyjson_mut_val *unnamed_list_to_json_array(SEXP list_, yyjson_mut_doc *doc, seri
 //===========================================================================
 yyjson_mut_val *named_list_to_json_object(SEXP list_, yyjson_mut_doc *doc, serialize_options *opt) {
   if (!isNewList(list_)) {
-    error("named_list_to_json_object(): Expected list. got %s", type2char(TYPEOF(list_)));
+    error("named_list_to_json_object(): Expected list. got %s", type2char((SEXPTYPE)TYPEOF(list_)));
   }
   
   yyjson_mut_val *obj = yyjson_mut_obj(doc);
@@ -794,7 +794,7 @@ int is_named_list(SEXP list_) {
 //===========================================================================
 unsigned int *detect_data_frame_types(SEXP df_, serialize_options *opt) {
   
-  unsigned int ncols = length(df_);
+  unsigned int ncols = (unsigned int)length(df_);
   unsigned int *col_type;
   
   col_type = (unsigned int *)malloc(ncols * sizeof(unsigned int));
@@ -848,7 +848,7 @@ unsigned int *detect_data_frame_types(SEXP df_, serialize_options *opt) {
       col_type[col] = RAWSXP;
       break;
     default:
-      error("detect_data_frame_types(): Unhandled scalar SEXP: %s\n", type2char(TYPEOF(col_)));
+      error("detect_data_frame_types(): Unhandled scalar SEXP: %s\n", type2char((SEXPTYPE)TYPEOF(col_)));
     }
   }
   
@@ -861,7 +861,7 @@ yyjson_mut_val *data_frame_row_to_json_object(SEXP df_, unsigned int *col_type, 
   
   // get data.frame names
   SEXP nms_ = getAttrib(df_, R_NamesSymbol);
-  unsigned int ncols = length(df_);
+  unsigned int ncols = (unsigned int)length(df_);
   
   yyjson_mut_val *obj = yyjson_mut_obj(doc);
   
@@ -913,7 +913,7 @@ yyjson_mut_val *data_frame_row_to_json_object(SEXP df_, unsigned int *col_type, 
       val = scalar_rawsxp_to_json_val(col_, row, doc, opt);
       break;
     default:
-      error("data_frame_row_to_json_object(): Unhandled scalar SEXP/col_type: %s [%i]\n", type2char(TYPEOF(col_)), col_type[col]);
+      error("data_frame_row_to_json_object(): Unhandled scalar SEXP/col_type: %s [%i]\n", type2char((SEXPTYPE)TYPEOF(col_)), col_type[col]);
     }
     // Add value to row obj
     if (val != NULL) {
@@ -929,7 +929,7 @@ yyjson_mut_val *data_frame_row_to_json_object(SEXP df_, unsigned int *col_type, 
 yyjson_mut_val *data_frame_row_to_json_array(SEXP df_, unsigned int *col_type, unsigned int row, int skip_col, yyjson_mut_doc *doc, serialize_options *opt) {
   
   // get data.frame names
-  unsigned int ncols = length(df_);
+  unsigned int ncols = (unsigned int)length(df_);
   
   yyjson_mut_val *arr = yyjson_mut_arr(doc);
   
@@ -979,7 +979,7 @@ yyjson_mut_val *data_frame_row_to_json_array(SEXP df_, unsigned int *col_type, u
       val = scalar_rawsxp_to_json_val(col_, row, doc, opt);
       break;
     default:
-      error("data_frame_row_to_json_object(): Unhandled scalar SEXP/col_type: %s [%i]\n", type2char(TYPEOF(col_)), col_type[col]);
+      error("data_frame_row_to_json_object(): Unhandled scalar SEXP/col_type: %s [%i]\n", type2char((SEXPTYPE)TYPEOF(col_)), col_type[col]);
     }
     // Add value to row obj
     if (val != NULL) {
@@ -1001,7 +1001,7 @@ yyjson_mut_val *data_frame_to_json_array_of_arrays(SEXP df_, yyjson_mut_doc *doc
   // Sanity check
   //~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
   if (!Rf_inherits(df_, "data.frame")) {
-    error("data_frame_to_json_array_of_arrays(). Not a data.frame!! %s", type2char(TYPEOF(df_)));
+    error("data_frame_to_json_array_of_arrays(). Not a data.frame!! %s", type2char((SEXPTYPE)TYPEOF(df_)));
   }
   
   
@@ -1009,7 +1009,7 @@ yyjson_mut_val *data_frame_to_json_array_of_arrays(SEXP df_, yyjson_mut_doc *doc
   yyjson_mut_val *arr = yyjson_mut_arr(doc);
   
   // get size of data.frame
-  unsigned int nrows = length(VECTOR_ELT(df_, 0)); // length of first column
+  unsigned int nrows = (unsigned int)length(VECTOR_ELT(df_, 0)); // length of first column
   
   //~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
   // For each row
@@ -1019,7 +1019,7 @@ yyjson_mut_val *data_frame_to_json_array_of_arrays(SEXP df_, yyjson_mut_doc *doc
   //   add the array to the overall array
   //~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
   unsigned int *col_type = detect_data_frame_types(df_, opt);
-  for (int row = 0; row < nrows; row++) {
+  for (unsigned int row = 0; row < nrows; row++) {
     
     yyjson_mut_val *obj = data_frame_row_to_json_array(df_, col_type, row, -1, doc, opt);
     
@@ -1043,7 +1043,7 @@ yyjson_mut_val *data_frame_to_json_array_of_objects(SEXP df_, yyjson_mut_doc *do
   // Sanity check
   //~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
   if (!Rf_inherits(df_, "data.frame")) {
-    error("data_frame_to_json_array_of_objects(). Not a data.frame!! %s", type2char(TYPEOF(df_)));
+    error("data_frame_to_json_array_of_objects(). Not a data.frame!! %s", type2char((SEXPTYPE)TYPEOF(df_)));
   }
   
   
@@ -1055,7 +1055,7 @@ yyjson_mut_val *data_frame_to_json_array_of_objects(SEXP df_, yyjson_mut_doc *do
   yyjson_mut_val *arr = yyjson_mut_arr(doc);
   
   // get size of data.frame
-  unsigned int nrows = length(VECTOR_ELT(df_, 0)); // length of first column
+  unsigned int nrows = (unsigned int)length(VECTOR_ELT(df_, 0)); // length of first column
   
   //~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
   // For each row
@@ -1078,7 +1078,7 @@ yyjson_mut_val *data_frame_to_json_array_of_objects(SEXP df_, yyjson_mut_doc *do
   //   Rprintf("Col %i: %i\n", i, col_type[i]);
   // }
   
-  for (int row = 0; row < nrows; row++) {
+  for (unsigned int row = 0; row < nrows; row++) {
     
     yyjson_mut_val *obj = data_frame_row_to_json_object(df_, col_type, row, -1, doc, opt);
     
@@ -1167,7 +1167,7 @@ yyjson_mut_val *serialize_core(SEXP robj_, yyjson_mut_doc *doc, serialize_option
         val = scalar_rawsxp_to_json_val(robj_, 0, doc, opt);
         break;
       default:
-        error("Unhandled scalar SEXP: %s\n", type2char(TYPEOF(robj_)));
+        error("Unhandled scalar SEXP: %s\n", type2char((SEXPTYPE)TYPEOF(robj_)));
       }
     }
   } else if (isVectorAtomic(robj_)) {
@@ -1175,7 +1175,7 @@ yyjson_mut_val *serialize_core(SEXP robj_, yyjson_mut_doc *doc, serialize_option
   } else if (isNull(robj_)) {
     val = yyjson_mut_null(doc);
   } else {
-    warning("serialize_core(): Unhandled SEXP: %s\n", type2char(TYPEOF(robj_)));
+    warning("serialize_core(): Unhandled SEXP: %s\n", type2char((SEXPTYPE)TYPEOF(robj_)));
     val = yyjson_mut_null(doc);
   }
   

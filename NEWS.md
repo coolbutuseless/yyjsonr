@@ -1,18 +1,23 @@
 
-# yyjson4 0.1.16 2024-01-17
+# yyjsonr 0.1.17 2024-01-20
+
+* Fixes for CRAN
+    * Fixed warnings when building with `MAKEVARS` `PKG_CFLAGS = -Wconversion` 
+
+# yyjsonr 0.1.16 2024-01-17
 
 * Fixes for CRAN
     * DESCRIPTION fix: Write `C` as `'C'`
     * Add link to original `yyjson` library
     * Fix name in LICENSE
 
-# yyjson4 0.1.15 2024-01-15
+# yyjsonr 0.1.15 2024-01-15
 
 * Fixes for CRAN
     * Simplify example to remove `checkRd` NOTE
     * Platform specific handling of error location format string to fix WARNING
 
-# yyjson4 0.1.14 2024-01-13
+# yyjsonr 0.1.14 2024-01-13
 
 * Add `int64 = "double"` option to `opts_read_json()`
 * Preparations for CRAN
