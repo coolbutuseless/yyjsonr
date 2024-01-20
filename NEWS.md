@@ -3,6 +3,8 @@
 
 * Fixes for CRAN
     * Fixed warnings when building with `MAKEVARS` `PKG_CFLAGS = -Wconversion` 
+    * Fixed C error where raw beffer was passed to `strlen()` leading to 
+      a check failure on cran with clang-ASAN
 
 # yyjsonr 0.1.16 2024-01-17
 
