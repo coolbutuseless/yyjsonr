@@ -1807,8 +1807,7 @@ SEXP json_as_robj(yyjson_val *val, parse_options *opt) {
 #define ERR_CONTEXT 20
 void output_verbose_error(const char *str, yyjson_read_err err) {
   // Slice off a bit of the string within +/- ERR_CONTEXT of the error pos
-  size_t min_idx = err.pos - ERR_CONTEXT;
-  min_idx = min_idx < 0 ? 0 : min_idx;
+  size_t min_idx = err.pos < ERR_CONTEXT ? 0 : err.pos - ERR_CONTEXT;
   size_t max_idx = err.pos + ERR_CONTEXT;
   max_idx = max_idx > strlen(str) ? strlen(str) : max_idx;
   

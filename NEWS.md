@@ -1,4 +1,11 @@
 
+
+# yyjsonr 0.1.18 2024-01-22
+
+* Fixes for CRAN
+    * Adjust pointer arithmetic when calling `output_verbose_error()` to
+      avoid overflow of `size_t`
+
 # yyjsonr 0.1.17 2024-01-20
 
 * Fixes for CRAN
