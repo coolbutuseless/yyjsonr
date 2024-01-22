@@ -26,6 +26,18 @@ if (FALSE) {
 if (FALSE) {
   pkgdown::build_site(override = list(destination = "../coolbutuseless.github.io/package/yyjsonr"))
 }
+
+# Makevars options to do some deep testing for CRAN
+
+# Type conversions are sane
+# PKG_FLAG=-Wconversion
+
+# Pointer overflow checks i.e. dodgy pointer arithmetic
+# PKG_CFLAGS+=-fsanitize=pointer-overflow -fsanitize-trap=pointer-overflow
+# Then run in the debugger:
+# R -d lldb 
+# run
+# testthat::test_local()
 ```
 
 
