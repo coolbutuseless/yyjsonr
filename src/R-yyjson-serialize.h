@@ -75,6 +75,7 @@ typedef struct {
   unsigned int str_specials;
   unsigned int num_specials;
   unsigned int yyjson_write_flag;
+  bool fast_numerics;
 } serialize_options;
 
 //~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~

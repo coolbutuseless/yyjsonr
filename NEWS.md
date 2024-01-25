@@ -1,5 +1,15 @@
 
 
+# yyjsonr 0.1.18.9000 2024-01-25
+
+* New `fast_numerics` flag when writing.
+    * Default `FALSE`
+    * If `TRUE` the user is guaranteeing that there are no NA, NaN or Inf values
+      in the numeric and integer vectors, and thus a faster method for writing
+      these vectors to JSON can be used.
+* Changed writing of `raw` vectors to always use the `fast_numerics` method,
+  as raw R vectors (by definition) will not have NA, NaN or Inf values.
+
 # yyjsonr 0.1.18 2024-01-22
 
 * Fixes for CRAN

@@ -36,6 +36,7 @@ serialize_options parse_serialize_options(SEXP serialize_opts_) {
     .name_repair       = NAME_REPAIR_NONE,
     .num_specials      = NUM_SPECIALS_AS_NULL,
     .str_specials      = STR_SPECIALS_AS_NULL,
+    .fast_numerics     = FALSE,
     .yyjson_write_flag = 0,
   };
   
@@ -85,6 +86,8 @@ serialize_options parse_serialize_options(SEXP serialize_opts_) {
     } else if (strcmp(opt_name, "num_specials") == 0) {
       const char *val = CHAR(STRING_ELT(val_, 0));
       opt.num_specials = strcmp(val, "string") == 0 ? NUM_SPECIALS_AS_STRING : NUM_SPECIALS_AS_NULL;
+    } else if (strcmp(opt_name, "fast_numerics") == 0) {
+      opt.fast_numerics = asLogical(val_);
     } else {
       warning("Unknown option ignored: '%s'\n", opt_name);
     }
@@ -390,14 +393,9 @@ yyjson_mut_val *vector_factor_to_json_array(SEXP vec_, yyjson_mut_doc *doc, seri
 //===========================================================================
 yyjson_mut_val *vector_rawsxp_to_json_array(SEXP vec_, yyjson_mut_doc *doc, serialize_options *opt) {
   
-  yyjson_mut_val *arr = yyjson_mut_arr(doc);
   
-  unsigned char *ptr = RAW(vec_);
-  for (int i = 0; i < length(vec_); i++) {
-    yyjson_mut_arr_append(arr, yyjson_mut_uint(doc, *ptr++));
-  }
-  
-  return arr;
+  // Raw vectors can't have NA, so can use the fast method
+  return yyjson_mut_arr_with_uint8(doc, RAW(vec_), (size_t)length(vec_));
 }
 
 
@@ -455,16 +453,19 @@ yyjson_mut_val *vector_intsxp_to_json_array(SEXP vec_, yyjson_mut_doc *doc, seri
     return vector_date_to_json_array(vec_, doc, opt);
   } else if (inherits(vec_, "POSIXct")) {
     return vector_posixct_to_json_array(vec_, doc, opt);
-  } 
-  
-  yyjson_mut_val *arr = yyjson_mut_arr(doc);
-  
-  int32_t *ptr = INTEGER(vec_);
-  for (int i = 0; i < length(vec_); i++) {
-    yyjson_mut_arr_append(arr, scalar_integer_to_json_val(*ptr++, doc, opt));
+  } else if (opt->fast_numerics) {
+    return yyjson_mut_arr_with_sint32(doc, INTEGER(vec_), (size_t)length(vec_));
+  } else {
+    
+    yyjson_mut_val *arr = yyjson_mut_arr(doc);
+    
+    int32_t *ptr = INTEGER(vec_);
+    for (int i = 0; i < length(vec_); i++) {
+      yyjson_mut_arr_append(arr, scalar_integer_to_json_val(*ptr++, doc, opt));
+    }
+    
+    return arr;
   }
-  
-  return arr;
 }
 
 
@@ -480,17 +481,19 @@ yyjson_mut_val *vector_realsxp_to_json_array(SEXP vec_, yyjson_mut_doc *doc, ser
     return vector_posixct_to_json_array(vec_, doc, opt);
   } else if (inherits(vec_, "integer64")) {
     return vector_integer64_to_json_array(vec_, doc, opt);
+  } else if (opt->fast_numerics) {
+    return yyjson_mut_arr_with_double(doc, REAL(vec_), (size_t)length(vec_));
+  } else {
+    
+    yyjson_mut_val *arr = yyjson_mut_arr(doc);
+    
+    double *ptr = REAL(vec_);
+    for (int i = 0; i < length(vec_); i++) {
+      yyjson_mut_arr_append(arr, scalar_double_to_json_val(*ptr++, doc, opt));
+    }
+    
+    return arr;
   }
-  
-  
-  yyjson_mut_val *arr = yyjson_mut_arr(doc);
-  
-  double *ptr = REAL(vec_);
-  for (int i = 0; i < length(vec_); i++) {
-    yyjson_mut_arr_append(arr, scalar_double_to_json_val(*ptr++, doc, opt));
-  }
-  
-  return arr;
 }
 
 

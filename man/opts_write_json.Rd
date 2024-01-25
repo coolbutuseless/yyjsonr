@@ -13,6 +13,7 @@ opts_write_json(
   name_repair = c("none", "minimal"),
   num_specials = c("null", "string"),
   str_specials = c("null", "string"),
+  fast_numerics = FALSE,
   yyjson_write_flag = 0L
 )
 }
@@ -47,6 +48,16 @@ representation e.g. "NA"/"NaN" etc.   Default: 'null'}
 \item{str_specials}{Should a special value of \code{NA} in a character vector
 be converted to a
 JSON \code{null} value, or converted to a string "NA"?  Default: 'null'}
+
+\item{fast_numerics}{Does the user guarantee that there are no NA, NaN or Inf
+values in the numeric vectors?  Default: FALSE.  If \code{TRUE} then
+numeric and integer vectors will be written to JSON using a faster method.
+Note: if there are NA, NaN or Inf values, an error will be thrown.
+Expert users are invited to also consider the
+\code{YYJSON_WRITE_ALLOW_INF_AND_NAN} and
+\code{YYJSON_WRITE_INF_AND_NAN_AS_NULL} options for \code{yyjson_write_flags}
+and should consult the \code{yyjson} API documentation for
+further details.}
 
 \item{yyjson_write_flag}{integer vector corresponding to internal \code{yyjson}
 options.  See \code{yyjson_write_flag} in this package, and read
