@@ -9,6 +9,7 @@
 #include <stdlib.h>
 #include <unistd.h>
 
+#include "zlib.h"
 #include "yyjson.h"
 #include "R-yyjson-parse.h"
 
@@ -1938,6 +1939,57 @@ SEXP parse_from_raw_(SEXP raw_, SEXP parse_opts_) {
   return parse_json_from_str(str, (size_t)length(raw_), &opt);
 }
 
+
+//===========================================================================
+// Parse from file given as a filename - ending in ".gz"
+//===========================================================================
+SEXP parse_from_gzfile_(SEXP filename_, SEXP parse_opts_) {
+  
+  const char *filename = (const char *)CHAR( STRING_ELT(filename_, 0) );
+  filename = R_ExpandFileName(filename);
+  parse_options opt = create_parse_options(parse_opts_);
+  
+  //~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+  // Read tail end of .gz file to get length.
+  // If uncompressed length > 4GB this method will fail as there are 
+  // only 4-bytes reserved for the field!
+  //~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+  FILE *fp = fopen(filename, "rb");
+  if (fp == NULL) {
+    error("couldn't open file: %s", filename);
+  }
+  
+  fseek(fp, -4, SEEK_END);
+  int32_t uncompressed_len;
+  fread(&uncompressed_len, 4, 1, fp);
+  fclose(fp);
+  
+  //~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+  // Allocate a buffer to hold the uncompressed file.
+  // Note: this approach will change if/when yyjson implements streaming
+  //~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+  char *buf = (char *)malloc(uncompressed_len + 1);
+  if (buf == 0) {
+    error("Couldn't allocate buffer for reading json.gz file: %s", filename);
+  }
+  
+  //~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+  // Uncompress file to buffer
+  //~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+  gzFile gzfp = gzopen(filename, "r");
+  gzread(gzfp, (void *)buf, uncompressed_len);
+  gzclose(gzfp);
+  
+  //~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+  // Parse buffer as string
+  //~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+  SEXP res_ = PROTECT(parse_json_from_str(buf, (size_t)uncompressed_len, &opt));
+  free(buf);
+  
+  UNPROTECT(1);
+  return res_;
+}
+
 //===========================================================================
 // Parse from file given as a filename
 //===========================================================================
@@ -1945,8 +1997,13 @@ SEXP parse_from_file_(SEXP filename_, SEXP parse_opts_) {
   
   const char *filename = (const char *)CHAR( STRING_ELT(filename_, 0) );
   filename = R_ExpandFileName(filename);
-  parse_options opt = create_parse_options(parse_opts_);
   
+  size_t len = strlen(filename);
+  if (strncmp(filename + len - 3, ".gz", 3) == 0) {
+    return parse_from_gzfile_(filename_, parse_opts_);
+  }
+  
+  parse_options opt = create_parse_options(parse_opts_);
   return parse_json_from_file(filename, &opt);
 }
 

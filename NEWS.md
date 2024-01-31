@@ -1,4 +1,7 @@
 
+# yyjsonr 0.1.18.9001 2024-02-01
+
+* Read JSON from '.gz' files in `read_json_file()`
 
 # yyjsonr 0.1.18.9000 2024-01-25
 
