@@ -1961,7 +1961,7 @@ SEXP parse_from_gzfile_(SEXP filename_, SEXP parse_opts_) {
   
   fseek(fp, -4, SEEK_END);
   int32_t uncompressed_len;
-  size_t nbytes = fread(&uncompressed_len, 4, 1, fp);
+  size_t nbytes = fread(&uncompressed_len, 1, 4, fp);
   fclose(fp);
   if (nbytes != 4) {
     error("Couldn't read size from end of file: %s", filename);
