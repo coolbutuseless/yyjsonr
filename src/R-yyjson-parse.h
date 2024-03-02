@@ -97,6 +97,7 @@
 typedef struct {
   unsigned int int64;
   SEXP df_missing_list_elem;
+  SEXP any_single_null_elem;
   bool obj_of_arrs_to_df;
   bool arr_of_objs_to_df;
   bool length1_array_asis;

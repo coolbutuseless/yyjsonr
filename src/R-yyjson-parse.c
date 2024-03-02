@@ -33,6 +33,7 @@ parse_options create_parse_options(SEXP parse_opts_) {
   parse_options opt = {
     .int64                 = INT64_AS_STR,
     .df_missing_list_elem  = R_NilValue,
+    .any_single_null_elem  = R_NilValue,
     .obj_of_arrs_to_df     = true,
     .arr_of_objs_to_df     = true,
     .length1_array_asis    = false,
@@ -74,6 +75,8 @@ parse_options create_parse_options(SEXP parse_opts_) {
       }
     } else if (strcmp(opt_name, "df_missing_list_elem") == 0) {
       opt.df_missing_list_elem = val_;
+    } else if (strcmp(opt_name, "any_single_null_elem") == 0) {
+      opt.any_single_null_elem = val_;
     } else if (strcmp(opt_name, "yyjson_read_flag") == 0) {
       for (unsigned int idx = 0; idx < length(val_); idx++) {
         opt.yyjson_read_flag |= (unsigned int)INTEGER(val_)[idx];
@@ -1794,7 +1797,8 @@ SEXP json_as_robj(yyjson_val *val, parse_options *opt) {
     res_ = PROTECT(mkString(yyjson_get_str(val))); nprotect++;
     break;
   case YYJSON_TYPE_NULL:
-    res_ = R_NilValue;
+    // res_ = R_NilValue;
+    res_  = opt->any_single_null_elem;
     break;
   default:
     warning("json_as_robj(): unhandled: %s\n", yyjson_get_type_desc(val));
