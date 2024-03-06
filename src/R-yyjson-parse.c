@@ -1961,8 +1961,11 @@ SEXP parse_from_gzfile_(SEXP filename_, SEXP parse_opts_) {
   
   fseek(fp, -4, SEEK_END);
   int32_t uncompressed_len;
-  fread(&uncompressed_len, 4, 1, fp);
+  size_t nbytes = fread(&uncompressed_len, 1, 4, fp);
   fclose(fp);
+  if (nbytes != 4) {
+    error("Couldn't read size from end of file: %s", filename);
+  }
   
   //~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
   // Allocate a buffer to hold the uncompressed file.
@@ -1977,8 +1980,11 @@ SEXP parse_from_gzfile_(SEXP filename_, SEXP parse_opts_) {
   // Uncompress file to buffer
   //~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
   gzFile gzfp = gzopen(filename, "r");
-  gzread(gzfp, (void *)buf, uncompressed_len);
+  int N = gzread(gzfp, (void *)buf, uncompressed_len);
   gzclose(gzfp);
+  if (N != uncompressed_len) {
+    error("Incorrect number of bytes read. Expected %i, read %i", uncompressed_len, N);
+  }
   
   //~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
   // Parse buffer as string
