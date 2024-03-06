@@ -89,7 +89,7 @@
 //       just set a high-ish value.  Code throws an error if this is 
 //       exceeded during a parse.
 //===========================================================================
-#define MAX_DF_COLS 128
+#define MAX_DF_COLS 2048
 
 //===========================================================================
 // Struct of parse options

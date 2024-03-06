@@ -1,7 +1,7 @@
 Package: yyjsonr
 Type: Package
 Title: Fast JSON Parser and Generator 
-Version: 0.1.18.9001
+Version: 0.1.18.9002
 Authors@R: c(
     person("Mike", "Cheng", role = c("aut", "cre", 'cph'), 
     email = "mikefc@coolbutuseless.com"),
@@ -21,7 +21,7 @@ BugReports: https://github.com/coolbutuseless/yyjsonr/issues
 Encoding: UTF-8
 Language: en-AU
 Roxygen: list(markdown = TRUE)
-RoxygenNote: 7.3.0
+RoxygenNote: 7.3.1
 Suggests: 
     bit64,
     knitr,

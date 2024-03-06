@@ -1,4 +1,8 @@
 
+# yyjsonr 0.1.18.9002 2024-03-07
+
+* Increase maximum number of allowed data.frame columns (during parsing) to 2048
+
 # yyjsonr 0.1.18.9001 2024-02-01
 
 * Read JSON from '.gz' files in `read_json_file()`
