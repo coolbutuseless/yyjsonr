@@ -64,7 +64,7 @@ read_json_raw <- function(raw_vec, opts = list(), ...) {
 read_json_file <- function(filename, opts = list(), ...) {
   .Call(
     parse_from_file_, 
-    filename, 
+    normalizePath(filename), 
     modify_list(opts, list(...))
   )
 }
@@ -143,7 +143,7 @@ write_json_file <- function(x, filename, opts = list(), ...) {
   .Call(
     serialize_to_file_, 
     x,
-    filename, 
+    normalizePath(filename), 
     modify_list(opts, list(...))
   )
   
@@ -173,7 +173,7 @@ validate_json_file <- function(filename, verbose = FALSE, opts = list(), ...) {
   
   .Call(
     validate_json_file_,
-    filename,
+    normalizePath(filename),
     verbose,
     opts
   )

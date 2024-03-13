@@ -1,4 +1,9 @@
 
+
+# yyjsonr 0.1.18.9003 2024-03-13
+
+* call `normalizePath()` on all file paths
+
 # yyjsonr 0.1.18.9002 2024-03-07
 
 * Increase maximum number of allowed data.frame columns (during parsing) to 2048
