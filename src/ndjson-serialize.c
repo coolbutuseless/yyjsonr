@@ -44,7 +44,7 @@ SEXP serialize_list_to_ndjson_file_(SEXP robj_, SEXP filename_, SEXP serialize_o
     yyjson_write_err err;
     bool res = yyjson_mut_write_fp(file, doc, opt.yyjson_write_flag, NULL, &err);  
     if (!res) {
-      error("Error writing to file at element %i\n", idx);
+      error("Error writing to file at element %ld\n", idx);
     }
     fputc('\n', file);
     
