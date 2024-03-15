@@ -1971,7 +1971,7 @@ SEXP parse_from_gzfile_(SEXP filename_, SEXP parse_opts_) {
   // Allocate a buffer to hold the uncompressed file.
   // Note: this approach will change if/when yyjson implements streaming
   //~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
-  char *buf = (char *)malloc(uncompressed_len + 1);
+  char *buf = (char *)malloc((unsigned long)uncompressed_len + 1);
   if (buf == 0) {
     error("Couldn't allocate buffer for reading json.gz file: %s", filename);
   }
@@ -1980,7 +1980,7 @@ SEXP parse_from_gzfile_(SEXP filename_, SEXP parse_opts_) {
   // Uncompress file to buffer
   //~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
   gzFile gzfp = gzopen(filename, "r");
-  int N = gzread(gzfp, (void *)buf, uncompressed_len);
+  int N = gzread(gzfp, (void *)buf, (unsigned int)uncompressed_len);
   gzclose(gzfp);
   if (N != uncompressed_len) {
     error("Incorrect number of bytes read. Expected %i, read %i", uncompressed_len, N);

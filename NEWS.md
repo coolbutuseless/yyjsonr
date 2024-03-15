@@ -1,5 +1,9 @@
 
 
+# yyjsonr 0.1.18.9004 2024-03-15
+
+* Re-introduce NDJSON support
+
 # yyjsonr 0.1.18.9003 2024-03-13
 
 * call `normalizePath()` on all file paths

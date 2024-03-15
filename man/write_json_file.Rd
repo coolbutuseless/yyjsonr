@@ -29,6 +29,8 @@ read_json_file(tmp)
 }
 \seealso{
 Other JSON Serializer: 
-\code{\link{write_json_str}()}
+\code{\link{write_json_str}()},
+\code{\link{write_ndjson_file}()},
+\code{\link{write_ndjson_str}()}
 }
 \concept{JSON Serializer}

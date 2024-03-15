@@ -153,7 +153,7 @@ yyjson_mut_val *scalar_integer_to_json_val(int32_t rint, yyjson_mut_doc *doc, se
 //===========================================================================
 // Scalar bit64::integer64 (stored in REALSXP) to JSON value
 //===========================================================================
-yyjson_mut_val *scalar_integer64_to_json_val(SEXP vec_, unsigned int idx, yyjson_mut_doc *doc, serialize_options *opt) {
+yyjson_mut_val *scalar_integer64_to_json_val(SEXP vec_, R_xlen_t idx, yyjson_mut_doc *doc, serialize_options *opt) {
   
   yyjson_mut_val *val;
   
@@ -175,7 +175,7 @@ yyjson_mut_val *scalar_integer64_to_json_val(SEXP vec_, unsigned int idx, yyjson
 //~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 // 
 //~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
-yyjson_mut_val *scalar_date_to_json_val(SEXP vec_, unsigned int idx, yyjson_mut_doc *doc, serialize_options *opt) {
+yyjson_mut_val *scalar_date_to_json_val(SEXP vec_, R_xlen_t idx, yyjson_mut_doc *doc, serialize_options *opt) {
   char buf[50];
   
   double ndays = 0;
@@ -207,7 +207,7 @@ yyjson_mut_val *scalar_date_to_json_val(SEXP vec_, unsigned int idx, yyjson_mut_
 //~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 // 
 //~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
-yyjson_mut_val *scalar_posixct_to_json_val(SEXP vec_, unsigned int idx, yyjson_mut_doc *doc, serialize_options *opt) {
+yyjson_mut_val *scalar_posixct_to_json_val(SEXP vec_, R_xlen_t idx, yyjson_mut_doc *doc, serialize_options *opt) {
   char buf[50];
   
   double seconds = 0;
@@ -240,7 +240,7 @@ yyjson_mut_val *scalar_posixct_to_json_val(SEXP vec_, unsigned int idx, yyjson_m
 //===========================================================================
 // Scalar RAWSXP to JSON value
 //===========================================================================
-yyjson_mut_val *scalar_rawsxp_to_json_val(SEXP vec_, unsigned int idx, yyjson_mut_doc *doc, serialize_options *opt) {
+yyjson_mut_val *scalar_rawsxp_to_json_val(SEXP vec_, R_xlen_t idx, yyjson_mut_doc *doc, serialize_options *opt) {
   
   yyjson_mut_val *val;
   
@@ -254,7 +254,7 @@ yyjson_mut_val *scalar_rawsxp_to_json_val(SEXP vec_, unsigned int idx, yyjson_mu
 //===========================================================================
 // Scalar Factor to JSON value
 //===========================================================================
-yyjson_mut_val *scalar_factor_to_json_val(SEXP factor_, unsigned int idx,  yyjson_mut_doc *doc, serialize_options *opt) {
+yyjson_mut_val *scalar_factor_to_json_val(SEXP factor_, R_xlen_t idx,  yyjson_mut_doc *doc, serialize_options *opt) {
   
   yyjson_mut_val *val ;
   int32_t factor = INTEGER(factor_)[idx];
@@ -327,7 +327,7 @@ yyjson_mut_val *scalar_double_to_json_val(double rdbl, yyjson_mut_doc *doc, seri
 //===========================================================================
 // Scalar STRSRXP  to JSON value
 //===========================================================================
-yyjson_mut_val *scalar_strsxp_to_json_val(SEXP str_, unsigned int idx, yyjson_mut_doc *doc, serialize_options *opt) {
+yyjson_mut_val *scalar_strsxp_to_json_val(SEXP str_, R_xlen_t idx, yyjson_mut_doc *doc, serialize_options *opt) {
   
   yyjson_mut_val *val;
   
