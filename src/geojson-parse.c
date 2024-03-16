@@ -1561,7 +1561,7 @@ SEXP parse_geojson_str_(SEXP str_, SEXP geo_opts_, SEXP parse_opts_) {
   //~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
   if (doc == NULL) {
     output_verbose_error(str, err);
-    error("Error parsing JSON: %s code: %u at position: %ld\n", err.msg, err.code, err.pos);
+    error("Error parsing JSON: %s code: %u at position: %ld\n", err.msg, err.code, (long)err.pos);
   }
   
   //~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
@@ -1601,7 +1601,7 @@ SEXP parse_geojson_file_(SEXP filename_, SEXP geo_opts_, SEXP parse_opts_) {
   //~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
   if (doc == NULL) {
     error("Error parsing JSON file '%s': %s code: %u at position: %ld\n", 
-          filename, err.msg, err.code, err.pos);
+          filename, err.msg, err.code, (long)err.pos);
   }
   
   //~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
