@@ -1,4 +1,7 @@
 
+# yyjsonr 0.1.18.9005 2024-03-16
+
+* Re-introduce GeoJSON support
 
 # yyjsonr 0.1.18.9004 2024-03-15
 
