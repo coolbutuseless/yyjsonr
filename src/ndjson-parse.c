@@ -27,7 +27,7 @@
 SEXP grow_list(SEXP oldlist) {
   R_xlen_t len = XLENGTH(oldlist);
   SEXP newlist = PROTECT(allocVector(VECSXP, 2 * len));
-  for (R_len_t i=0; i < len; i++) {
+  for (R_xlen_t i=0; i < len; i++) {
     SET_VECTOR_ELT(newlist, i, VECTOR_ELT(oldlist, i));
   }
   UNPROTECT(1);
@@ -62,7 +62,7 @@ SEXP grow_list(SEXP oldlist) {
 // ndjson->data.frame will use method 1
 //~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 int count_lines(const char *filename) {
-  char buf[MAX_LINE_LENGTH];
+  char buf[MAX_LINE_LENGTH] = {0};
   int counter = 0;
   
   gzFile file = gzopen(filename, "r");
@@ -102,7 +102,7 @@ SEXP parse_ndjson_file_as_list_(SEXP filename_, SEXP nread_, SEXP nskip_, SEXP p
   //~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
   // Buffer to read each line of the input file.
   //~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
-  char buf[MAX_LINE_LENGTH];
+  char buf[MAX_LINE_LENGTH] = {0};
   
   parse_options opt = create_parse_options(parse_opts_);
   
@@ -350,7 +350,7 @@ SEXP parse_ndjson_str_as_list_(SEXP str_, SEXP nread_, SEXP nskip_, SEXP parse_o
 SEXP parse_ndjson_file_as_df_(SEXP filename_, SEXP nread_, SEXP nskip_, SEXP nprobe_, SEXP parse_opts_) {
   
   int nprotect = 0;
-  char buf[MAX_LINE_LENGTH];
+  char buf[MAX_LINE_LENGTH] = {0};
   parse_options opt = create_parse_options(parse_opts_);
   const char *filename = (const char *)CHAR(STRING_ELT(filename_, 0));
   filename = R_ExpandFileName(filename);
