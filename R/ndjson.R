@@ -63,6 +63,59 @@ read_ndjson_file <- function(filename, type = c('df', 'list'), nread = -1, nskip
 }
 
 
+#~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+#' Parse an NDJSON file to a data.frame or list
+#' 
+#' If reading as data.frame, each row of NDJSON becomes a row in the data.frame.  
+#' If reading as a list, then each row becomes an element in the list.
+#' 
+#' If parsing NDJSON to a data.frame it is usually better if the json objects
+#' are consistent from line-to-line.  Type inference for the data.frame is done
+#' during initialisation by reading through \code{nprobe} lines.  Warning: if
+#' there is a type-mismatch further into the file than it is probed, then you 
+#' will get missing values in the data.frame, or JSON values not captured in 
+#' the R data.
+#' 
+#' No flattening of the namespace is done i.e. nested object remain nested.
+#' 
+#' @inheritParams read_ndjson_file
+#' @param x string containing NDJSON
+#'
+#' @examples
+#' tmp <- tempfile()
+#' json <- write_ndjson_str(head(mtcars))
+#' read_ndjson_str(json, type = 'list')
+#' 
+#' @family JSON Parsers
+#' @return NDJSON data read into R as list or data.frame depending 
+#'         on \code{'type'} argument
+#' @export
+#~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+read_ndjson_str <- function(x, type = c('df', 'list'), nread = -1, nskip = 0, nprobe = 100, opts = list(), ...) {
+  
+  type <- match.arg(type)
+  
+  if (type == 'list') {
+    .Call(
+      parse_ndjson_str_as_list_,
+      x, 
+      nread,
+      nskip,
+      modify_list(opts, list(...))
+    )
+  } else {
+    .Call(
+      parse_ndjson_str_as_df_,
+      x, 
+      nread,
+      nskip,
+      nprobe,
+      modify_list(opts, list(...))
+    )
+  }
+}
+
+
 #~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 #' Write list or data.frame object to NDJSON in a file
 #' 

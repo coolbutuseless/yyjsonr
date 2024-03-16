@@ -29,6 +29,7 @@ Other JSON Parsers:
 \code{\link{read_json_conn}()},
 \code{\link{read_json_file}()},
 \code{\link{read_json_str}()},
-\code{\link{read_ndjson_file}()}
+\code{\link{read_ndjson_file}()},
+\code{\link{read_ndjson_str}()}
 }
 \concept{JSON Parsers}

@@ -59,9 +59,9 @@ test_that("write_ndjson_file df works", {
 test_that("write_ndjson_str df works", {
   file <- tempfile()
   write_ndjson_file(iris, file)
-  ref <- write_ndjson_str(iris)
+  ref2 <- write_ndjson_str(iris)
   res <- paste(readLines(file), collapse = "\n")  
-  expect_identical(res, ref)
+  expect_identical(res, ref2)
 })
 
 test_that("write_ndjson_file list works", {
@@ -74,11 +74,45 @@ test_that("write_ndjson_file list works", {
 
 
 test_that("write_ndjson_str list works", {
+  
+  #~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+  # Check write_ndjson_file() and write_ndjson_str() agree
+  #~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
   file <- tempfile()
   write_ndjson_file(tref, file)
-  ref <- write_ndjson_str(tref)
+  ref2 <- write_ndjson_str(tref)
   res <- paste(readLines(file), collapse = "\n")  
-  expect_identical(res, ref)
+  expect_identical(res, ref2)
+  
+  #~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+  # Read NDJSON string as list
+  #~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+  json <- write_ndjson_str(tref)
+  ref2 <- read_ndjson_str(json, type = 'list')  
+  expect_identical(ref2, tref)
+  
+  json <- write_ndjson_str(tref)
+  ref2 <- read_ndjson_str(json, type = 'list', nskip = 1)  
+  expect_identical(ref2, tref[-1])
+  
+  json <- write_ndjson_str(tref)
+  ref2 <- read_ndjson_str(json, type = 'list', nskip = 2, nread = 3)  
+  expect_identical(ref2, tref[3:5])
+  
+  #~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+  # Read NDJSON string as data.frame
+  #~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+  json <- write_ndjson_str(ref)
+  ref2 <- read_ndjson_str(json, type = 'df')  
+  expect_identical(ref2, ref)
+  
+  json <- write_ndjson_str(ref)
+  ref2 <- read_ndjson_str(json, type = 'df', nskip  = 1)  
+  expect_identical(ref2, ref[-1, ], ignore_attr = TRUE)
+  
+  json <- write_ndjson_str(ref)
+  ref2 <- read_ndjson_str(json, type = 'df', nskip  = 2, nread = 3)  
+  expect_identical(ref2, ref[3:5, ], ignore_attr = TRUE)
 })
 
 
