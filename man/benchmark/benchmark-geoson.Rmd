@@ -42,8 +42,9 @@ From GeoJSON String
 
 ```{r}
 res13 <- bench::mark(
-  geojsonsf    = geojsonsf::geojson_sf(geojsonsf::geo_melbourne),
+  geojsonsf     = geojsonsf::geojson_sf(geojsonsf::geo_melbourne),
   yyjsonr      = yyjsonr::read_geojson_str(geojsonsf::geo_melbourne),
+  `sf::st_read` = sf::st_read(geojsonsf::geo_melbourne, quiet = TRUE),
   check = FALSE
 )
 
@@ -67,7 +68,6 @@ res14 <- bench::mark(
   yyjsonr      = yyjsonr::write_geojson_str(sf_obj),
   check = FALSE
 )
-
 ```
 
 ```{r echo=FALSE}
@@ -76,6 +76,28 @@ knitr::kable(res14[,1:5])
 plot(res14) + theme_bw() + theme(legend.position = 'none')
 ```
 
+
+From GeoJSON File
+----------------------------------------------------------------------------
+
+```{r}
+tmp <- tempfile()
+yyjsonr::write_geojson_file(sf_obj, tmp)
+
+res15 <- bench::mark(
+  geojsonsf     = geojsonsf::geojson_sf(tmp),
+  yyjsonr      = yyjsonr::read_geojson_file(tmp),
+  `sf::st_read` = sf::st_read(tmp, quiet = TRUE),
+  check = FALSE
+)
+
+```
+
+```{r echo=FALSE}
+res15$benchmark <- 'from GeoJSON file'
+knitr::kable(res13[,1:5])
+plot(res15) + theme_bw() + theme(legend.position = 'none')
+```
 
 
 
@@ -86,7 +108,7 @@ Summary
 ```{r echo = FALSE, fig.width = 8, fig.height = 6}
 library(dplyr)
 plot_df <- bind_rows(
-  res13, res14
+  res13, res14, res15
 )
 
 plot_df$benchmark <- factor(
@@ -116,7 +138,7 @@ ggplot(plot_df) +
   facet_wrap(~benchmark, scales = 'free_y', ncol = 3) + 
   theme_bw(15) + 
   theme(legend.position = 'none') + 
-  scale_fill_manual(values = c(rep(grey(0.5), 1), 'dodgerblue3')) +
+  scale_fill_manual(values = c(rep(grey(0.5), 2), 'dodgerblue3')) +
   geom_hline(yintercept = 1, color = 'red', alpha = 0.5, linetype = 2) + 
   labs(
     x = NULL,
@@ -127,7 +149,7 @@ ggplot(plot_df) +
   scale_y_continuous(breaks = scales::pretty_breaks())
 
 if (FALSE) {
-  ggsave("./man/figures/benchmark-geojson.png", width = 7, height = 5)
+  ggsave("./man/figures/benchmark-geojson.png", width = 9, height = 5)
   # saveRDS(plot_df, "man/benchmark/cache-df-types.rds")
 }
 ```

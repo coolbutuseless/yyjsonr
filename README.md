@@ -64,7 +64,7 @@ blue.
 
 #### GeoJSON
 
-<img src="man/figures/benchmark-geojson.png" width="50%">
+<img src="man/figures/benchmark-geojson.png" width="75%">
 
 Note: Benchmarks were run on Apple M2 Mac. See files
 `man/benchmark/benchmark*.Rmd` for details.
