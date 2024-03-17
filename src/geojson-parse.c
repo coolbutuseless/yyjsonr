@@ -56,7 +56,7 @@ SEXP make_crs(void) {
 //~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 typedef struct {
   bool property_promotion;
-  bool property_promotion_lgl_as_int; // When promoting properties to string, should lgl be '1' or 'TRUE"?
+  bool property_promotion_lgl; // When promoting properties to string, should lgl be '1' or 'TRUE"?
   unsigned int type;
   unsigned int yyjson_read_flag;
   parse_options *parse_opt;
@@ -76,7 +76,7 @@ typedef struct {
 geo_parse_options create_geo_parse_options(SEXP geo_opts_) {
   geo_parse_options opt = {
     .property_promotion = PROP_TYPE_STRING, // emulate 'geojsonsf' behaviour
-  .property_promotion_lgl_as_int = PROP_LGL_AS_INT, // emulate 'geojsonsf' behaviour
+  .property_promotion_lgl = PROP_LGL_AS_INT, // emulate 'geojsonsf' behaviour
     .type = SF_TYPE,
     .yyjson_read_flag = 0,
     .xmin =  INFINITY,
@@ -109,14 +109,14 @@ geo_parse_options create_geo_parse_options(SEXP geo_opts_) {
     if (strcmp(opt_name, "property_promotion") == 0) {
       const char *val = CHAR(STRING_ELT(val_, 0));
       opt.property_promotion = strcmp(val, "string") == 0 ? PROP_TYPE_STRING : PROP_TYPE_LIST;
-    } else if (strcmp(opt_name, "property_promotion_lgl_as_int") == 0) {
+    } else if (strcmp(opt_name, "property_promotion_lgl") == 0) {
       const char *val = CHAR(STRING_ELT(val_, 0));
-      opt.property_promotion_lgl_as_int = strcmp(val, "string") == 0 ? PROP_LGL_AS_STR : PROP_LGL_AS_INT;
+      opt.property_promotion_lgl = strcmp(val, "string") == 0 ? PROP_LGL_AS_STR : PROP_LGL_AS_INT;
     } else if (strcmp(opt_name, "type") == 0) {
       const char *val = CHAR(STRING_ELT(val_, 0));
       opt.type = strcmp(val, "sf") == 0 ? SF_TYPE : SFC_TYPE;
     } else {
-      warning("geo_opt: Unknown option ignored: '%s'\n", opt_name);
+      warning("opt_geojson_read(): Unknown option ignored: '%s'\n", opt_name);
     }
   }
   
@@ -622,7 +622,7 @@ SEXP prop_to_rchar(yyjson_val *prop_val, geo_parse_options *opt) {
     break;
   case YYJSON_TYPE_BOOL:
   {
-    if (opt->property_promotion_lgl_as_int == PROP_LGL_AS_INT) {
+    if (opt->property_promotion_lgl == PROP_LGL_AS_INT) {
     int tmp = yyjson_get_bool(prop_val);
     return mkChar(bool_int[tmp]);
   } else {

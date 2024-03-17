@@ -97,6 +97,8 @@ test_that("Compare parsing of GeoJSON to {geojsonsf}", {
 #~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 test_that("Basic writing works for lots of different geojson", {
   
+  tmp <- tempfile()
+  
   for (i in seq_along(json)) {
     
     # Take the JSON
@@ -113,8 +115,63 @@ test_that("Basic writing works for lots of different geojson", {
     
     # Test 'sf' representations are equal
     expect_identical(geojson1, geojson2, label = names(json)[i])
+    
+    # write the json to file
+    write_geojson_file(geojson1, tmp)
+    
+    geojson3 <- read_geojson_file(tmp)
+    
+    expect_identical(geojson1, geojson3)
   }
 })
+
+
+
+test_that("opts",  {
+  
+  opts <- opts_read_geojson()
+  expect_true(is.list(opts))
+  expect_true(inherits(opts, "opts_read_geojson"))
+  
+  opts <- opts_write_geojson()
+  expect_true(is.list(opts))
+  expect_true(inherits(opts, "opts_write_geojson"))
+  
+  #~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+  # geojson read options
+  #~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+  geo <- read_geojson_file(
+    testthat::test_path("geojson/standard-example.json"), 
+    opts = opts_read_geojson(property_promotion = 'string')
+  )
+  expect_true(is.character(geo$prop1))
+    
+  geo <- read_geojson_file(
+    testthat::test_path("geojson/standard-example.json"), 
+    opts = opts_read_geojson(property_promotion = 'list')
+  )
+  expect_true(is.list(geo$prop1))
+  
+  #~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+  # unknown options spark warning
+  #~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+  expect_warning(
+    write_geojson_str(geo, bad = TRUE),
+    "Unknown option ignored"
+  )
+  
+  expect_warning(
+    write_geojson_str(geo, pretty = TRUE),
+    "Unknown option ignored"
+  )
+  
+  if (FALSE) {
+    write_geojson_str(geo, json_opts = opts_write_json(pretty = TRUE)) |> cat()
+  }
+  
+  
+})
+
 
 
 

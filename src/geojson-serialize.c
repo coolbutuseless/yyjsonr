@@ -19,7 +19,6 @@
 //      - current bounding box accumulations
 //~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 typedef struct {
-  unsigned int yyjson_write_flag;
   serialize_options *serialize_opt;
 } geo_serialize_options;
 
@@ -28,7 +27,6 @@ typedef struct {
 //~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 geo_serialize_options create_geo_serialize_options(SEXP to_geo_opts_) {
   geo_serialize_options opt = {
-    .yyjson_write_flag = YYJSON_WRITE_NOFLAG,
     .serialize_opt = NULL
   };
   
@@ -47,24 +45,8 @@ geo_serialize_options create_geo_serialize_options(SEXP to_geo_opts_) {
   
   for (unsigned int i = 0; i < length(to_geo_opts_); i++) {
     const char *opt_name = CHAR(STRING_ELT(nms_, i));
-    SEXP val_ = VECTOR_ELT(to_geo_opts_, i);
-    
-    // if (strcmp(opt_name, "property_promotion") == 0) {
-    //   const char *val = CHAR(STRING_ELT(val_, 0));
-    //   opt.property_promotion = strcmp(val, "string") == 0 ? PROP_TYPE_STRING : PROP_TYPE_LIST;
-    // } else if (strcmp(opt_name, "property_promotion_lgl_as_int") == 0) {
-    //   const char *val = CHAR(STRING_ELT(val_, 0));
-    //   opt.property_promotion_lgl_as_int = strcmp(val, "string") == 0 ? PROP_LGL_AS_STR : PROP_LGL_AS_INT;
-    // } else if (strcmp(opt_name, "type") == 0) {
-    //   const char *val = CHAR(STRING_ELT(val_, 0));
-    //   opt.type = strcmp(val, "sf") == 0 ? SF_TYPE : SFC_TYPE;
-    if (strcmp(opt_name, "pretty") == 0) {
-      if (asLogical(val_)) {
-        opt.yyjson_write_flag |= YYJSON_WRITE_PRETTY_TWO_SPACES;
-      }
-    } else {
-      warning("geo_opt: Unknown option ignored: '%s'\n", opt_name);
-    }
+    // SEXP val_ = VECTOR_ELT(to_geo_opts_, i);
+    warning("opt_geojson_write(): Unknown option ignored: '%s'\n", opt_name);
   }
   return opt;
 }
@@ -148,7 +130,7 @@ SEXP sfc_to_str(SEXP sfc_, geo_serialize_options *opt) {
     yyjson_mut_doc_set_root(doc, val);
     
     yyjson_write_err err;
-    char *json = yyjson_mut_write_opts(doc, opt->yyjson_write_flag, NULL, NULL, &err);
+    char *json = yyjson_mut_write_opts(doc, opt->serialize_opt->yyjson_write_flag, NULL, NULL, &err);
     if (json == NULL) {
       yyjson_mut_doc_free(doc);
       error("Write to string error: %s code: %u\n", err.msg, err.code);
@@ -251,7 +233,7 @@ SEXP sf_to_str(SEXP sf_, geo_serialize_options *opt) {
   // Write the doc to a string
   //~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
   yyjson_write_err err;
-  char *json = yyjson_mut_write_opts(doc, opt->yyjson_write_flag, NULL, NULL, &err);
+  char *json = yyjson_mut_write_opts(doc, opt->serialize_opt->yyjson_write_flag, NULL, NULL, &err);
   if (json == NULL) {
     yyjson_mut_doc_free(doc);
     error("serialize_sf() Write to string error: %s code: %u\n", err.msg, err.code);
@@ -278,7 +260,7 @@ SEXP sf_to_file(SEXP sf_, SEXP filename_, geo_serialize_options *opt) {
   //~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
   const char *filename = CHAR(STRING_ELT(filename_, 0));
   yyjson_write_err err;
-  bool success = yyjson_mut_write_file(filename, doc, opt->yyjson_write_flag, NULL, &err);
+  bool success = yyjson_mut_write_file(filename, doc, opt->serialize_opt->yyjson_write_flag, NULL, &err);
   if (!success) {
     yyjson_mut_doc_free(doc);
     error("Write to file error '%s': %s code: %u\n", filename, err.msg, err.code);

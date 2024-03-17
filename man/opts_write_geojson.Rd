@@ -7,8 +7,12 @@
 opts_write_geojson()
 }
 \value{
-named list of options
+Named list of options specific to writing GeoJSON
 }
 \description{
 Currently no options available.
+}
+\examples{
+# Create a set of options to use when writing geojson
+opts_write_geojson()
 }

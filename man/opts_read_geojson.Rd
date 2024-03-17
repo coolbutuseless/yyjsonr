@@ -7,7 +7,7 @@
 opts_read_geojson(
   type = c("sf", "sfc"),
   property_promotion = c("string", "list"),
-  property_promotion_lgl_as_int = c("integer", "string")
+  property_promotion_lgl = c("integer", "string")
 )
 }
 \arguments{
@@ -17,15 +17,20 @@ opts_read_geojson(
 properties differ across a FEATURECOLLECTION?  E.g. if the property
 exists both as a numeric and a string, should all values be promoted
 to a 'string', or contained as different types in a 'list'.
-Default: 'string' will behave like 'geojsonsf'}
+Default: 'string' will behave like \code{geojsonsf} package.}
 
-\item{property_promotion_lgl_as_int}{when promoting properties into a string,
-should logical values become strings e.g. "TRUE" or integers
-e.g. "1".  Default: "integer" in order to match \code{geojsonsf} packages}
+\item{property_promotion_lgl}{when \code{property_promotion = "string"}
+should logical values become words (i.e. \code{"TRUE"}/\code{"FALSE"})
+or integers (i.e. \code{"1"}/\code{"0"}).
+Default: "integer" in order to match \code{geojsonsf} package}
 }
 \value{
-named list
+Named list of options specific to reading GeoJSON
 }
 \description{
 Options for reading in GeoJSON
+}
+\examples{
+# Create a set of options to use when reading geojson
+opts_read_geojson()
 }

@@ -23,11 +23,11 @@ this package for more details.
 
 ### What’s in the box
 
-This package contains specialised functions for each type of operation
+This package contains specialized functions for each type of operation
 (read/write/validate) and the storage location of the JSON
 (string/file/raw vector/connection).
 
-The matrix of available operations and storage is shown below:
+#### Vanilla JSON
 
 |          | string              | file                 | raw             | conn             | options           |
 |----------|---------------------|----------------------|-----------------|------------------|-------------------|
@@ -35,18 +35,39 @@ The matrix of available operations and storage is shown below:
 | write    | write_json_str()    | write_json_file()    |                 |                  | opts_write_json() |
 | validate | validate_json_str() | validate_json_file() |                 |                  |                   |
 
-### Comparison to other packages with read/write JSON
+#### NDJSON
 
-|          | Write JSON | Read JSON |
-|----------|------------|-----------|
-| yyjsonr  | Fast!      | Fast!     |
-| jsonlite | Yes        | Yes       |
-| jsonify  | Yes        | Yes       |
+|       | string             | file                | raw | conn | options           |
+|-------|--------------------|---------------------|-----|------|-------------------|
+| read  | read_ndjson_str()  | read_ndjson_file()  |     |      | opts_read_json()  |
+| write | write_ndjson_str() | write_ndjson_file() |     |      | opts_write_json() |
+
+#### GeoJSON
+
+|       | string              | file                 | raw | conn | options              |
+|-------|---------------------|----------------------|-----|------|----------------------|
+| read  | read_geojson_str()  | read_geojson_file()  |     |      | opts_read_geojson()  |
+| write | write_geojson_str() | write_geojson_file() |     |      | opts_write_geojson() |
+
+### Speed
+
+In the following plots, bigger is better, with `yyjsonr` results in
+blue.
+
+#### JSON
 
 <img src="man/figures/benchmark-summary.png">
 
-Note: Benchmarks were run on Apple M2 Mac. See file
-“man/benchmark/benchmark.Rmd” for details.
+#### NDJSON
+
+<img src="man/figures/benchmark-ndjson.png" width="75%">
+
+#### GeoJSON
+
+<img src="man/figures/benchmark-geojson.png" width="50%">
+
+Note: Benchmarks were run on Apple M2 Mac. See files
+`man/benchmark/benchmark*.Rmd` for details.
 
 ## Installation
 
@@ -95,17 +116,6 @@ read_json_str(str)
 #> 2          4.9         3.0          1.4         0.2  setosa
 #> 3          4.7         3.2          1.3         0.2  setosa
 ```
-
-## Future
-
-- Re-introduce NDJSON support
-  - NDJSON support was removed for the initial CRAN release for the sake
-    of my sanity.
-  - See the `ndjson` branch of this repository
-- Re-introduce GeoJSON support
-  - GeoJSON support was removed for the initial CRAN release for the
-    sake of my sanity.
-  - See the `geojson` branch of this repository
 
 ## Limitations
 

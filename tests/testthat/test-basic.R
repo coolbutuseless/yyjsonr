@@ -58,6 +58,11 @@ test_that("write_json_str works", {
   
   # Vectors with specials
   
+  
+  # Version string is sensible
+  version <- yyjson_version()
+  expect_length(version, 1)
+  expect_true(is.character(version))
 })
 
 

@@ -1,0 +1,136 @@
+---
+title: "Benchmarks"
+output: rmarkdown::html_vignette
+vignette: >
+  %\VignetteIndexEntry{Benchmarks}
+  %\VignetteEngine{knitr::rmarkdown}
+  %\VignetteEncoding{UTF-8}
+---
+
+```{r, include = FALSE}
+knitr::opts_chunk$set(
+  collapse = TRUE,
+  comment = "#>",
+  fig.width = 6,
+  fig.height = 4
+)
+```
+
+```{r setup}
+library(yyjsonr)
+library(bench)
+library(ggplot2)
+library(tidyr)
+library(ggbeeswarm)
+library(geojsonsf)
+library(sf)
+
+library(ndjson)
+```
+
+
+Benchmark overview
+==============================================================================
+
+* Benchmarking was done an Apple M2 Silicon.
+* Test-cases were drawn from other packages and other examples seen in the wild
+
+
+
+From GeoJSON String
+----------------------------------------------------------------------------
+
+```{r}
+res13 <- bench::mark(
+  geojsonsf    = geojsonsf::geojson_sf(geojsonsf::geo_melbourne),
+  yyjsonr      = yyjsonr::read_geojson_str(geojsonsf::geo_melbourne),
+  check = FALSE
+)
+
+```
+
+```{r echo=FALSE}
+res13$benchmark <- 'from GeoJSON string'
+knitr::kable(res13[,1:5])
+plot(res13) + theme_bw() + theme(legend.position = 'none')
+```
+
+
+To GeoJSON String
+----------------------------------------------------------------------------
+
+```{r}
+sf_obj <- sf::st_read(system.file("shape/nc.shp", package="sf"), quiet = TRUE)
+
+res14 <- bench::mark(
+  geojsonsf    = geojsonsf::sf_geojson(sf_obj),
+  yyjsonr      = yyjsonr::write_geojson_str(sf_obj),
+  check = FALSE
+)
+
+```
+
+```{r echo=FALSE}
+res14$benchmark <- 'to GeoJSON string'
+knitr::kable(res14[,1:5])
+plot(res14) + theme_bw() + theme(legend.position = 'none')
+```
+
+
+
+
+
+Summary
+===============================================================================
+
+```{r echo = FALSE, fig.width = 8, fig.height = 6}
+library(dplyr)
+plot_df <- bind_rows(
+  res13, res14
+)
+
+plot_df$benchmark <- factor(
+  plot_df$benchmark, 
+  levels = unique(plot_df$benchmark)
+)
+
+plot_df <- plot_df %>% 
+  mutate(
+    package = as.character(expression),
+    iters   = `itr/sec`,
+    speed   = iters
+  ) %>%
+  select(benchmark, package, iters, speed)
+
+plot_df <- plot_df %>%
+  group_by(benchmark) %>%
+  mutate(
+    ref_speed = speed[which(package %in% c('jsonlite', 'geojsonsf'))],
+    speed = speed / ref_speed
+  ) %>%
+  ungroup()
+
+ggplot(plot_df) + 
+  geom_col(aes(package, speed, fill = package), 
+           position = position_dodge2(preserve = "single")) + 
+  facet_wrap(~benchmark, scales = 'free_y', ncol = 3) + 
+  theme_bw(15) + 
+  theme(legend.position = 'none') + 
+  scale_fill_manual(values = c(rep(grey(0.5), 1), 'dodgerblue3')) +
+  geom_hline(yintercept = 1, color = 'red', alpha = 0.5, linetype = 2) + 
+  labs(
+    x = NULL,
+    y = "Factor speed increase\nover reference implementation",
+    title = "Speed-up compared to reference implementation",
+    subtitle = "Red line indicates reference implementation {geojsonsf}"
+  ) + 
+  scale_y_continuous(breaks = scales::pretty_breaks())
+
+if (FALSE) {
+  ggsave("./man/figures/benchmark-geojson.png", width = 7, height = 5)
+  # saveRDS(plot_df, "man/benchmark/cache-df-types.rds")
+}
+```
+
+
+

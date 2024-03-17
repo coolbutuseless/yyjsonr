@@ -5,23 +5,34 @@
 \alias{read_geojson_file}
 \title{Load GeoJSON as \code{sf} object}
 \usage{
-read_geojson_str(str, opts = list(), ...)
+read_geojson_str(str, opts = list(), ..., json_opts = list())
 
-read_geojson_file(filename, opts = list(), ...)
+read_geojson_file(filename, opts = list(), ..., json_opts = list())
 }
 \arguments{
-\item{str}{single character string containing GeoJSON}
+\item{str}{Single string containing GeoJSON}
 
-\item{opts}{named list of options. Usually created with \code{opts_read_geojson()}.
+\item{opts}{Named list of GeoJSON-specific options. Usually created
+with \code{opts_read_geojson()}.
 Default: empty \code{list()} to use the default options.}
 
-\item{...}{any extra named options override those in \code{opts}}
+\item{...}{Any extra named options override those in GeoJSON-specific options
+- \code{opts}}
 
-\item{filename}{filename}
+\item{json_opts}{Named list of vanilla JSON options as used by \code{read_json_str()}.
+This is usually created with \code{opts_read_json()}.  Default value is
+an empty \code{list()} which means to use all the default JSON parsing
+options which is usually the correct thing to do when reading GeoJSON.}
+
+\item{filename}{Filename}
 }
 \value{
 \code{sf} object
 }
 \description{
 Load GeoJSON as \code{sf} object
+}
+\examples{
+geojson_file <- system.file("geojson-example.json", package = 'yyjsonr')
+read_geojson_file(geojson_file)
 }

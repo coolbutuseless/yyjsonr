@@ -280,8 +280,8 @@ plot_df <- plot_df %>%
 ggplot(plot_df) + 
   geom_col(aes(package, speed, fill = package), 
            position = position_dodge2(preserve = "single")) + 
-  facet_wrap(~benchmark, scales = 'free_y', ncol = 3) + 
-  theme_bw() + 
+  facet_wrap(~benchmark, scales = 'free_y', nrow = 2) + 
+  theme_bw(15) + 
   theme(legend.position = 'none') + 
   scale_fill_manual(values = c(rep(grey(0.5), 2), 'dodgerblue3')) +
   geom_hline(yintercept = 1, color = 'red', alpha = 0.5, linetype = 2) + 
@@ -290,11 +290,12 @@ ggplot(plot_df) +
     y = "Factor speed increase over reference implementation",
     title = "Speed-up compared to reference implementation",
     subtitle = "Red line indicates reference implementation {jsonlite}"
-  )
+  ) + 
+  scale_y_continuous(breaks = scales::pretty_breaks())
 
 if (FALSE) {
-  ggsave("./man/figures/benchmark-summary.png", width = 12, height = 10)
-  saveRDS(plot_df, "man/benchmark/cache-df-types.rds")
+  ggsave("./man/figures/benchmark-summary.png", width = 12, height = 7)
+  # saveRDS(plot_df, "man/benchmark/cache-df-types.rds")
 }
 ```
 

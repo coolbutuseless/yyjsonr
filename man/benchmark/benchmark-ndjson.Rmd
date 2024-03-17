@@ -1,0 +1,193 @@
+---
+title: "Benchmarks"
+output: rmarkdown::html_vignette
+vignette: >
+  %\VignetteIndexEntry{Benchmarks}
+  %\VignetteEngine{knitr::rmarkdown}
+  %\VignetteEncoding{UTF-8}
+---
+
+```{r, include = FALSE}
+knitr::opts_chunk$set(
+  collapse = TRUE,
+  comment = "#>",
+  fig.width = 6,
+  fig.height = 4
+)
+```
+
+```{r setup}
+library(yyjsonr)
+library(bench)
+library(ggplot2)
+library(tidyr)
+library(ggbeeswarm)
+library(geojsonsf)
+library(sf)
+
+library(ndjson)
+```
+
+
+Benchmark overview
+==============================================================================
+
+* Benchmarking was done an Apple M2 Silicon.
+* Test-cases were drawn from other packages and other examples seen in the wild
+
+
+
+From NDJSON file
+-------------------------------------------------------------------------------
+
+
+```{r include = FALSE}
+ndjson_filename <- tempfile()
+df <- head( nycflights13::flights, 1000)
+jsonlite::stream_out(df, file(ndjson_filename), verbose = FALSE)
+
+res06 <- bench::mark(
+  ndjson   = ndjson::stream_in(ndjson_filename),
+  jsonlite = jsonlite::stream_in(file(ndjson_filename), verbose = FALSE),
+  jsonify  = jsonify::from_ndjson(ndjson_filename),
+  # arrow    = arrow::read_json_arrow(ndjson_filename),
+  yyjsonr  = yyjsonr::read_ndjson_file  (ndjson_filename),
+  # relative = TRUE,
+  check = FALSE
+)
+```
+
+```{r echo=FALSE}
+res06$benchmark <- 'From NDJSON File'
+knitr::kable(res06[, 1:5])
+plot(res06) + theme_bw() + theme(legend.position = 'none')
+```
+
+
+```{r echo=FALSE, eval=FALSE}
+library(dplyr)
+plot_df <- res06 %>%
+  mutate(package = as.character(expression)) %>%
+  rename(speed = `itr/sec`)
+
+ggplot(plot_df) + 
+  geom_col(aes(package, speed, fill = package), 
+           position = position_dodge2(preserve = "single")) + 
+  theme_bw(20) + 
+  theme(legend.position = 'none') + 
+  scale_fill_manual(values = c(rep(grey(0.5), 4), 'dodgerblue3')) +
+  geom_hline(yintercept = 1, color = 'red', alpha = 0.5, linetype = 2) + 
+  labs(
+    x = NULL,
+    y = "Factor speed increase over {jsonlite}",
+    title = "Reading NDJSON.  Speed-up compared to {jsonlite}",
+    subtitle = "Red line indicates reference implementation {jsonlite}"
+  )
+```
+
+
+
+
+To NDJSON File
+-------------------------------------------------------------------------------
+
+
+```{r include = FALSE}
+ndjson_filename <- tempfile()
+df <- head( nycflights13::flights, 1000)
+
+res07 <- bench::mark(
+  jsonlite = jsonlite::stream_out(df, file(ndjson_filename), verbose = FALSE),
+  yyjsonr  = yyjsonr::write_ndjson_file(df, ndjson_filename),
+  check = FALSE
+)
+```
+
+
+```{r echo=FALSE}
+res07$benchmark <- 'To NDJSON File'
+knitr::kable(res07[, 1:5])
+plot(res07) + theme_bw() + theme(legend.position = 'none')
+```
+
+
+To NDJSON String
+-------------------------------------------------------------------------------
+
+
+```{r message=FALSE, include = FALSE}
+ndjson_filename <- tempfile()
+df <- head( nycflights13::flights, 1000)
+
+res08 <- bench::mark(
+  jsonify  = jsonify::to_ndjson(df),
+  jsonlite = jsonlite::stream_out(df, con = textConnection(NULL, "w"), name = "greg", local = TRUE, verbose = FALSE),
+  yyjsonr  = yyjsonr::write_ndjson_str(df),
+  check = FALSE
+)
+```
+
+```{r echo=FALSE}
+res08$benchmark <- 'To NDJSON String'
+knitr::kable(res08[, 1:5])
+plot(res08) + theme_bw() + theme(legend.position = 'none')
+```
+
+
+
+
+
+Summary
+===============================================================================
+
+```{r echo = FALSE, fig.width = 8, fig.height = 6}
+library(dplyr)
+plot_df <- bind_rows(
+  res06, res07, res08
+)
+
+plot_df$benchmark <- factor(
+  plot_df$benchmark, 
+  levels = unique(plot_df$benchmark)
+)
+
+plot_df <- plot_df %>% 
+  mutate(
+    package = as.character(expression),
+    iters   = `itr/sec`,
+    speed   = iters
+  ) %>%
+  select(benchmark, package, iters, speed)
+
+plot_df <- plot_df %>%
+  group_by(benchmark) %>%
+  mutate(
+    ref_speed = speed[which(package %in% c('jsonlite', 'geojsonsf'))],
+    speed = speed / ref_speed
+  ) %>%
+  ungroup()
+
+ggplot(plot_df) + 
+  geom_col(aes(package, speed, fill = package), 
+           position = position_dodge2(preserve = "single")) + 
+  facet_wrap(~benchmark, scales = 'free_y', ncol = 3) + 
+  theme_bw(15) + 
+  theme(legend.position = 'none') + 
+  scale_fill_manual(values = c(rep(grey(0.5), 3), 'dodgerblue3')) +
+  geom_hline(yintercept = 1, color = 'red', alpha = 0.5, linetype = 2) + 
+  labs(
+    x = NULL,
+    y = "Factor speed increase\nover reference implementation",
+    title = "Speed-up compared to reference implementation",
+    subtitle = "Red line indicates reference implementation {jsonlite}"
+  ) +
+  scale_y_continuous(breaks = scales::pretty_breaks())
+
+if (FALSE) {
+  ggsave("./man/figures/benchmark-ndjson.png", width = 9, height = 5)
+  # saveRDS(plot_df, "man/benchmark/cache-df-types.rds")
+}
+```
+
+
+

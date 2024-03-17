@@ -5,9 +5,9 @@
 \alias{write_geojson_file}
 \title{Write SF to GeoJSON string}
 \usage{
-write_geojson_str(x, opts = list(), ..., digits = -1)
+write_geojson_str(x, opts = list(), ..., json_opts = list())
 
-write_geojson_file(x, filename, opts = list(), ..., digits = -1)
+write_geojson_file(x, filename, opts = list(), ..., json_opts = list())
 }
 \arguments{
 \item{x}{\code{sf} object. Supports \code{sf} or \code{sfc}}
@@ -17,16 +17,22 @@ Default: empty \code{list()} to use the default options.}
 
 \item{...}{any extra named options override those in \code{opts}}
 
-\item{digits}{decimal places to keep for floating point numbers. Default: -1.
-Positive values specify number of decimal places. Using zero will
-write the numeric value as an integer. Values less than zero mean that
-the floating point value should be written as-is (the default).}
+\item{json_opts}{Named list of vanilla JSON options as used by \code{write_json_str()}.
+This is usually created with \code{opts_write_json()}.  Default value is
+an empty \code{list()} which means to use all the default JSON writing
+options which is usually the correct thing to do when writing GeoJSON.}
 
 \item{filename}{filename}
 }
 \value{
-character string containing json
+Character string containing GeoJSON, or \code{NULL} if GeoJSON
+written to file.
 }
 \description{
 Write SF to GeoJSON string
+}
+\examples{
+geojson_file <- system.file("geojson-example.json", package = 'yyjsonr')
+sf <- read_geojson_file(geojson_file)
+cat(write_geojson_str(sf, json_opts = opts_write_json(pretty = TRUE)))
 }
