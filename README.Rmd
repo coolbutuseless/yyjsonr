@@ -116,7 +116,7 @@ remotes::install_github('coolbutuseless/yyjsonr')
 
 
 
-Simple usage example
+Simple JSON example
 ==============================================================================
 
 ```{r}
@@ -129,6 +129,17 @@ read_json_str(str)
 ```
 
 
+Simple GeoJSON example
+==============================================================================
+
+When parsing GeoJSON, `{yyjsonr}` returns an `sf` object.
+
+```{r}
+read_geojson_str(geojsonsf::geo_melbourne) |> 
+  head() |>
+  sf:::print.sf()
+```
+    
     
 ## Limitations
 

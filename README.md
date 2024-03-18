@@ -79,7 +79,7 @@ with:
 remotes::install_github('coolbutuseless/yyjsonr')
 ```
 
-# Simple usage example
+# Simple JSON example
 
 ``` r
 library(yyjsonr)
@@ -115,6 +115,35 @@ read_json_str(str)
 #> 1          5.1         3.5          1.4         0.2  setosa
 #> 2          4.9         3.0          1.4         0.2  setosa
 #> 3          4.7         3.2          1.3         0.2  setosa
+```
+
+# Simple GeoJSON example
+
+When parsing GeoJSON, `{yyjsonr}` returns an `sf` object.
+
+``` r
+read_geojson_str(geojsonsf::geo_melbourne) |> 
+  head() |>
+  sf:::print.sf()
+#> Simple feature collection with 6 features and 7 fields
+#> Geometry type: POLYGON
+#> Dimension:     XY
+#> Bounding box:  xmin: 144.8958 ymin: -37.86631 xmax: 145.0371 ymax: -37.75423
+#> Geodetic CRS:  WGS 84
+#>                 SA2_NAME polygonId           SA3_NAME AREASQKM fillColor
+#> 1             Abbotsford        70              Yarra   1.7405   #440154
+#> 2            Albert Park        59       Port Phillip   4.6747   #450457
+#> 3 Alphington - Fairfield        41    Darebin - South   2.8853   #46075A
+#> 4               Armadale        66 Stonnington - West   2.1835   #460A5D
+#> 5             Ascot Vale        44           Essendon   3.8361   #460C5F
+#> 6              Brunswick        36 Brunswick - Coburg   5.1425   #472D7B
+#>   strokeColor strokeWeight                       geometry
+#> 1     #440154            1 POLYGON ((144.9925 -37.8024...
+#> 2     #450457            1 POLYGON ((144.9449 -37.8437...
+#> 3     #46075A            1 POLYGON ((145.0204 -37.7654...
+#> 4     #460A5D            1 POLYGON ((145.0117 -37.8535...
+#> 5     #460C5F            1 POLYGON ((144.8994 -37.7704...
+#> 6     #472D7B            1 POLYGON ((144.9497 -37.7627...
 ```
 
 ## Limitations
