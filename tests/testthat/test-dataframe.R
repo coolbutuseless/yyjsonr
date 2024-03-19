@@ -95,7 +95,18 @@ test_that("array of nested json objects to data.frame", {
   )
   df$a <- list(10.1, "greg", NA)
   expect_equal(test, df)
-
+  
+  #~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+  #' Ordinary array with "NA" for missing values
+  #~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+  test <- read_json_str('{"x":null,"y":null,"z":3}',opts=yyjsonr::opts_read_json(any_single_null_elem=NA,arr_of_objs_to_df = T))
+  test
+  df <- list(
+    x = NA,
+    y = NA,
+    z=3
+  )
+  expect_equal(test, df)
   
   #~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
   #' Data.frame with explicit NULL

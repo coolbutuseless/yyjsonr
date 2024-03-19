@@ -169,6 +169,7 @@ yyjson_write_flag <- list(
 #'        be stored in this type.
 #' @param df_missing_list_elem R value to use when elements are missing in list 
 #'        columns in data.frames. Default: NULL
+#' @param any_single_null_elem R value to use for any single NULL element. Default: NULL
 #' @param obj_of_arrs_to_df logical. Should a named list of equal-length
 #'        vectors be promoted to a data.frame?  Default: TRUE.  If FALSE, then
 #'        result will be left as a list.
@@ -204,6 +205,7 @@ yyjson_write_flag <- list(
 opts_read_json <- function(
     promote_num_to_string = FALSE,
     df_missing_list_elem  = NULL,
+    any_single_null_elem  = NULL,
     obj_of_arrs_to_df     = TRUE,
     arr_of_objs_to_df     = TRUE,
     str_specials          = c('string', 'special'),
@@ -217,6 +219,7 @@ opts_read_json <- function(
     list(
       promote_num_to_string = isTRUE(promote_num_to_string),
       df_missing_list_elem  = df_missing_list_elem,
+      any_single_null_elem  = any_single_null_elem,
       obj_of_arrs_to_df     = isTRUE(obj_of_arrs_to_df),
       arr_of_objs_to_df     = isTRUE(arr_of_objs_to_df),
       length1_array_asis    = isTRUE(length1_array_asis),
