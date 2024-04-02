@@ -261,6 +261,8 @@ yyjson_mut_val *scalar_factor_to_json_val(SEXP factor_, R_xlen_t idx,  yyjson_mu
   
   if (opt->factor == FACTOR_AS_INT) {
     val =  scalar_integer_to_json_val(factor, doc, opt);
+  } else if (factor == NA_INTEGER) {
+    val = yyjson_mut_null(doc);
   } else {
     SEXP nms_ = getAttrib(factor_, R_LevelsSymbol);
     const char *nm = CHAR(STRING_ELT(nms_, factor - 1));
