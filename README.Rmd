@@ -107,12 +107,26 @@ Note: Benchmarks were run on Apple M2 Mac.  See files `man/benchmark/benchmark*.
 
 ## Installation
 
-You can install from [GitHub](https://github.com/coolbutuseless/yyjsonr) with:
+This package can be installed from CRAN
+
+``` r
+install.packages('yyjsonr')
+```
+
+
+You can install the latest development version from [GitHub](https://github.com/coolbutuseless/yyjsonr) with:
 
 ``` r
 # install.package('remotes')
 remotes::install_github('coolbutuseless/yyjsonr')
 ```
+
+Pre-built source/binary versions can also be installed from [r-universe](https://r-universe.dev)
+
+``` r
+install.packages('yyjsonr', repos = c('https://coolbutuseless.r-universe.dev', 'https://cloud.r-project.org'))
+```
+
 
 
 

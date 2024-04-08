@@ -209,10 +209,10 @@ double json_val_to_double(yyjson_val *val, parse_options *opt) {
   case YYJSON_TYPE_NUM:
     switch (yyjson_get_subtype(val)) {
     case YYJSON_SUBTYPE_UINT:
-      return yyjson_get_uint(val);
+      return (double)yyjson_get_uint(val);
       break;
     case YYJSON_SUBTYPE_SINT:
-      return yyjson_get_sint(val);
+      return (double)yyjson_get_sint(val);
       break;
     case YYJSON_SUBTYPE_REAL:
       return yyjson_get_real(val);

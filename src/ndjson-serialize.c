@@ -82,7 +82,7 @@ SEXP serialize_list_to_ndjson_str_(SEXP robj_, SEXP serialize_opts_) {
   // concatenate into single string for return to R
   unsigned int total_len = 1; // extra '1' for '\0' byte at end of string
   for (unsigned int idx = 0; idx < nelems; idx++) {
-    total_len += strlen(ndjson[idx]) + 1; // extra 1 for `\n' for each row.
+    total_len += (unsigned int)strlen(ndjson[idx]) + 1; // extra 1 for `\n' for each row.
     // Rprintf("Total length: %i\n", total_len);
   }
   char *total_str;
@@ -91,7 +91,7 @@ SEXP serialize_list_to_ndjson_str_(SEXP robj_, SEXP serialize_opts_) {
   unsigned int pos = 0;
   for (unsigned int idx = 0; idx < nelems; idx++) {
     strcpy(total_str + pos, ndjson[idx]);
-    pos += strlen(ndjson[idx]);
+    pos += (unsigned int)strlen(ndjson[idx]);
     total_str[pos] = '\n';
     pos++;
   }
@@ -319,7 +319,7 @@ SEXP serialize_df_to_ndjson_str_(SEXP robj_, SEXP serialize_opts_) {
   // concatenate into single string for return to R
   unsigned int total_len = 1; // extra '1' for '\0' byte at end of string
   for (unsigned int row = 0; row < nrows; row++) {
-    total_len += strlen(ndjson[row]) + 1; // extra 1 for `\n' for each row.
+    total_len += (unsigned int)strlen(ndjson[row]) + 1; // extra 1 for `\n' for each row.
     // Rprintf("Total length: %i\n", total_len);
   }
   char *total_str;
@@ -328,7 +328,7 @@ SEXP serialize_df_to_ndjson_str_(SEXP robj_, SEXP serialize_opts_) {
   unsigned int idx = 0;
   for (unsigned int row = 0; row < nrows; row++) {
     strcpy(total_str + idx, ndjson[row]);
-    idx += strlen(ndjson[row]);
+    idx += (unsigned int)strlen(ndjson[row]);
     if (row == nrows - 1) {
       total_str[idx] = '\0';
     } else {

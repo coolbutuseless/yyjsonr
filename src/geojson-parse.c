@@ -234,7 +234,7 @@ SEXP geojson_as_sf(yyjson_val *val, geo_parse_options *opt, unsigned int depth);
 //~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 unsigned int calc_matrix_coord_type(yyjson_val *arr, geo_parse_options *opt) {
   unsigned int coord_bitset = 0;
-  unsigned int coord_type;
+  unsigned int coord_type = COORD_XY;
   yyjson_arr_iter row_iter = yyjson_arr_iter_with(arr);
   yyjson_val *row;
   while ((row = yyjson_arr_iter_next(&row_iter))) {
@@ -497,7 +497,7 @@ SEXP parse_multilinestring(yyjson_val *obj, geo_parse_options *opt) {
   yyjson_arr_iter ring_iter = yyjson_arr_iter_with(linestrings);
   yyjson_val *coords;
   unsigned int ring_idx = 0;
-  unsigned int coord_type;
+  unsigned int coord_type = COORD_XY;
   while ((coords = yyjson_arr_iter_next(&ring_iter))) {
     
     coord_type = calc_matrix_coord_type(coords, opt);

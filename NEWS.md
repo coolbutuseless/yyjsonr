@@ -1,4 +1,9 @@
 
+# yyjsonr 0.1.18.9007 2024-04-09
+
+* Fix some compilation warnings.
+* Update documentation.
+
 # yyjsonr 0.1.18.9006 2024-04-02
 
 * Bug fix for serializing `NA` in factors

@@ -1,18 +1,19 @@
 Package: yyjsonr
 Type: Package
-Title: Fast JSON Parser and Generator 
-Version: 0.1.18.9006
+Title: Fast JSON, NDJSON and GeoJSON Parser and Generator 
+Version: 0.1.18.9007
 Authors@R: c(
     person("Mike", "Cheng", role = c("aut", "cre", 'cph'), 
     email = "mikefc@coolbutuseless.com"),
     person("Yao", "Yuan", role = c("aut", "cph"), email = "ibireme@gmail.com", 
     comment="Author of bundled yyjson"))
 Maintainer: Mike Cheng <mikefc@coolbutuseless.com>
-Description: A fast JSON parser, generator and validator which converts JSON 
-    data to/from R objects.  The standard R data types are supported 
-    (e.g. logical, numeric, integer) with configurable handling of NULL and NA 
-    values. Data frames, atomic vectors and lists are all supported as data 
-    containers translated to/from JSON.
+Description: A fast JSON parser, generator and validator which converts JSON, 
+    NDJSON and GeoJSON data to/from R objects.  The standard R data types are 
+    supported (e.g. logical, numeric, integer) with configurable handling of NULL 
+    and NA values. Data frames, atomic vectors and lists are all supported as data 
+    containers translated to/from JSON.  GeoJSON data is read in as
+    'simple features' objects.
     This implementation wraps the 'yyjson' 'C' library which 
     is available from <https://github.com/ibireme/yyjson>.
 License: MIT + file LICENSE
