@@ -3,6 +3,7 @@
 
 * Fix some compilation warnings.
 * Update documentation.
+* Update to yyjson v0.9.0
 
 # yyjsonr 0.1.18.9006 2024-04-02
 
