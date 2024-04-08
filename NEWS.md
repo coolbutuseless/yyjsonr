@@ -1,4 +1,8 @@
 
+# yyjsonr 0.1.18.9006 2024-04-02
+
+* Bug fix for serializing `NA` in factors
+
 # yyjsonr 0.1.18.9005 2024-03-16
 
 * Re-introduce GeoJSON support
