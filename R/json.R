@@ -143,7 +143,7 @@ write_json_file <- function(x, filename, opts = list(), ...) {
   .Call(
     serialize_to_file_, 
     x,
-    normalizePath(filename), 
+    normalizePath(filename, mustWork = FALSE), 
     modify_list(opts, list(...))
   )
   
