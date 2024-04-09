@@ -5,7 +5,7 @@
 \alias{yyjson_write_flag}
 \title{Advanced: Values for setting internal options directly on YYJSON library}
 \format{
-An object of class \code{list} of length 8.
+An object of class \code{list} of length 9.
 }
 \usage{
 yyjson_write_flag
@@ -46,6 +46,8 @@ escaped as \code{U+FFFD} (replacement character).
 This flag does not affect the performance of correctly encoded strings.}
 \item{YYJSON_WRITE_PRETTY_TWO_SPACES}{Write JSON pretty with 2 space indent.
 This flag will override \code{YYJSON_WRITE_PRETTY} flag.}
+\item{YYJSON_WRITE_NEWLINE_AT_END}{Adds a newline character
+at the end of the JSON. This can be helpful for text editors or NDJSON}
 }
 }
 \examples{

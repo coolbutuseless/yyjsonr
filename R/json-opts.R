@@ -136,6 +136,8 @@ yyjson_read_flag <- list(
 #' This flag does not affect the performance of correctly encoded strings.}
 #' \item{YYJSON_WRITE_PRETTY_TWO_SPACES}{Write JSON pretty with 2 space indent.
 #' This flag will override `YYJSON_WRITE_PRETTY` flag.}
+#' \item{YYJSON_WRITE_NEWLINE_AT_END}{Adds a newline character
+#' at the end of the JSON. This can be helpful for text editors or NDJSON}
 #' }
 #' 
 #' @export
@@ -146,14 +148,15 @@ yyjson_read_flag <- list(
 #' ))
 #~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 yyjson_write_flag <- list(
-  YYJSON_WRITE_NOFLAG                  =  0L,
-  YYJSON_WRITE_PRETTY                  =  1L,
-  YYJSON_WRITE_ESCAPE_UNICODE          =  2L,
-  YYJSON_WRITE_ESCAPE_SLASHES          =  4L,
-  YYJSON_WRITE_ALLOW_INF_AND_NAN       =  8L,
-  YYJSON_WRITE_INF_AND_NAN_AS_NULL     = 16L,
-  YYJSON_WRITE_ALLOW_INVALID_UNICODE   = 32L,
-  YYJSON_WRITE_PRETTY_TWO_SPACES       = 64L
+  YYJSON_WRITE_NOFLAG                  =   0L,
+  YYJSON_WRITE_PRETTY                  =   1L,
+  YYJSON_WRITE_ESCAPE_UNICODE          =   2L,
+  YYJSON_WRITE_ESCAPE_SLASHES          =   4L,
+  YYJSON_WRITE_ALLOW_INF_AND_NAN       =   8L,
+  YYJSON_WRITE_INF_AND_NAN_AS_NULL     =  16L,
+  YYJSON_WRITE_ALLOW_INVALID_UNICODE   =  32L,
+  YYJSON_WRITE_PRETTY_TWO_SPACES       =  64L,
+  YYJSON_WRITE_NEWLINE_AT_END          = 128L
 )
 
 
