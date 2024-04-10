@@ -686,12 +686,13 @@ yyjson_mut_val *env_to_json_object(SEXP env_, yyjson_mut_doc *doc, serialize_opt
   
   for (int i = 0; i < length(nms_); i++) {
     const char *varname = CHAR(STRING_ELT(nms_, i));
-    SEXP elem_ = Rf_findVarInFrame(env_, installChar(mkChar(varname)));
+    SEXP elem_ = PROTECT(Rf_findVarInFrame(env_, installChar(mkChar(varname))));
     if (elem_ != R_UnboundValue) {  
       yyjson_mut_val *key = yyjson_mut_strcpy(doc, varname);
       yyjson_mut_val *val = serialize_core(elem_, doc, opt);
       yyjson_mut_obj_add(obj, key, val);
     }
+    UNPROTECT(1);
   }
   
   UNPROTECT(nprotect);
@@ -746,7 +747,7 @@ yyjson_mut_val *named_list_to_json_object(SEXP list_, yyjson_mut_doc *doc, seria
   
   yyjson_mut_val *obj = yyjson_mut_obj(doc);
   
-  SEXP nms_ = getAttrib(list_, R_NamesSymbol);
+  SEXP nms_ = PROTECT(getAttrib(list_, R_NamesSymbol));
   
   for (int i = 0; i < length(list_); i++) {
     SEXP elem_ = VECTOR_ELT(list_, i);
@@ -764,6 +765,7 @@ yyjson_mut_val *named_list_to_json_object(SEXP list_, yyjson_mut_doc *doc, seria
     yyjson_mut_obj_add(obj, key, val);
   }
   
+  UNPROTECT(1);
   return obj;
 }
 
@@ -865,7 +867,7 @@ unsigned int *detect_data_frame_types(SEXP df_, serialize_options *opt) {
 yyjson_mut_val *data_frame_row_to_json_object(SEXP df_, unsigned int *col_type, unsigned int row, int skip_col, yyjson_mut_doc *doc, serialize_options *opt) {
   
   // get data.frame names
-  SEXP nms_ = getAttrib(df_, R_NamesSymbol);
+  SEXP nms_ = PROTECT(getAttrib(df_, R_NamesSymbol));
   unsigned int ncols = (unsigned int)length(df_);
   
   yyjson_mut_val *obj = yyjson_mut_obj(doc);
@@ -926,6 +928,7 @@ yyjson_mut_val *data_frame_row_to_json_object(SEXP df_, unsigned int *col_type, 
     }
   }
   
+  UNPROTECT(1);
   return obj;
 }
 

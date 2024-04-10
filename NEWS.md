@@ -1,8 +1,12 @@
 
 
+# yyjsonr 0.1.20 2024-04-10
+
+* Fix outstanding `rchk` errors
+
 # yyjsonr 0.1.19 2024-04-10
 
-* Release to CRAN
+* Prepare for CRAN
 
 # yyjsonr 0.1.18.9007 2024-04-09
 
