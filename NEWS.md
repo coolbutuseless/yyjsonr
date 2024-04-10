@@ -1,4 +1,9 @@
 
+
+# yyjsonr 0.1.19 2024-04-10
+
+* Release to CRAN
+
 # yyjsonr 0.1.18.9007 2024-04-09
 
 * Fix some compilation warnings.
