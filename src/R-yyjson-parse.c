@@ -1953,6 +1953,8 @@ SEXP parse_from_gzfile_(SEXP filename_, SEXP parse_opts_) {
   // Read tail end of .gz file to get length.
   // If uncompressed length > 4GB this method will fail as there are 
   // only 4-bytes reserved for the field!
+  // Stored as a little-endian 32bit int.  Reading this byte-by-byte
+  // to avoid an endianness issue on 32bit powerpc (Issue #39)
   //~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
   FILE *fp = fopen(filename, "rb");
   if (fp == NULL) {
@@ -1960,12 +1962,12 @@ SEXP parse_from_gzfile_(SEXP filename_, SEXP parse_opts_) {
   }
   
   fseek(fp, -4, SEEK_END);
-  int32_t uncompressed_len;
-  size_t nbytes = fread(&uncompressed_len, 1, 4, fp);
+  int32_t uncompressed_len = 0;
+  uncompressed_len += fgetc(fp);
+  uncompressed_len += fgetc(fp) <<  8;
+  uncompressed_len += fgetc(fp) << 16;
+  uncompressed_len += fgetc(fp) << 24;
   fclose(fp);
-  if (nbytes != 4) {
-    error("Couldn't read size from end of file: %s", filename);
-  }
   
   //~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
   // Allocate a buffer to hold the uncompressed file.
