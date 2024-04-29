@@ -8,6 +8,7 @@ yyjsonr
 <!-- badges: start -->
 
 ![](https://img.shields.io/badge/cool-useless-green.svg)
+[![CRAN](http://www.r-pkg.org/badges/version/yyjsonr)](https://cran.r-project.org/package=yyjsonr)
 [![R-CMD-check](https://github.com/coolbutuseless/yyjsonr/actions/workflows/R-CMD-check.yaml/badge.svg)](https://github.com/coolbutuseless/yyjsonr/actions/workflows/R-CMD-check.yaml)
 <!-- badges: end -->
 
@@ -18,8 +19,8 @@ In most cases it is around 2x to 10x faster than `{jsonlite}` at both
 reading and writing JSON.
 
 It is a wrapper for the [`yyjson`](https://github.com/ibireme/yyjson) C
-library (v0.8.0). `yysjon` is MIT licensed - see `LICENSE-yyjson.txt` in
-this package for more details.
+library (v0.9.0 April 8, 2024). `yysjon` is MIT licensed - see
+`LICENSE-yyjson.txt` in this package for more details.
 
 ### What’s in the box
 
@@ -71,12 +72,25 @@ Note: Benchmarks were run on Apple M2 Mac. See files
 
 ## Installation
 
-You can install from [GitHub](https://github.com/coolbutuseless/yyjsonr)
-with:
+This package can be installed from CRAN
+
+``` r
+install.packages('yyjsonr')
+```
+
+You can install the latest development version from
+[GitHub](https://github.com/coolbutuseless/yyjsonr) with:
 
 ``` r
 # install.package('remotes')
 remotes::install_github('coolbutuseless/yyjsonr')
+```
+
+Pre-built source/binary versions can also be installed from
+[R-universe](https://r-universe.dev)
+
+``` r
+install.packages('yyjsonr', repos = c('https://coolbutuseless.r-universe.dev', 'https://cloud.r-project.org'))
 ```
 
 # Simple JSON example
