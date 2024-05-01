@@ -1,4 +1,9 @@
 
+
+# yyjsonr 0.1.20.9001 2024-05-01
+
+* Fix underflow issue when trying to verbosely report an error at position 0
+
 # yyjsonr 0.1.20.9000 2024-04-12
 
 * Get size of gzipped file in an endian-neutral way. Issue #39

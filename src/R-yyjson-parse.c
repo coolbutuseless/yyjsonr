@@ -1820,9 +1820,11 @@ void output_verbose_error(const char *str, yyjson_read_err err) {
   
   // Print a "^" to point to the error
   size_t pos = ERR_CONTEXT;
-  pos = err.pos < ERR_CONTEXT ? err.pos - 1 : ERR_CONTEXT;
-  for (unsigned int i = 0; i < pos; i++) {
-    Rprintf(" ");
+  if (err.pos > 0) {
+    pos = err.pos < ERR_CONTEXT ? err.pos - 1 : ERR_CONTEXT;
+    for (unsigned int i = 0; i < pos; i++) {
+      Rprintf(" ");
+    }
   }
   Rprintf("^\n");
 }
