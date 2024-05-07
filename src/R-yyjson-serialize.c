@@ -37,6 +37,7 @@ serialize_options parse_serialize_options(SEXP serialize_opts_) {
     .num_specials      = NUM_SPECIALS_AS_NULL,
     .str_specials      = STR_SPECIALS_AS_NULL,
     .fast_numerics     = FALSE,
+    .json_verbatim     = FALSE,
     .yyjson_write_flag = 0,
   };
   
@@ -88,6 +89,8 @@ serialize_options parse_serialize_options(SEXP serialize_opts_) {
       opt.num_specials = strcmp(val, "string") == 0 ? NUM_SPECIALS_AS_STRING : NUM_SPECIALS_AS_NULL;
     } else if (strcmp(opt_name, "fast_numerics") == 0) {
       opt.fast_numerics = asLogical(val_);
+    } else if (strcmp(opt_name, "json_verbatim") == 0) {
+      opt.json_verbatim = asLogical(val_);
     } else {
       warning("Unknown option ignored: '%s'\n", opt_name);
     }
@@ -332,7 +335,14 @@ yyjson_mut_val *scalar_double_to_json_val(double rdbl, yyjson_mut_doc *doc, seri
 yyjson_mut_val *scalar_strsxp_to_json_val(SEXP str_, R_xlen_t idx, yyjson_mut_doc *doc, serialize_options *opt) {
   
   yyjson_mut_val *val;
+
+  // if "json"-classed and json_verbatim, write raw json:
+  if (Rf_inherits(str_, "json") && opt->json_verbatim) {
+    val = yyjson_mut_rawcpy(doc, CHAR(STRING_ELT(str_, idx)));
+    return val;
+  }
   
+  // otherwise write a json string:
   SEXP charsxp_ = STRING_ELT(str_, idx);
   if (charsxp_ == NA_STRING) {
     if (opt->str_specials == STR_SPECIALS_AS_STRING) {
@@ -343,7 +353,6 @@ yyjson_mut_val *scalar_strsxp_to_json_val(SEXP str_, R_xlen_t idx, yyjson_mut_do
   } else {
     val = yyjson_mut_strcpy(doc, CHAR(charsxp_));
   }
-  
   return val;
 }
 

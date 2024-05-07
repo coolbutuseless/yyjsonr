@@ -290,6 +290,7 @@ opts_write_json <- function(
     num_specials      = c('null', 'string'),
     str_specials      = c('null', 'string'),
     fast_numerics     = FALSE,
+    json_verbatim     = FALSE,
     yyjson_write_flag = 0L) {
   
   structure(
@@ -303,6 +304,7 @@ opts_write_json <- function(
       str_specials      = match.arg(str_specials),
       num_specials      = match.arg(num_specials),
       fast_numerics     = isTRUE(fast_numerics),
+      json_verbatim     = isTRUE(json_verbatim),
       yyjson_write_flag = as.integer(yyjson_write_flag)
     ),
     class = "opts_write_json"
