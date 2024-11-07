@@ -27,4 +27,4 @@ RUN install2.r --error --skipinstalled -n -1 \
 
 # Install Python packages
 COPY requirements.txt /tmp/pip-tmp/
-RUN python3 -m pip --disable-pip-version-check --no-cache-dir install -r /tmp/pip-tmp/requirements.txt
+RUN python3 -m pip --disable-pip-version-check --no-cache-dir install -r /tmp/pip-tmp/requirements.txt --break-system-packages
