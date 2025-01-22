@@ -96,8 +96,13 @@ int count_lines(const char *filename) {
 //   CON: Slower: Every object on every line gets allocated into an R object
 //        Compared to data.frame which allocates all its space at once and
 //        just slots values into this memory.
+//
+// @param filename filename containing ndjson data
+// @param nread_limit number of lines to read
+// @param nskip number of lines to skip before reading
+// @param parse_opts list of options for parsing.
 //~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
-SEXP parse_ndjson_file_as_list_(SEXP filename_, SEXP nread_, SEXP nskip_, SEXP parse_opts_) {
+SEXP parse_ndjson_file_as_list_(SEXP filename_, SEXP nread_limit_, SEXP nskip_, SEXP parse_opts_) {
   
   //~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
   // Buffer to read each line of the input file.
@@ -106,7 +111,7 @@ SEXP parse_ndjson_file_as_list_(SEXP filename_, SEXP nread_, SEXP nskip_, SEXP p
   
   parse_options opt = create_parse_options(parse_opts_);
   
-  int nread = asInteger(nread_);
+  int nread_limit = asInteger(nread_limit_);
   int nskip = asInteger(nskip_);
   
   //~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
@@ -152,17 +157,17 @@ SEXP parse_ndjson_file_as_list_(SEXP filename_, SEXP nread_, SEXP nskip_, SEXP p
   //        insert resulting robject into list
   //   - free the doc
   //~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
-  unsigned int i = 0;
+  unsigned int nread_actual = 0;
   while (gzgets(input, buf, MAX_LINE_LENGTH) != 0) {
     
-    if (i >= nread) {
+    if (nread_actual >= nread_limit) {
       break;
     }
     
     //~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
     // Grow list if we need more room
     //~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
-    if (i >= list_size) {
+    if (nread_actual >= list_size) {
       UNPROTECT(1);
       list_ = PROTECT(grow_list(list_));
       list_size = XLENGTH(list_);
@@ -177,31 +182,32 @@ SEXP parse_ndjson_file_as_list_(SEXP filename_, SEXP nread_, SEXP nskip_, SEXP p
     
     if (doc == NULL) {
       output_verbose_error(buf, err);
-      warning("Couldn't parse NDJSON row %i. Inserting 'NULL'\n", i + 1);
-      SET_VECTOR_ELT(list_, i, R_NilValue);
+      warning("Couldn't parse NDJSON row %i. Inserting 'NULL'\n", nread_actual + 1);
+      SET_VECTOR_ELT(list_, nread_actual, R_NilValue);
     } else {
-      SET_VECTOR_ELT(list_, i, parse_json_from_str(buf, strlen(buf), &opt));
+      SET_VECTOR_ELT(list_, nread_actual, parse_json_from_str(buf, strlen(buf), &opt));
     }
     
     yyjson_doc_free(doc);
     
-    i++;
+    nread_actual++;
   }
   
   //~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
-  // In-situ faux truncation of a VECSXP object.
-  // This just hides the trailing elements from R
+  // 'list_' is oversized 
+  // Need to copy list into a new list which contains just the valid elements
   //~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
-  SETLENGTH(list_, i);
-  SET_TRUELENGTH(list_, list_size);
-  SET_GROWABLE_BIT(list_);
+  SEXP final_list_ = PROTECT(allocVector(VECSXP, nread_actual));
+  for (int i = 0; i < nread_actual; ++i) {
+    SET_VECTOR_ELT(final_list_, i, VECTOR_ELT(list_, i));
+  }
   
   //~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
   // Close input, tidy memory and return
   //~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
   gzclose(input);
-  UNPROTECT(1);
-  return list_;
+  UNPROTECT(2);
+  return final_list_;
 }
 
 
@@ -320,11 +326,21 @@ SEXP parse_ndjson_str_as_list_(SEXP str_, SEXP nread_, SEXP nskip_, SEXP parse_o
   SET_TRUELENGTH(list_, list_size);
   SET_GROWABLE_BIT(list_);
   
+  
+  //~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+  // 'list_' is oversized 
+  // Need to copy list into a new list which contains just the valid elements
+  //~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+  SEXP final_list_ = PROTECT(allocVector(VECSXP, i));
+  for (int j = 0; j < i; ++j) {
+    SET_VECTOR_ELT(final_list_, j, VECTOR_ELT(list_, j));
+  }
+  
   //~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
   // Close input, tidy memory and return
   //~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
-  UNPROTECT(1);
-  return list_;
+  UNPROTECT(2);
+  return final_list_;
 }
 
 
