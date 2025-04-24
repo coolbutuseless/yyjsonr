@@ -339,23 +339,8 @@ SEXP parse_ndjson_str_as_list_(SEXP str_, SEXP nread_, SEXP nskip_, SEXP parse_o
 
 
 //~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
-// Truncate a single vector
-// @param vec_ SEXP
-// @param data_length the actual length of the data in the vector.
-//        data_length <= allocated_length
-// @param allocated_length the full length allocated for this vector
-//
-//~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
-void truncate_vector(SEXP vec_, int data_length, int allocated_length) {
-  SETLENGTH(vec_, data_length);
-  SET_TRUELENGTH(vec_, allocated_length);
-  SET_GROWABLE_BIT(vec_);
-}
-
-
-
-//~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
-// Truncate all the columns in a data.frame
+// Truncate all the vectors in a list to the same length.
+// This function operates in-situ
 //
 // @param df_ data.frame
 // @param data_length the actual length of the data in the vector.
@@ -365,7 +350,9 @@ void truncate_vector(SEXP vec_, int data_length, int allocated_length) {
 void truncate_list_of_vectors(SEXP df_, int data_length, int allocated_length) {
   if (data_length != allocated_length) {
     for (int i=0; i < length(df_); i++) {
-      truncate_vector(VECTOR_ELT(df_, i), data_length, allocated_length);
+      SEXP trunc_ = PROTECT(Rf_lengthgets(VECTOR_ELT(df_, i), data_length));
+      SET_VECTOR_ELT(df_, i, trunc_);
+      UNPROTECT(1);
     }
   }
 }
