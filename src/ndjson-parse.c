@@ -96,8 +96,13 @@ int count_lines(const char *filename) {
 //   CON: Slower: Every object on every line gets allocated into an R object
 //        Compared to data.frame which allocates all its space at once and
 //        just slots values into this memory.
+//
+// @param filename filename containing ndjson data
+// @param nread_limit number of lines to read
+// @param nskip number of lines to skip before reading
+// @param parse_opts list of options for parsing.
 //~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
-SEXP parse_ndjson_file_as_list_(SEXP filename_, SEXP nread_, SEXP nskip_, SEXP parse_opts_) {
+SEXP parse_ndjson_file_as_list_(SEXP filename_, SEXP nread_limit_, SEXP nskip_, SEXP parse_opts_) {
   
   //~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
   // Buffer to read each line of the input file.
@@ -106,7 +111,7 @@ SEXP parse_ndjson_file_as_list_(SEXP filename_, SEXP nread_, SEXP nskip_, SEXP p
   
   parse_options opt = create_parse_options(parse_opts_);
   
-  int nread = asInteger(nread_);
+  int nread_limit = asInteger(nread_limit_);
   int nskip = asInteger(nskip_);
   
   //~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
@@ -152,17 +157,17 @@ SEXP parse_ndjson_file_as_list_(SEXP filename_, SEXP nread_, SEXP nskip_, SEXP p
   //        insert resulting robject into list
   //   - free the doc
   //~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
-  unsigned int i = 0;
+  unsigned int nread_actual = 0;
   while (gzgets(input, buf, MAX_LINE_LENGTH) != 0) {
     
-    if (i >= nread) {
+    if (nread_actual >= nread_limit) {
       break;
     }
     
     //~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
     // Grow list if we need more room
     //~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
-    if (i >= list_size) {
+    if (nread_actual >= list_size) {
       UNPROTECT(1);
       list_ = PROTECT(grow_list(list_));
       list_size = XLENGTH(list_);
@@ -177,31 +182,32 @@ SEXP parse_ndjson_file_as_list_(SEXP filename_, SEXP nread_, SEXP nskip_, SEXP p
     
     if (doc == NULL) {
       output_verbose_error(buf, err);
-      warning("Couldn't parse NDJSON row %i. Inserting 'NULL'\n", i + 1);
-      SET_VECTOR_ELT(list_, i, R_NilValue);
+      warning("Couldn't parse NDJSON row %i. Inserting 'NULL'\n", nread_actual + 1);
+      SET_VECTOR_ELT(list_, nread_actual, R_NilValue);
     } else {
-      SET_VECTOR_ELT(list_, i, parse_json_from_str(buf, strlen(buf), &opt));
+      SET_VECTOR_ELT(list_, nread_actual, parse_json_from_str(buf, strlen(buf), &opt));
     }
     
     yyjson_doc_free(doc);
     
-    i++;
+    nread_actual++;
   }
   
   //~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
-  // In-situ faux truncation of a VECSXP object.
-  // This just hides the trailing elements from R
+  // 'list_' is oversized 
+  // Need to copy list into a new list which contains just the valid elements
   //~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
-  SETLENGTH(list_, i);
-  SET_TRUELENGTH(list_, list_size);
-  SET_GROWABLE_BIT(list_);
+  SEXP final_list_ = PROTECT(allocVector(VECSXP, nread_actual));
+  for (int i = 0; i < nread_actual; ++i) {
+    SET_VECTOR_ELT(final_list_, i, VECTOR_ELT(list_, i));
+  }
   
   //~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
   // Close input, tidy memory and return
   //~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
   gzclose(input);
-  UNPROTECT(1);
-  return list_;
+  UNPROTECT(2);
+  return final_list_;
 }
 
 
@@ -312,21 +318,80 @@ SEXP parse_ndjson_str_as_list_(SEXP str_, SEXP nread_, SEXP nskip_, SEXP parse_o
     str_size -= (pos + 1);
   }
   
+  
   //~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
-  // In-situ faux truncation of a VECSXP object.
-  // This just hides the trailing elements from R
+  // 'list_' is oversized 
+  // Need to copy list into a new list which contains just the valid elements
   //~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
-  SETLENGTH(list_, i);
-  SET_TRUELENGTH(list_, list_size);
-  SET_GROWABLE_BIT(list_);
+  SEXP final_list_ = PROTECT(allocVector(VECSXP, i));
+  for (int j = 0; j < i; ++j) {
+    SET_VECTOR_ELT(final_list_, j, VECTOR_ELT(list_, j));
+  }
+  
   
   //~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
   // Close input, tidy memory and return
   //~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
-  UNPROTECT(1);
-  return list_;
+  UNPROTECT(2);
+  return final_list_;
 }
 
+
+
+//~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+// Truncate all the vectors in a list to the same length.
+// This function operates in-situ
+//
+// @param df_ data.frame
+// @param data_length the actual length of the data in the vector.
+//        data_length <= allocated_length
+// @param allocated_length the full length allocated for this vector
+//~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+void truncate_list_of_vectors(SEXP df_, int data_length, int allocated_length) {
+  if (data_length != allocated_length) {
+    for (int i=0; i < length(df_); i++) {
+      SEXP trunc_ = PROTECT(Rf_lengthgets(VECTOR_ELT(df_, i), data_length));
+      SET_VECTOR_ELT(df_, i, trunc_);
+      UNPROTECT(1);
+    }
+  }
+}
+
+
+//~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+// Given a list of vectors (of all the same length), convert it to a 
+// data.frame
+//~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+SEXP promote_list_to_data_frame(SEXP df_, char **colname, int ncols) {
+  
+  int nprotect = 0;
+  
+  //~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+  // Set colnames on data.frame
+  //~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+  SEXP nms_ = PROTECT(allocVector(STRSXP, ncols)); nprotect++;
+  for (unsigned int i = 0; i < ncols; i++) {
+    SET_STRING_ELT(nms_, i, mkChar(colname[i]));
+  }
+  Rf_setAttrib(df_, R_NamesSymbol, nms_);
+  
+  //~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+  // Set empty rownames on data.frame
+  //~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+  int nrows = length(VECTOR_ELT(df_, 1));
+  SEXP rownames = PROTECT(allocVector(INTSXP, 2)); nprotect++;
+  SET_INTEGER_ELT(rownames, 0, NA_INTEGER);
+  SET_INTEGER_ELT(rownames, 1, -nrows);
+  setAttrib(df_, R_RowNamesSymbol, rownames);
+  
+  //~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+  // Set 'data.frame' class
+  //~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+  SET_CLASS(df_, mkString("data.frame"));
+  
+  UNPROTECT(nprotect);
+  return df_;
+}
 
 
 
@@ -472,7 +537,7 @@ SEXP parse_ndjson_file_as_df_(SEXP filename_, SEXP nread_, SEXP nskip_, SEXP npr
   gzclose(input);
   
   //~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
-  // Create a data.frame.
+  // Create a list (which will be promoted to a data.frame before returning)
   //~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
   SEXP df_ = PROTECT(allocVector(VECSXP, ncols)); nprotect++;
   
@@ -593,43 +658,12 @@ SEXP parse_ndjson_file_as_df_(SEXP filename_, SEXP nread_, SEXP nskip_, SEXP npr
   gzclose(input);
   
   
-  //~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
-  // Set colnames on data.frame
-  //~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
-  SEXP nms_ = PROTECT(allocVector(STRSXP, ncols)); nprotect++;
-  for (unsigned int i = 0; i < ncols; i++) {
-    SET_STRING_ELT(nms_, i, mkChar(colname[i]));
-  }
-  Rf_setAttrib(df_, R_NamesSymbol, nms_);
+  truncate_list_of_vectors(df_, row, nrows);
+  SEXP df_final_ = PROTECT(promote_list_to_data_frame(df_, colname, ncols)); nprotect++;
   
-  //~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
-  // Resize each data.frame column vector to match the actual data length
-  //~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
-  if (nrows != row) {
-    int allocated_length = nrows;
-    int data_length = row;
-    for (int i=0; i < length(df_); i++) {
-      SETLENGTH(VECTOR_ELT(df_, i), data_length);
-      SET_TRUELENGTH(VECTOR_ELT(df_, i), allocated_length);
-      SET_GROWABLE_BIT(VECTOR_ELT(df_, i));
-    }
-  }
-  
-  //~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
-  // Set empty rownames on data.frame
-  //~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
-  SEXP rownames = PROTECT(allocVector(INTSXP, 2)); nprotect++;
-  SET_INTEGER_ELT(rownames, 0, NA_INTEGER);
-  SET_INTEGER_ELT(rownames, 1, -row);
-  setAttrib(df_, R_RowNamesSymbol, rownames);
-  
-  //~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
-  // Set 'data.frame' class
-  //~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
-  SET_CLASS(df_, mkString("data.frame"));
   
   UNPROTECT(nprotect);
-  return df_;
+  return df_final_;
 }
 
 
@@ -781,7 +815,7 @@ SEXP parse_ndjson_str_as_df_(SEXP str_, SEXP nread_, SEXP nskip_, SEXP nprobe_, 
   
   
   //~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
-  // Create a data.frame.
+  // Create a list to hold vectors
   //~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
   SEXP df_ = PROTECT(allocVector(VECSXP, ncols)); nprotect++;
   
@@ -808,7 +842,7 @@ SEXP parse_ndjson_str_as_df_(SEXP str_, SEXP nread_, SEXP nskip_, SEXP nprobe_, 
       setAttrib(vec_, R_ClassSymbol, mkString("integer64"));
     }
     
-    // place vector into data.frame
+    // place vector into list
     SET_VECTOR_ELT(df_, col, vec_);
     UNPROTECT(1); // no longer needs protection once part of data.frame
   }
@@ -891,41 +925,12 @@ SEXP parse_ndjson_str_as_df_(SEXP str_, SEXP nread_, SEXP nskip_, SEXP nprobe_, 
     row++;
   }
   
+  //~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+  // Promote the 'list' of accumulated vectors to be a real 'data.frame'
+  //~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+  truncate_list_of_vectors(df_, row, nrows);
+  df_ = PROTECT(promote_list_to_data_frame(df_, colname, ncols));  nprotect++;
   
-  //~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
-  // Set colnames on data.frame
-  //~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
-  SEXP nms_ = PROTECT(allocVector(STRSXP, ncols)); nprotect++;
-  for (unsigned int i = 0; i < ncols; i++) {
-    SET_STRING_ELT(nms_, i, mkChar(colname[i]));
-  }
-  Rf_setAttrib(df_, R_NamesSymbol, nms_);
-  
-  //~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
-  // Resize each data.frame column vector to match the actual data length
-  //~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
-  if (nrows != row) {
-    int allocated_length = nrows;
-    int data_length      = row;
-    for (int i=0; i < length(df_); i++) {
-      SETLENGTH(VECTOR_ELT(df_, i), data_length);
-      SET_TRUELENGTH(VECTOR_ELT(df_, i), allocated_length);
-      SET_GROWABLE_BIT(VECTOR_ELT(df_, i));
-    }
-  }
-  
-  //~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
-  // Set empty rownames on data.frame
-  //~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
-  SEXP rownames = PROTECT(allocVector(INTSXP, 2)); nprotect++;
-  SET_INTEGER_ELT(rownames, 0, NA_INTEGER);
-  SET_INTEGER_ELT(rownames, 1, -row);
-  setAttrib(df_, R_RowNamesSymbol, rownames);
-  
-  //~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
-  // Set 'data.frame' class
-  //~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
-  SET_CLASS(df_, mkString("data.frame"));
   
   UNPROTECT(nprotect);
   return df_;

@@ -1,12 +1,10 @@
 
 
-# yyjsonr 0.1.20.9001 2024-05-01
+# yyjsonr 0.1.20.9002 2024-04-12
 
-* Fix underflow issue when trying to verbosely report an error at position 0
-
-# yyjsonr 0.1.20.9000 2024-04-12
-
-* Get size of gzipped file in an endian-neutral way. Issue #39
+* [9000] Get size of gzipped file in an endian-neutral way. Issue #39
+* [9001] Fix underflow issue when trying to verbosely report an error at position 0
+* [9002] Remove non-API calls: SETLENGTH, SET_TRUELENGTH, SET_GROWABLE_BIT
 
 # yyjsonr 0.1.20 2024-04-10
 
