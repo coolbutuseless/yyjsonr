@@ -318,14 +318,6 @@ SEXP parse_ndjson_str_as_list_(SEXP str_, SEXP nread_, SEXP nskip_, SEXP parse_o
     str_size -= (pos + 1);
   }
   
-  //~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
-  // In-situ faux truncation of a VECSXP object.
-  // This just hides the trailing elements from R
-  //~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
-  SETLENGTH(list_, i);
-  SET_TRUELENGTH(list_, list_size);
-  SET_GROWABLE_BIT(list_);
-  
   
   //~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
   // 'list_' is oversized 
@@ -336,6 +328,7 @@ SEXP parse_ndjson_str_as_list_(SEXP str_, SEXP nread_, SEXP nskip_, SEXP parse_o
     SET_VECTOR_ELT(final_list_, j, VECTOR_ELT(list_, j));
   }
   
+  
   //~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
   // Close input, tidy memory and return
   //~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
@@ -344,6 +337,15 @@ SEXP parse_ndjson_str_as_list_(SEXP str_, SEXP nread_, SEXP nskip_, SEXP parse_o
 }
 
 
+
+//~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+// Truncate a single vector
+// @param vec_ SEXP
+// @param data_length the actual length of the data in the vector.
+//        data_length <= allocated_length
+// @param allocated_length the full length allocated for this vector
+//
+//~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 void truncate_vector(SEXP vec_, int data_length, int allocated_length) {
   SETLENGTH(vec_, data_length);
   SET_TRUELENGTH(vec_, allocated_length);
@@ -352,10 +354,15 @@ void truncate_vector(SEXP vec_, int data_length, int allocated_length) {
 
 
 
+//~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+// Truncate all the columns in a data.frame
+//
+// @param df_ data.frame
+// @param data_length the actual length of the data in the vector.
+//        data_length <= allocated_length
+// @param allocated_length the full length allocated for this vector
+//~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 void truncate_list_of_vectors(SEXP df_, int data_length, int allocated_length) {
-  //~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
-  // Resize each data.frame column vector to match the actual data length
-  //~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
   if (data_length != allocated_length) {
     for (int i=0; i < length(df_); i++) {
       truncate_vector(VECTOR_ELT(df_, i), data_length, allocated_length);
@@ -364,6 +371,10 @@ void truncate_list_of_vectors(SEXP df_, int data_length, int allocated_length) {
 }
 
 
+//~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+// Given a list of vectors (of all the same length), convert it to a 
+// data.frame
+//~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 SEXP promote_list_to_data_frame(SEXP df_, char **colname, int ncols) {
   
   int nprotect = 0;
@@ -817,7 +828,7 @@ SEXP parse_ndjson_str_as_df_(SEXP str_, SEXP nread_, SEXP nskip_, SEXP nprobe_, 
   
   
   //~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
-  // Create a data.frame.
+  // Create a list to hold vectors
   //~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
   SEXP df_ = PROTECT(allocVector(VECSXP, ncols)); nprotect++;
   
@@ -844,7 +855,7 @@ SEXP parse_ndjson_str_as_df_(SEXP str_, SEXP nread_, SEXP nskip_, SEXP nprobe_, 
       setAttrib(vec_, R_ClassSymbol, mkString("integer64"));
     }
     
-    // place vector into data.frame
+    // place vector into list
     SET_VECTOR_ELT(df_, col, vec_);
     UNPROTECT(1); // no longer needs protection once part of data.frame
   }
@@ -927,41 +938,12 @@ SEXP parse_ndjson_str_as_df_(SEXP str_, SEXP nread_, SEXP nskip_, SEXP nprobe_, 
     row++;
   }
   
+  //~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+  // Promote the 'list' of accumulated vectors to be a real 'data.frame'
+  //~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+  truncate_list_of_vectors(df_, row, nrows);
+  df_ = PROTECT(promote_list_to_data_frame(df_, colname, ncols));  nprotect++;
   
-  //~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
-  // Set colnames on data.frame
-  //~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
-  SEXP nms_ = PROTECT(allocVector(STRSXP, ncols)); nprotect++;
-  for (unsigned int i = 0; i < ncols; i++) {
-    SET_STRING_ELT(nms_, i, mkChar(colname[i]));
-  }
-  Rf_setAttrib(df_, R_NamesSymbol, nms_);
-  
-  //~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
-  // Resize each data.frame column vector to match the actual data length
-  //~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
-  if (nrows != row) {
-    int allocated_length = nrows;
-    int data_length      = row;
-    for (int i=0; i < length(df_); i++) {
-      SETLENGTH(VECTOR_ELT(df_, i), data_length);
-      SET_TRUELENGTH(VECTOR_ELT(df_, i), allocated_length);
-      SET_GROWABLE_BIT(VECTOR_ELT(df_, i));
-    }
-  }
-  
-  //~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
-  // Set empty rownames on data.frame
-  //~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
-  SEXP rownames = PROTECT(allocVector(INTSXP, 2)); nprotect++;
-  SET_INTEGER_ELT(rownames, 0, NA_INTEGER);
-  SET_INTEGER_ELT(rownames, 1, -row);
-  setAttrib(df_, R_RowNamesSymbol, rownames);
-  
-  //~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
-  // Set 'data.frame' class
-  //~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
-  SET_CLASS(df_, mkString("data.frame"));
   
   UNPROTECT(nprotect);
   return df_;
