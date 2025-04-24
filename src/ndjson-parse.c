@@ -142,7 +142,9 @@ SEXP parse_ndjson_file_as_list_(SEXP filename_, SEXP nread_limit_, SEXP nskip_, 
   //~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
   // Allocating a list with a default starting size to grow into.
   //~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
-  SEXP list_ = PROTECT(allocVector(VECSXP, 64));
+  PROTECT_INDEX ipx;
+  SEXP list_;
+  PROTECT_WITH_INDEX(list_ = allocVector(VECSXP, 64), &ipx);
   R_xlen_t list_size = XLENGTH(list_);
   
   
@@ -168,8 +170,7 @@ SEXP parse_ndjson_file_as_list_(SEXP filename_, SEXP nread_limit_, SEXP nskip_, 
     // Grow list if we need more room
     //~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
     if (nread_actual >= list_size) {
-      UNPROTECT(1);
-      list_ = PROTECT(grow_list(list_));
+      REPROTECT(list_ = Rf_lengthgets(list_, 2 * list_size), ipx);
       list_size = XLENGTH(list_);
     }
     
@@ -197,17 +198,14 @@ SEXP parse_ndjson_file_as_list_(SEXP filename_, SEXP nread_limit_, SEXP nskip_, 
   // 'list_' is oversized 
   // Need to copy list into a new list which contains just the valid elements
   //~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
-  SEXP final_list_ = PROTECT(allocVector(VECSXP, nread_actual));
-  for (int i = 0; i < nread_actual; ++i) {
-    SET_VECTOR_ELT(final_list_, i, VECTOR_ELT(list_, i));
-  }
-  
+  REPROTECT(list_ = Rf_lengthgets(list_, nread_actual), ipx);
+
   //~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
   // Close input, tidy memory and return
   //~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
   gzclose(input);
-  UNPROTECT(2);
-  return final_list_;
+  UNPROTECT(1);
+  return list_;
 }
 
 
@@ -236,7 +234,9 @@ SEXP parse_ndjson_str_as_list_(SEXP str_, SEXP nread_, SEXP nskip_, SEXP parse_o
   //~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
   // Allocating a list with a default starting size to grow into.
   //~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
-  SEXP list_ = PROTECT(allocVector(VECSXP, 64));
+  PROTECT_INDEX ipx;
+  SEXP list_;
+  PROTECT_WITH_INDEX(list_ = allocVector(VECSXP, 64), &ipx);
   R_xlen_t list_size = XLENGTH(list_);
   
   
@@ -289,8 +289,7 @@ SEXP parse_ndjson_str_as_list_(SEXP str_, SEXP nread_, SEXP nskip_, SEXP parse_o
     // Grow list if we need more room
     //~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
     if (i >= list_size) {
-      UNPROTECT(1);
-      list_ = PROTECT(grow_list(list_));
+      REPROTECT(list_ = Rf_lengthgets(list_, 2 * list_size), ipx);
       list_size = XLENGTH(list_);
     }
     
@@ -323,17 +322,14 @@ SEXP parse_ndjson_str_as_list_(SEXP str_, SEXP nread_, SEXP nskip_, SEXP parse_o
   // 'list_' is oversized 
   // Need to copy list into a new list which contains just the valid elements
   //~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
-  SEXP final_list_ = PROTECT(allocVector(VECSXP, i));
-  for (int j = 0; j < i; ++j) {
-    SET_VECTOR_ELT(final_list_, j, VECTOR_ELT(list_, j));
-  }
+  REPROTECT(list_ = Rf_lengthgets(list_, i), ipx);
   
   
   //~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
   // Close input, tidy memory and return
   //~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
-  UNPROTECT(2);
-  return final_list_;
+  UNPROTECT(1);
+  return list_;
 }
 
 

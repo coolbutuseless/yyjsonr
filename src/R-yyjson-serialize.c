@@ -798,6 +798,8 @@ int is_named_list(SEXP list_) {
 //    for each col in data.frame
 //      add key/value to obj
 //    add obj to array
+//
+// Caller is responsible for freeing the returned 'unsigned int *'
 //===========================================================================
 unsigned int *detect_data_frame_types(SEXP df_, serialize_options *opt) {
   

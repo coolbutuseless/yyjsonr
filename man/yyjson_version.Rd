@@ -6,6 +6,9 @@
 \usage{
 yyjson_version()
 }
+\value{
+Version of included yyjson C library as a string
+}
 \description{
 Version number of 'yyjson' C library
 }

@@ -141,7 +141,7 @@ SEXP sfc_to_str(SEXP sfc_, geo_serialize_options *opt) {
   }
   
   
-  UNPROTECT(nprotect++);
+  UNPROTECT(nprotect);
   return geojson_;
 }
 
@@ -165,7 +165,8 @@ yyjson_mut_doc *sf_to_json(SEXP sf_, geo_serialize_options *opt) {
   // Determine index of geometry collection
   //~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
   int geom_col_idx = -1;
-  SEXP geom_col_name_ = getAttrib(sf_, mkString("sf_column"));
+  // SEXP geom_col_name_ = getAttrib(sf_, mkString("sf_column"));
+  SEXP geom_col_name_ = getAttrib(sf_, Rf_install("sf_column"));
   if (isNull(geom_col_name_)) {
     error("sf_to_str(): Couldn't determine 'sf_column' name");
   }
@@ -202,7 +203,7 @@ yyjson_mut_doc *sf_to_json(SEXP sf_, geo_serialize_options *opt) {
     // Add the feature to the array of features
     yyjson_mut_arr_add_val(features, feature);
   }
-
+  free(col_type);
   
   //~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
   // Feature collection
@@ -244,7 +245,7 @@ SEXP sf_to_str(SEXP sf_, geo_serialize_options *opt) {
   //~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
   SEXP geojson_ = PROTECT(mkString(json)); nprotect++;
   yyjson_mut_doc_free(doc);
-  UNPROTECT(nprotect++);
+  UNPROTECT(nprotect);
   return geojson_;
 }
 

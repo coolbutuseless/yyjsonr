@@ -99,6 +99,7 @@ SEXP serialize_list_to_ndjson_str_(SEXP robj_, SEXP serialize_opts_) {
   
   SEXP ndjson_ = PROTECT(allocVector(STRSXP, 1));
   SET_STRING_ELT(ndjson_, 0, mkChar(total_str));
+  free(total_str);
   free(ndjson);
   UNPROTECT(1);
   return ndjson_;
@@ -130,7 +131,7 @@ SEXP serialize_df_to_ndjson_file_(SEXP robj_, SEXP filename_, SEXP serialize_opt
   
   R_xlen_t ncols = xlength(robj_);
   R_xlen_t nrows = xlength(VECTOR_ELT(robj_, 0));
-  SEXP nms_ = getAttrib(robj_, R_NamesSymbol);
+  SEXP nms_ = PROTECT(getAttrib(robj_, R_NamesSymbol));
   
   FILE *file = NULL;
   const char *filename = CHAR(STRING_ELT(filename_, 0));
@@ -213,7 +214,7 @@ SEXP serialize_df_to_ndjson_file_(SEXP robj_, SEXP filename_, SEXP serialize_opt
   }
   
   fclose(file);
-  
+  UNPROTECT(1);
   return R_NilValue;
 }
 
@@ -243,7 +244,7 @@ SEXP serialize_df_to_ndjson_str_(SEXP robj_, SEXP serialize_opts_) {
   
   R_xlen_t ncols = xlength(robj_);
   R_xlen_t nrows = xlength(VECTOR_ELT(robj_, 0));
-  SEXP nms_ = getAttrib(robj_, R_NamesSymbol);
+  SEXP nms_ = PROTECT(getAttrib(robj_, R_NamesSymbol));
   
   char **ndjson = NULL;
   ndjson = (char **)calloc((unsigned long)nrows, sizeof(char *));      
@@ -339,8 +340,9 @@ SEXP serialize_df_to_ndjson_str_(SEXP robj_, SEXP serialize_opts_) {
   
   SEXP ndjson_ = PROTECT(allocVector(STRSXP, 1));
   SET_STRING_ELT(ndjson_, 0, mkChar(total_str));
+  free(total_str);
   free(ndjson);
-  UNPROTECT(1);
+  UNPROTECT(2);
   return ndjson_;
 }
 

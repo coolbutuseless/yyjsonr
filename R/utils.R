@@ -16,6 +16,7 @@ modify_list <- function(old, new) {
 #' Version number of 'yyjson' C library
 #' 
 #' @export
+#' @return Version of included yyjson C library as a string
 #' @examples
 #' yyjson_version()
 #~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
