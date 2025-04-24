@@ -344,6 +344,57 @@ SEXP parse_ndjson_str_as_list_(SEXP str_, SEXP nread_, SEXP nskip_, SEXP parse_o
 }
 
 
+void truncate_vector(SEXP vec_, int data_length, int allocated_length) {
+  SETLENGTH(vec_, data_length);
+  SET_TRUELENGTH(vec_, allocated_length);
+  SET_GROWABLE_BIT(vec_);
+}
+
+
+
+void truncate_list_of_vectors(SEXP df_, int data_length, int allocated_length) {
+  //~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+  // Resize each data.frame column vector to match the actual data length
+  //~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+  if (data_length != allocated_length) {
+    for (int i=0; i < length(df_); i++) {
+      truncate_vector(VECTOR_ELT(df_, i), data_length, allocated_length);
+    }
+  }
+}
+
+
+SEXP promote_list_to_data_frame(SEXP df_, char **colname, int ncols) {
+  
+  int nprotect = 0;
+  
+  //~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+  // Set colnames on data.frame
+  //~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+  SEXP nms_ = PROTECT(allocVector(STRSXP, ncols)); nprotect++;
+  for (unsigned int i = 0; i < ncols; i++) {
+    SET_STRING_ELT(nms_, i, mkChar(colname[i]));
+  }
+  Rf_setAttrib(df_, R_NamesSymbol, nms_);
+  
+  //~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+  // Set empty rownames on data.frame
+  //~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+  int nrows = length(VECTOR_ELT(df_, 1));
+  SEXP rownames = PROTECT(allocVector(INTSXP, 2)); nprotect++;
+  SET_INTEGER_ELT(rownames, 0, NA_INTEGER);
+  SET_INTEGER_ELT(rownames, 1, -nrows);
+  setAttrib(df_, R_RowNamesSymbol, rownames);
+  
+  //~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+  // Set 'data.frame' class
+  //~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+  SET_CLASS(df_, mkString("data.frame"));
+  
+  UNPROTECT(nprotect);
+  return df_;
+}
+
 
 
 
@@ -488,7 +539,7 @@ SEXP parse_ndjson_file_as_df_(SEXP filename_, SEXP nread_, SEXP nskip_, SEXP npr
   gzclose(input);
   
   //~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
-  // Create a data.frame.
+  // Create a list (which will be promoted to a data.frame before returning)
   //~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
   SEXP df_ = PROTECT(allocVector(VECSXP, ncols)); nprotect++;
   
@@ -609,43 +660,12 @@ SEXP parse_ndjson_file_as_df_(SEXP filename_, SEXP nread_, SEXP nskip_, SEXP npr
   gzclose(input);
   
   
-  //~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
-  // Set colnames on data.frame
-  //~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
-  SEXP nms_ = PROTECT(allocVector(STRSXP, ncols)); nprotect++;
-  for (unsigned int i = 0; i < ncols; i++) {
-    SET_STRING_ELT(nms_, i, mkChar(colname[i]));
-  }
-  Rf_setAttrib(df_, R_NamesSymbol, nms_);
+  truncate_list_of_vectors(df_, row, nrows);
+  SEXP df_final_ = PROTECT(promote_list_to_data_frame(df_, colname, ncols)); nprotect++;
   
-  //~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
-  // Resize each data.frame column vector to match the actual data length
-  //~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
-  if (nrows != row) {
-    int allocated_length = nrows;
-    int data_length = row;
-    for (int i=0; i < length(df_); i++) {
-      SETLENGTH(VECTOR_ELT(df_, i), data_length);
-      SET_TRUELENGTH(VECTOR_ELT(df_, i), allocated_length);
-      SET_GROWABLE_BIT(VECTOR_ELT(df_, i));
-    }
-  }
-  
-  //~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
-  // Set empty rownames on data.frame
-  //~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
-  SEXP rownames = PROTECT(allocVector(INTSXP, 2)); nprotect++;
-  SET_INTEGER_ELT(rownames, 0, NA_INTEGER);
-  SET_INTEGER_ELT(rownames, 1, -row);
-  setAttrib(df_, R_RowNamesSymbol, rownames);
-  
-  //~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
-  // Set 'data.frame' class
-  //~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
-  SET_CLASS(df_, mkString("data.frame"));
   
   UNPROTECT(nprotect);
-  return df_;
+  return df_final_;
 }
 
 
