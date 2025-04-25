@@ -1221,8 +1221,8 @@ yyjson_mut_val *serialize_core(SEXP robj_, yyjson_mut_doc *doc, serialize_option
   } else if (isNull(robj_)) {
     val = yyjson_mut_null(doc);
   } else {
-    warning("serialize_core(): Unhandled SEXP: %s\n", type2char((SEXPTYPE)TYPEOF(robj_)));
-    val = yyjson_mut_null(doc);
+    error("serialize_core(): Unhandled SEXP: %s\n", type2char((SEXPTYPE)TYPEOF(robj_)));
+    // val = yyjson_mut_null(doc);
   }
   
   return val;
