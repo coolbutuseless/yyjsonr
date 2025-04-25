@@ -461,7 +461,7 @@ SEXP parse_ndjson_file_as_df_(SEXP filename_, SEXP nread_, SEXP nskip_, SEXP npr
   // Each column also has a 'type_bitset' to keep track of the type of each
   // value across the different {}-objects
   //~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
-  char *colname[MAX_DF_COLS];
+  char *colname[MAX_DF_COLS] = { 0 };
   unsigned int type_bitset[MAX_DF_COLS] = {0};
   unsigned int sexp_type[MAX_DF_COLS] = {0};
   int ncols = 0;
@@ -516,9 +516,13 @@ SEXP parse_ndjson_file_as_df_(SEXP filename_, SEXP nread_, SEXP nskip_, SEXP npr
         }
       }
       if (name_idx < 0) {
-        // Name has not been seen yet
+        // Name has not been seen yet.
+        // Need to copy the string as the 'doc' it is from is freed at the end of every loop
         name_idx = ncols;
-        colname[ncols] = (char *)yyjson_get_str(key);
+        char *new_name = (char *)yyjson_get_str(key);
+        colname[ncols] = malloc(strlen(new_name) + 1);
+        if (colname[ncols] == 0) Rf_error("Failed to allocate 'colname'");
+        strncpy(colname[ncols], new_name, strlen(new_name));
         ncols++;
         if (ncols == MAX_DF_COLS) {
           error("Maximum columns for data.frame exceeded: %i", MAX_DF_COLS);
@@ -528,6 +532,7 @@ SEXP parse_ndjson_file_as_df_(SEXP filename_, SEXP nread_, SEXP nskip_, SEXP npr
       type_bitset[name_idx] = update_type_bitset(type_bitset[name_idx], val, &opt);
     }
     
+    yyjson_doc_free(doc);
   }
   
   gzclose(input);
@@ -648,6 +653,7 @@ SEXP parse_ndjson_file_as_df_(SEXP filename_, SEXP nread_, SEXP nskip_, SEXP npr
       
     }
     
+    yyjson_doc_free(doc);
     row++;
   }
   
@@ -656,6 +662,11 @@ SEXP parse_ndjson_file_as_df_(SEXP filename_, SEXP nread_, SEXP nskip_, SEXP npr
   
   truncate_list_of_vectors(df_, row, nrows);
   SEXP df_final_ = PROTECT(promote_list_to_data_frame(df_, colname, ncols)); nprotect++;
+  
+  // 'colname' strings were allocated and copied from their original yyjson docs. FREE!
+  for (int i = 0; i < ncols; i++) {
+    free(colname[i]);
+  }
   
   
   UNPROTECT(nprotect);
@@ -724,7 +735,7 @@ SEXP parse_ndjson_str_as_df_(SEXP str_, SEXP nread_, SEXP nskip_, SEXP nprobe_, 
   // Each column also has a 'type_bitset' to keep track of the type of each
   // value across the different {}-objects
   //~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
-  char *colname[MAX_DF_COLS];
+  char *colname[MAX_DF_COLS] = { 0 };
   unsigned int type_bitset[MAX_DF_COLS] = {0};
   unsigned int sexp_type[MAX_DF_COLS] = {0};
   int ncols = 0;
@@ -762,7 +773,9 @@ SEXP parse_ndjson_str_as_df_(SEXP str_, SEXP nread_, SEXP nskip_, SEXP nprobe_, 
       if (name_idx < 0) {
         // Name has not been seen yet
         name_idx = ncols;
-        colname[ncols] = (char *)yyjson_get_str(key);
+        char *new_name = (char *)yyjson_get_str(key);
+        colname[ncols] = malloc(strlen(new_name) + 1);
+        strncpy(colname[ncols], new_name, strlen(new_name));
         ncols++;
         if (ncols == MAX_DF_COLS) {
           error("Maximum columns for data.frame exceeded: %i", MAX_DF_COLS);
@@ -771,6 +784,8 @@ SEXP parse_ndjson_str_as_df_(SEXP str_, SEXP nread_, SEXP nskip_, SEXP nprobe_, 
       
       type_bitset[name_idx] = update_type_bitset(type_bitset[name_idx], val, &opt);
     }
+    
+    yyjson_doc_free(doc);
     
     //~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
     // Advance string 
@@ -910,6 +925,8 @@ SEXP parse_ndjson_str_as_df_(SEXP str_, SEXP nread_, SEXP nskip_, SEXP nprobe_, 
       
     }
     
+    yyjson_doc_free(doc);
+    
     //~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
     // Advance string 
     //~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
@@ -926,6 +943,11 @@ SEXP parse_ndjson_str_as_df_(SEXP str_, SEXP nread_, SEXP nskip_, SEXP nprobe_, 
   //~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
   truncate_list_of_vectors(df_, row, nrows);
   df_ = PROTECT(promote_list_to_data_frame(df_, colname, ncols));  nprotect++;
+  
+  // Free the 'colnames' we copied out of JSON docs when probing
+  for (int i = 0; i < ncols; i++) {
+    free(colname[i]);
+  }
   
   
   UNPROTECT(nprotect);
