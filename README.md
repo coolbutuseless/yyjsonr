@@ -31,11 +31,11 @@ This package contains specialized functions for each type of operation
 
 #### Vanilla JSON
 
-|          | string              | file                 | raw             | conn             | options           |
-|----------|---------------------|----------------------|-----------------|------------------|-------------------|
-| read     | read_json_str()     | read_json_file()     | read_json_raw() | read_json_conn() | opts_read_json()  |
-| write    | write_json_str()    | write_json_file()    |                 |                  | opts_write_json() |
-| validate | validate_json_str() | validate_json_file() |                 |                  |                   |
+|  | string | file | raw | conn | options |
+|----|----|----|----|----|----|
+| read | read_json_str() | read_json_file() | read_json_raw() | read_json_conn() | opts_read_json() |
+| write | write_json_str() | write_json_file() |  |  | opts_write_json() |
+| validate | validate_json_str() | validate_json_file() |  |  |  |
 
 #### NDJSON
 
@@ -163,15 +163,9 @@ read_geojson_str(geojsonsf::geo_melbourne) |>
 
 ## Limitations
 
-- Some datatypes not currently supported. Please file an issue on GitHub
-  if these types are critical for you. Providing test cases also
+- Some datatypes are not currently supported. Please file an issue on
+  GitHub if these types are critical for you. Providing test cases also
   appreciated!:
   - Complex numbers
   - POSIXlt
   - Matrices of POSIXct / Date
-
-## Acknowledgements
-
-- R Core for developing and maintaining the language.
-- CRAN maintainers, for patiently shepherding packages onto CRAN and
-  maintaining the repository

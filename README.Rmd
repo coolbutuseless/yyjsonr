@@ -54,7 +54,7 @@ if (FALSE) {
 
 In most cases it is around 2x to 10x faster than `{jsonlite}` at both reading and writing JSON.
 
-It is a wrapper for the [`yyjson`](https://github.com/ibireme/yyjson) C library (v0.9.0 April 8, 2024).
+It is a wrapper for the [`yyjson`](https://github.com/ibireme/yyjson) C library (v0.10.0 July 9, 2024).
 `yyjson` is MIT licensed - see `LICENSE-yyjson.txt` in this package for more details - 
 `readLines(system.file('LICENSE-yyjson.txt', package = 'yyjsonr', mustWork = TRUE))`
 
@@ -159,15 +159,10 @@ read_geojson_str(geojsonsf::geo_melbourne) |>
     
 ## Limitations
 
-* Some datatypes not currently supported. Please file an issue on GitHub if
+* Some datatypes are not currently supported. Please file an issue on GitHub if
   these types are critical for you.  Providing test cases also appreciated!:
     * Complex numbers
     * POSIXlt
     * Matrices of POSIXct / Date
 
 
-## Acknowledgements
-
-* R Core for developing and maintaining the language.
-* CRAN maintainers, for patiently shepherding packages onto CRAN and maintaining
-  the repository
