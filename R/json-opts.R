@@ -240,8 +240,13 @@ opts_read_json <- function(
 #'        Positive values specify number of decimal places. Using zero will
 #'        write the numeric value as an integer. Values less than zero mean that
 #'        the floating point value should be written as-is (the default).
+#'        This argument is ignored if \code{signif} is greater than zero.
 #' @param digits_secs decimal places for fractional seconds when converting
 #'        times to a string representation. Default: 0.  Valid range: 0 to 6
+#' @param signif significant decimal places to store in floating point numbers.
+#'        Default: -1 means to output the number as-is (while respecting the 
+#'        \code{sigits}) argument.  Values above 0 will produce rounding to
+#'        the given number of places and the \code{digits} argument will be ignored.
 #' @param dataframe how to encode data.frame objects. Options 'rows' or 
 #'        columns'.  Default: 'rows'
 #' @param factor how to encode factor objects: must be one of 'string' or 'integer'
@@ -285,6 +290,7 @@ opts_read_json <- function(
 opts_write_json <- function( 
     digits            = -1L,
     digits_secs       =  0L,
+    signif            = -1L,
     pretty            = FALSE,
     auto_unbox        = FALSE,
     dataframe         = c("rows", "columns"),
@@ -299,6 +305,7 @@ opts_write_json <- function(
     list(
       digits            = as.integer(digits),
       digits_secs       = as.integer(digits_secs),
+      signif            = as.integer(signif),
       dataframe         = match.arg(dataframe),
       factor            = match.arg(factor),
       auto_unbox        = isTRUE(auto_unbox),

@@ -7,6 +7,7 @@
 opts_write_json(
   digits = -1L,
   digits_secs = 0L,
+  signif = -1L,
   pretty = FALSE,
   auto_unbox = FALSE,
   dataframe = c("rows", "columns"),
@@ -22,10 +23,16 @@ opts_write_json(
 \item{digits}{decimal places to keep for floating point numbers. Default: -1.
 Positive values specify number of decimal places. Using zero will
 write the numeric value as an integer. Values less than zero mean that
-the floating point value should be written as-is (the default).}
+the floating point value should be written as-is (the default).
+This argument is ignored if \code{signif} is greater than zero.}
 
 \item{digits_secs}{decimal places for fractional seconds when converting
 times to a string representation. Default: 0.  Valid range: 0 to 6}
+
+\item{signif}{significant decimal places to store in floating point numbers.
+Default: -1 means to output the number as-is (while respecting the
+\code{sigits}) argument.  Values above 0 will produce rounding to
+the given number of places and the \code{digits} argument will be ignored.}
 
 \item{pretty}{Logical value indicating if the created JSON string should have
 whitespace for indentation and linebreaks. Default: FALSE.

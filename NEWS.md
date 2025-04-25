@@ -11,6 +11,7 @@
 * [9005] Depends on R >= 4.1.0 (using new pipe and lambda syntax in examples)
 * [9006] Added `digits_secs` to control conversion of POSIXct datetimes with 
          fractional seconds
+* [9006] Added `signif` to control significant digits in numeric representation
 
 # yyjsonr 0.1.20 2024-04-10
 

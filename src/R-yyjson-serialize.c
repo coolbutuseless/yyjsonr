@@ -34,6 +34,7 @@ serialize_options parse_serialize_options(SEXP serialize_opts_) {
     .auto_unbox        = FALSE,
     .digits            = -1,
     .digits_secs       =  0,
+    .signif            = -1,
     .name_repair       = NAME_REPAIR_NONE,
     .num_specials      = NUM_SPECIALS_AS_NULL,
     .str_specials      = STR_SPECIALS_AS_NULL,
@@ -62,6 +63,8 @@ serialize_options parse_serialize_options(SEXP serialize_opts_) {
     
     if (strcmp(opt_name, "digits") == 0) {
       opt.digits = asInteger(val_);
+    } else if (strcmp(opt_name, "signif") == 0) {
+      opt.signif = asInteger(val_);
     } else if (strcmp(opt_name, "digits_secs") == 0) {
       opt.digits_secs = asInteger(val_);
       if (opt.digits_secs < 0 || opt.digits_secs > 6) {
@@ -296,6 +299,19 @@ static double fac[20] = {1, 10, 100, 1000, 10000, 1e+05, 1e+06, 1e+07, 1e+08,
                          1e+09, 1e+10, 1e+11, 1e+12, 1e+13, 1e+14, 1e+15, 
                          1e+16, 1e+17, 1e+18, 1e+19};
 
+
+//~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+// Create a value with the given number of significant digits
+//~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+double signif(double value, int digits) {
+  if (value == 0.0) 
+    return 0.0;
+  
+  double factor = pow(10.0, digits - ceil(log10(fabs(value))));
+  return round(value * factor) / factor;   
+}
+
+
 //===========================================================================
 // Scalar double to JSON value
 //===========================================================================
@@ -318,7 +334,9 @@ yyjson_mut_val *scalar_double_to_json_val(double rdbl, yyjson_mut_doc *doc, seri
       }
     }
   } else if ( R_FINITE(rdbl) ) {
-    if (opt->digits < 0) {
+    if (opt->signif > 0) {
+      val = yyjson_mut_real(doc, signif(rdbl, opt->signif));
+    } else if (opt->digits < 0) {
       val = yyjson_mut_real(doc, rdbl);
     } else if (opt->digits == 0) {
       // round to integer
