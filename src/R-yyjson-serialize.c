@@ -682,7 +682,7 @@ yyjson_mut_val *env_to_json_object(SEXP env_, yyjson_mut_doc *doc, serialize_opt
   yyjson_mut_val *obj = yyjson_mut_obj(doc);
   
   // List of variables in an environment
-  SEXP nms_ = PROTECT(R_lsInternal(env_, TRUE)); nprotect++;
+  SEXP nms_ = PROTECT(R_lsInternal3(env_, TRUE, FALSE)); nprotect++;
   
   for (int i = 0; i < length(nms_); i++) {
     const char *varname = CHAR(STRING_ELT(nms_, i));
