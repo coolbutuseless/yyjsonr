@@ -1176,7 +1176,8 @@ yyjson_mut_val *serialize_core(SEXP robj_, yyjson_mut_doc *doc, serialize_option
       error("multidimensional arrays with ndims > 3 not yet handled");
     }
     val = dim3_matrix_to_col_major_array(robj_, doc, opt);
-  } else if (opt->auto_unbox && isVectorAtomic(robj_) && length(robj_) == 1) {
+  } else if (isVectorAtomic(robj_) && length(robj_) == 1 && 
+    (opt->auto_unbox || Rf_inherits(robj_, "scalar"))) {
     if (inherits(robj_, "AsIs")) {
       val = vector_to_json_array(robj_, doc, opt);
     } else {
