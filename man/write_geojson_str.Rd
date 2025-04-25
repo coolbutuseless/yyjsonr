@@ -29,7 +29,7 @@ Character string containing GeoJSON, or \code{NULL} if GeoJSON
 written to file.
 }
 \description{
-Write SF to GeoJSON string
+Coordinate reference system is always WGS84 in accordance with GeoJSON RFC.
 }
 \examples{
 geojson_file <- system.file("geojson-example.json", package = 'yyjsonr')

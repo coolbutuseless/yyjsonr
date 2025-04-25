@@ -30,7 +30,7 @@ options which is usually the correct thing to do when reading GeoJSON.}
 \code{sf} object
 }
 \description{
-Load GeoJSON as \code{sf} object
+Coordinate reference system is always WGS84 in accordance with GeoJSON RFC.
 }
 \examples{
 geojson_file <- system.file("geojson-example.json", package = 'yyjsonr')

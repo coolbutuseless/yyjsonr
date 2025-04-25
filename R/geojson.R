@@ -59,6 +59,8 @@ opts_write_geojson <- function() {
 #~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 #' Load GeoJSON as \code{sf} object
 #' 
+#' Coordinate reference system is always WGS84 in accordance with GeoJSON RFC.
+#' 
 #' @param filename Filename
 #' @param str Single string containing GeoJSON
 #' @param opts Named list of GeoJSON-specific options. Usually created 
@@ -107,6 +109,8 @@ read_geojson_file <- function(filename, opts = list(), ..., json_opts = list()) 
 
 #~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 #' Write SF to GeoJSON string
+#' 
+#' Coordinate reference system is always WGS84 in accordance with GeoJSON RFC.
 #' 
 #' @param x \code{sf} object. Supports \code{sf} or \code{sfc}
 #' @param filename filename
