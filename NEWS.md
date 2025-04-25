@@ -1,6 +1,6 @@
 
 
-# yyjsonr 0.1.20.9005 2025-04-25
+# yyjsonr 0.1.20.9006 2025-04-25
 
 * [9000] Get size of gzipped file in an endian-neutral way. Issue #39
 * [9001] Fix underflow issue when trying to verbosely report an error at position 0
@@ -8,7 +8,9 @@
 * [9003] Addressing valgrind/rchk errors
 * [9004] Updating to yyjson C library version 0.10.0
 * [9005] Addressing valgrind/rchk errors
-* [9005] Depende on R >= 4.1.0 (using new pipe and lambda syntax in examples)
+* [9005] Depends on R >= 4.1.0 (using new pipe and lambda syntax in examples)
+* [9006] Added `digits_secs` to control conversion of POSIXct datetimes with 
+         fractional seconds
 
 # yyjsonr 0.1.20 2024-04-10
 

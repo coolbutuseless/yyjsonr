@@ -33,6 +33,7 @@ serialize_options parse_serialize_options(SEXP serialize_opts_) {
     .factor            = FACTOR_AS_STR,
     .auto_unbox        = FALSE,
     .digits            = -1,
+    .digits_secs       =  0,
     .name_repair       = NAME_REPAIR_NONE,
     .num_specials      = NUM_SPECIALS_AS_NULL,
     .str_specials      = STR_SPECIALS_AS_NULL,
@@ -61,6 +62,11 @@ serialize_options parse_serialize_options(SEXP serialize_opts_) {
     
     if (strcmp(opt_name, "digits") == 0) {
       opt.digits = asInteger(val_);
+    } else if (strcmp(opt_name, "digits_secs") == 0) {
+      opt.digits_secs = asInteger(val_);
+      if (opt.digits_secs < 0 || opt.digits_secs > 6) {
+        Rf_error("'digits_secs' must be in range [0, 6]");
+      }
     } else if (strcmp(opt_name, "dataframe") == 0) {
       const char *tmp = CHAR(STRING_ELT(val_, 0));
       opt.data_frame = strcmp(tmp, "rows") == 0 ? DATAFRAME_BY_ROW : DATAFRAME_BY_COL;
@@ -208,16 +214,17 @@ yyjson_mut_val *scalar_date_to_json_val(SEXP vec_, R_xlen_t idx, yyjson_mut_doc 
 // 
 //~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 yyjson_mut_val *scalar_posixct_to_json_val(SEXP vec_, R_xlen_t idx, yyjson_mut_doc *doc, serialize_options *opt) {
-  char buf[50];
   
   double seconds = 0;
+  double intpart = 0;
+  double frac    = 0;
   
   if (isReal(vec_)) {
     seconds = REAL(vec_)[idx];
-    
     if (!R_FINITE(seconds)) {
       return yyjson_mut_null(doc);
     }
+    frac = modf(seconds, &intpart);
   } else if (isInteger(vec_)) {
     uint32_t seconds_int = (uint32_t)INTEGER(vec_)[idx];
     if (seconds_int == INT32_MIN) { // NA
@@ -230,8 +237,19 @@ yyjson_mut_val *scalar_posixct_to_json_val(SEXP vec_, R_xlen_t idx, yyjson_mut_d
   
   time_t tt = (time_t)seconds;
   struct tm *st = gmtime(&tt);
-  strftime(buf, 50, "%Y-%m-%d %H:%M:%S", st);
-  yyjson_mut_val *val = yyjson_mut_strcpy(doc, buf);
+  char buf[100];
+  strftime(buf, 100, "%Y-%m-%d %H:%M:%S", st);
+  
+  yyjson_mut_val *val;
+  
+  if (opt->digits_secs > 0) {
+    char buf2[150];
+    char *fs[7] = {"%s", "%s.%01i", "%s.%02i", "%s.%03i", "%s.%04i", "%s.%05i", "%s.%06i"};
+    snprintf(buf2, 150, fs[opt->digits_secs], buf, (int)round(frac * pow(10, opt->digits_secs)));
+    val = yyjson_mut_strcpy(doc, buf2);
+  } else {
+    val = yyjson_mut_strcpy(doc, buf);
+  }
   
   return val;
 }

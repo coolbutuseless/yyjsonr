@@ -70,6 +70,7 @@ typedef struct {
   unsigned int factor;
   unsigned int null;
   int digits;
+  int digits_secs;
   bool auto_unbox; 
   unsigned int name_repair;
   unsigned int str_specials;

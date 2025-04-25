@@ -5,7 +5,8 @@
 \title{Create named list of options for serializing R to JSON}
 \usage{
 opts_write_json(
-  digits = -1,
+  digits = -1L,
+  digits_secs = 0L,
   pretty = FALSE,
   auto_unbox = FALSE,
   dataframe = c("rows", "columns"),
@@ -22,6 +23,9 @@ opts_write_json(
 Positive values specify number of decimal places. Using zero will
 write the numeric value as an integer. Values less than zero mean that
 the floating point value should be written as-is (the default).}
+
+\item{digits_secs}{decimal places for fractional seconds when converting
+times to a string representation. Default: 0.  Valid range: \link{0, 6}}
 
 \item{pretty}{Logical value indicating if the created JSON string should have
 whitespace for indentation and linebreaks. Default: FALSE.
