@@ -25,7 +25,7 @@ write the numeric value as an integer. Values less than zero mean that
 the floating point value should be written as-is (the default).}
 
 \item{digits_secs}{decimal places for fractional seconds when converting
-times to a string representation. Default: 0.  Valid range: \link{0, 6}}
+times to a string representation. Default: 0.  Valid range: 0 to 6}
 
 \item{pretty}{Logical value indicating if the created JSON string should have
 whitespace for indentation and linebreaks. Default: FALSE.

@@ -241,7 +241,7 @@ opts_read_json <- function(
 #'        write the numeric value as an integer. Values less than zero mean that
 #'        the floating point value should be written as-is (the default).
 #' @param digits_secs decimal places for fractional seconds when converting
-#'        times to a string representation. Default: 0.  Valid range: [0, 6]
+#'        times to a string representation. Default: 0.  Valid range: 0 to 6
 #' @param dataframe how to encode data.frame objects. Options 'rows' or 
 #'        columns'.  Default: 'rows'
 #' @param factor how to encode factor objects: must be one of 'string' or 'integer'
