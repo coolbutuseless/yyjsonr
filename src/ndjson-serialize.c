@@ -95,8 +95,11 @@ SEXP serialize_list_to_ndjson_str_(SEXP robj_, SEXP serialize_opts_) {
     total_str[pos] = '\n';
     pos++;
   }
-  total_str[total_len - 2] = '\0';
   
+  // Remove final carriage return
+  if (total_len >= 2) {
+    total_str[total_len - 2] = '\0';
+  }  
   SEXP ndjson_ = PROTECT(allocVector(STRSXP, 1));
   SET_STRING_ELT(ndjson_, 0, mkChar(total_str));
   free(total_str);
