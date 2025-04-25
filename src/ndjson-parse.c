@@ -520,9 +520,10 @@ SEXP parse_ndjson_file_as_df_(SEXP filename_, SEXP nread_, SEXP nskip_, SEXP npr
         // Need to copy the string as the 'doc' it is from is freed at the end of every loop
         name_idx = ncols;
         char *new_name = (char *)yyjson_get_str(key);
-        colname[ncols] = calloc(strlen(new_name) + 1, 1);
+        size_t n = strlen(new_name) + 1;
+        colname[ncols] = calloc(n, 1);
         if (colname[ncols] == 0) Rf_error("Failed to allocate 'colname'");
-        strncpy(colname[ncols], new_name, strlen(new_name));
+        strncpy(colname[ncols], new_name, n);
         ncols++;
         if (ncols == MAX_DF_COLS) {
           error("Maximum columns for data.frame exceeded: %i", MAX_DF_COLS);
@@ -774,8 +775,10 @@ SEXP parse_ndjson_str_as_df_(SEXP str_, SEXP nread_, SEXP nskip_, SEXP nprobe_, 
         // Name has not been seen yet
         name_idx = ncols;
         char *new_name = (char *)yyjson_get_str(key);
-        colname[ncols] = calloc(strlen(new_name) + 1, 1);
-        strncpy(colname[ncols], new_name, strlen(new_name));
+        size_t n = strlen(new_name) + 1;
+        colname[ncols] = calloc(n, 1);
+        if (colname[ncols] == 0) Rf_error("Failed to allocate 'colname'");
+        strncpy(colname[ncols], new_name, n);
         ncols++;
         if (ncols == MAX_DF_COLS) {
           error("Maximum columns for data.frame exceeded: %i", MAX_DF_COLS);
