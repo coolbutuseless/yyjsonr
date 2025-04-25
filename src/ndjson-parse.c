@@ -523,7 +523,7 @@ SEXP parse_ndjson_file_as_df_(SEXP filename_, SEXP nread_, SEXP nskip_, SEXP npr
         size_t n = strlen(new_name) + 1;
         colname[ncols] = calloc(n, 1);
         if (colname[ncols] == 0) Rf_error("Failed to allocate 'colname'");
-        strncpy(colname[ncols], new_name, n);
+        strcpy(colname[ncols], new_name);
         ncols++;
         if (ncols == MAX_DF_COLS) {
           error("Maximum columns for data.frame exceeded: %i", MAX_DF_COLS);
@@ -778,7 +778,7 @@ SEXP parse_ndjson_str_as_df_(SEXP str_, SEXP nread_, SEXP nskip_, SEXP nprobe_, 
         size_t n = strlen(new_name) + 1;
         colname[ncols] = calloc(n, 1);
         if (colname[ncols] == 0) Rf_error("Failed to allocate 'colname'");
-        strncpy(colname[ncols], new_name, n);
+        strcpy(colname[ncols], new_name);
         ncols++;
         if (ncols == MAX_DF_COLS) {
           error("Maximum columns for data.frame exceeded: %i", MAX_DF_COLS);
