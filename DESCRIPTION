@@ -34,4 +34,4 @@ Config/testthat/edition: 3
 VignetteBuilder: knitr
 Copyright: The included 'yyjson' code is Copyright (c) 2020 YaoYuan. See 'COPYRIGHTS' for LICENSE for inclued code.
 Depends:
-    R (>= 3.5.0)
+    R (>= 4.1.0)

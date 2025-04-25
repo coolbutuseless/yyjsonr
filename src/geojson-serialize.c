@@ -244,6 +244,7 @@ SEXP sf_to_str(SEXP sf_, geo_serialize_options *opt) {
   // Convert string to R character, tidy and return
   //~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
   SEXP geojson_ = PROTECT(mkString(json)); nprotect++;
+  free(json);
   yyjson_mut_doc_free(doc);
   UNPROTECT(nprotect);
   return geojson_;

@@ -100,6 +100,10 @@ SEXP serialize_list_to_ndjson_str_(SEXP robj_, SEXP serialize_opts_) {
   SEXP ndjson_ = PROTECT(allocVector(STRSXP, 1));
   SET_STRING_ELT(ndjson_, 0, mkChar(total_str));
   free(total_str);
+  
+  for (int i = 0; i < nelems; i++) {
+    free(ndjson[i]);
+  }
   free(ndjson);
   UNPROTECT(1);
   return ndjson_;
@@ -341,7 +345,12 @@ SEXP serialize_df_to_ndjson_str_(SEXP robj_, SEXP serialize_opts_) {
   SEXP ndjson_ = PROTECT(allocVector(STRSXP, 1));
   SET_STRING_ELT(ndjson_, 0, mkChar(total_str));
   free(total_str);
+  
+  for (int i = 0; i < nrows; i++) {
+    free(ndjson[i]);
+  }
   free(ndjson);
+  
   UNPROTECT(2);
   return ndjson_;
 }
