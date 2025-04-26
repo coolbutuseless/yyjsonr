@@ -1,4 +1,5 @@
 
+#define R_NO_REMAP
 
 #include <R.h>
 #include <Rinternals.h>
@@ -23,12 +24,12 @@ SEXP serialize_list_to_ndjson_file_(SEXP robj_, SEXP filename_, SEXP serialize_o
   serialize_options opt = parse_serialize_options(serialize_opts_);
   
   FILE *file = NULL;
-  R_xlen_t nelems = xlength(robj_);
+  R_xlen_t nelems = Rf_xlength(robj_);
   
   const char *filename = CHAR(STRING_ELT(filename_, 0));
   file = fopen(filename, "w");
   if (file == NULL) {
-    error("Couldn't open file: %s", filename);
+    Rf_error("Couldn't open file: %s", filename);
   }
   
   for (R_xlen_t idx = 0; idx < nelems; idx++) {
@@ -44,7 +45,7 @@ SEXP serialize_list_to_ndjson_file_(SEXP robj_, SEXP filename_, SEXP serialize_o
     yyjson_write_err err;
     bool res = yyjson_mut_write_fp(file, doc, opt.yyjson_write_flag, NULL, &err);  
     if (!res) {
-      error("Error writing to file at element %ld\n", (long)idx);
+      Rf_error("Error writing to file at element %ld\n", (long)idx);
     }
     fputc('\n', file);
     
@@ -64,7 +65,7 @@ SEXP serialize_list_to_ndjson_str_(SEXP robj_, SEXP serialize_opts_) {
   serialize_options opt = parse_serialize_options(serialize_opts_);
   
   char **ndjson = NULL;
-  R_xlen_t nelems = xlength(robj_);
+  R_xlen_t nelems = Rf_xlength(robj_);
   
   ndjson = (char **)calloc((unsigned long)nelems, sizeof(char *));      
   
@@ -100,8 +101,8 @@ SEXP serialize_list_to_ndjson_str_(SEXP robj_, SEXP serialize_opts_) {
   if (total_len >= 2) {
     total_str[total_len - 2] = '\0';
   }  
-  SEXP ndjson_ = PROTECT(allocVector(STRSXP, 1));
-  SET_STRING_ELT(ndjson_, 0, mkChar(total_str));
+  SEXP ndjson_ = PROTECT(Rf_allocVector(STRSXP, 1));
+  SET_STRING_ELT(ndjson_, 0, Rf_mkChar(total_str));
   free(total_str);
   
   for (int i = 0; i < nelems; i++) {
@@ -123,8 +124,8 @@ SEXP serialize_df_to_ndjson_file_(SEXP robj_, SEXP filename_, SEXP serialize_opt
   
   serialize_options opt = parse_serialize_options(serialize_opts_);
   
-  if (!inherits(robj_, "data.frame")) {
-    error("serialize_ndjson_(): object must a list or data.frame");
+  if (!Rf_inherits(robj_, "data.frame")) {
+    Rf_error("serialize_ndjson_(): object must a list or data.frame");
   }
   
   // Get sexp_types of all columns
@@ -136,15 +137,15 @@ SEXP serialize_df_to_ndjson_file_(SEXP robj_, SEXP filename_, SEXP serialize_opt
   //      add value to object
   //   write string to file.  
   
-  R_xlen_t ncols = xlength(robj_);
-  R_xlen_t nrows = xlength(VECTOR_ELT(robj_, 0));
-  SEXP nms_ = PROTECT(getAttrib(robj_, R_NamesSymbol));
+  R_xlen_t ncols = Rf_xlength(robj_);
+  R_xlen_t nrows = Rf_xlength(VECTOR_ELT(robj_, 0));
+  SEXP nms_ = PROTECT(Rf_getAttrib(robj_, R_NamesSymbol));
   
   FILE *file = NULL;
   const char *filename = CHAR(STRING_ELT(filename_, 0));
   file = fopen(filename, "w");
   if (file == NULL) {
-    error("Couldn't open file: %s", filename);
+    Rf_error("Couldn't open file: %s", filename);
   }
   
   for (unsigned int row = 0; row < nrows; row++) {
@@ -161,22 +162,22 @@ SEXP serialize_df_to_ndjson_file_(SEXP robj_, SEXP filename_, SEXP serialize_opt
         val = scalar_logical_to_json_val(INTEGER(col_)[row], doc, &opt);
         break;
       case INTSXP:
-        if (isFactor(col_)) {
+        if (Rf_isFactor(col_)) {
           val = scalar_factor_to_json_val(col_, row, doc, &opt);
-        } else if (inherits(col_, "Date")) {
+        } else if (Rf_inherits(col_, "Date")) {
           val = scalar_date_to_json_val(col_, row, doc, &opt);
-        } else if (inherits(col_, "POSIXct")) {
+        } else if (Rf_inherits(col_, "POSIXct")) {
           val = scalar_posixct_to_json_val(col_, row, doc, &opt);
         } else {
           val = scalar_integer_to_json_val(INTEGER(col_)[row], doc, &opt);
         }
         break;
       case REALSXP: {
-        if (inherits(col_, "Date")) {
+        if (Rf_inherits(col_, "Date")) {
         val = scalar_date_to_json_val(col_, row, doc, &opt);
-      } else if (inherits(col_, "POSIXct")) {
+      } else if (Rf_inherits(col_, "POSIXct")) {
         val = scalar_posixct_to_json_val(col_, row, doc, &opt);
-      } else if (inherits(col_, "integer64")) {
+      } else if (Rf_inherits(col_, "integer64")) {
         val = scalar_integer64_to_json_val(col_, row, doc, &opt);
       } else {
         val = scalar_double_to_json_val(REAL(col_)[row], doc, &opt);
@@ -194,7 +195,7 @@ SEXP serialize_df_to_ndjson_file_(SEXP robj_, SEXP filename_, SEXP serialize_opt
         val = scalar_rawsxp_to_json_val(col_, row, doc, &opt);
         break;
       default:
-        error("data_frame_to_json_array_of_objects(): Unhandled scalar SEXP: %s\n", type2char((SEXPTYPE)TYPEOF(col_)));
+        Rf_error("data_frame_to_json_array_of_objects(): Unhandled scalar SEXP: %s\n", Rf_type2char((SEXPTYPE)TYPEOF(col_)));
       }
       // Add value to row obj
       if (val != NULL) {
@@ -209,7 +210,7 @@ SEXP serialize_df_to_ndjson_file_(SEXP robj_, SEXP filename_, SEXP serialize_opt
     yyjson_write_err err;
     bool res = yyjson_mut_write_fp(file, doc, opt.yyjson_write_flag, NULL, &err);  
     if (!res) {
-      error("Error writing to file at row %i\n", row);
+      Rf_error("Error writing to file at row %i\n", row);
     }
     fputc('\n', file);
     
@@ -236,8 +237,8 @@ SEXP serialize_df_to_ndjson_str_(SEXP robj_, SEXP serialize_opts_) {
   
   serialize_options opt = parse_serialize_options(serialize_opts_);
   
-  if (!inherits(robj_, "data.frame")) {
-    error("serialize_ndjson_(): object must a list or data.frame");
+  if (!Rf_inherits(robj_, "data.frame")) {
+    Rf_error("serialize_ndjson_(): object must a list or data.frame");
   }
   
   // Get sexp_types of all columns
@@ -249,9 +250,9 @@ SEXP serialize_df_to_ndjson_str_(SEXP robj_, SEXP serialize_opts_) {
   //      add value to object
   //   write string to file.  
   
-  R_xlen_t ncols = xlength(robj_);
-  R_xlen_t nrows = xlength(VECTOR_ELT(robj_, 0));
-  SEXP nms_ = PROTECT(getAttrib(robj_, R_NamesSymbol));
+  R_xlen_t ncols = Rf_xlength(robj_);
+  R_xlen_t nrows = Rf_xlength(VECTOR_ELT(robj_, 0));
+  SEXP nms_ = PROTECT(Rf_getAttrib(robj_, R_NamesSymbol));
   
   char **ndjson = NULL;
   ndjson = (char **)calloc((unsigned long)nrows, sizeof(char *));      
@@ -270,22 +271,22 @@ SEXP serialize_df_to_ndjson_str_(SEXP robj_, SEXP serialize_opts_) {
         val = scalar_logical_to_json_val(INTEGER(col_)[row], doc, &opt);
         break;
       case INTSXP:
-        if (isFactor(col_)) {
+        if (Rf_isFactor(col_)) {
           val = scalar_factor_to_json_val(col_, row, doc, &opt);
-        } else if (inherits(col_, "Date")) {
+        } else if (Rf_inherits(col_, "Date")) {
           val = scalar_date_to_json_val(col_, row, doc, &opt);
-        } else if (inherits(col_, "POSIXct")) {
+        } else if (Rf_inherits(col_, "POSIXct")) {
           val = scalar_posixct_to_json_val(col_, row, doc, &opt);
         } else {
           val = scalar_integer_to_json_val(INTEGER(col_)[row], doc, &opt);
         }
         break;
       case REALSXP: {
-        if (inherits(col_, "Date")) {
+        if (Rf_inherits(col_, "Date")) {
         val = scalar_date_to_json_val(col_, row, doc, &opt);
-      } else if (inherits(col_, "POSIXct")) {
+      } else if (Rf_inherits(col_, "POSIXct")) {
         val = scalar_posixct_to_json_val(col_, row, doc, &opt);
-      } else if (inherits(col_, "integer64")) {
+      } else if (Rf_inherits(col_, "integer64")) {
         val = scalar_integer64_to_json_val(col_, row, doc, &opt);
       } else {
         val = scalar_double_to_json_val(REAL(col_)[row], doc, &opt);
@@ -303,7 +304,7 @@ SEXP serialize_df_to_ndjson_str_(SEXP robj_, SEXP serialize_opts_) {
         val = scalar_rawsxp_to_json_val(col_, row, doc, &opt);
         break;
       default:
-        error("data_frame_to_json_array_of_objects(): Unhandled scalar SEXP: %s\n", type2char((SEXPTYPE)TYPEOF(col_)));
+        Rf_error("data_frame_to_json_array_of_objects(): Unhandled scalar SEXP: %s\n", Rf_type2char((SEXPTYPE)TYPEOF(col_)));
       }
       // Add value to row obj
       if (val != NULL) {
@@ -345,8 +346,8 @@ SEXP serialize_df_to_ndjson_str_(SEXP robj_, SEXP serialize_opts_) {
     }
   }
   
-  SEXP ndjson_ = PROTECT(allocVector(STRSXP, 1));
-  SET_STRING_ELT(ndjson_, 0, mkChar(total_str));
+  SEXP ndjson_ = PROTECT(Rf_allocVector(STRSXP, 1));
+  SET_STRING_ELT(ndjson_, 0, Rf_mkChar(total_str));
   free(total_str);
   
   for (int i = 0; i < nrows; i++) {

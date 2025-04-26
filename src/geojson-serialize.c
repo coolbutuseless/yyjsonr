@@ -1,5 +1,5 @@
 
-
+#define R_NO_REMAP
 
 #include <R.h>
 #include <Rinternals.h>
@@ -30,23 +30,23 @@ geo_serialize_options create_geo_serialize_options(SEXP to_geo_opts_) {
     .serialize_opt = NULL
   };
   
-  if (isNull(to_geo_opts_) || length(to_geo_opts_) == 0) {
+  if (Rf_isNull(to_geo_opts_) || Rf_length(to_geo_opts_) == 0) {
     return opt;
   }
   
-  if (!isNewList(to_geo_opts_)) {
-    error("'to_geo_opts_' must be a list");
+  if (!Rf_isNewList(to_geo_opts_)) {
+    Rf_error("'to_geo_opts_' must be a list");
   }
   
-  SEXP nms_ = getAttrib(to_geo_opts_, R_NamesSymbol);
-  if (isNull(nms_)) {
-    error("'to_geo_opts_' must be a named list");
+  SEXP nms_ = Rf_getAttrib(to_geo_opts_, R_NamesSymbol);
+  if (Rf_isNull(nms_)) {
+    Rf_error("'to_geo_opts_' must be a named list");
   }
   
-  for (unsigned int i = 0; i < length(to_geo_opts_); i++) {
+  for (unsigned int i = 0; i < Rf_length(to_geo_opts_); i++) {
     const char *opt_name = CHAR(STRING_ELT(nms_, i));
     // SEXP val_ = VECTOR_ELT(to_geo_opts_, i);
-    warning("opt_geojson_write(): Unknown option ignored: '%s'\n", opt_name);
+    Rf_warning("opt_geojson_write(): Unknown option ignored: '%s'\n", opt_name);
   }
   return opt;
 }
@@ -62,23 +62,23 @@ yyjson_mut_val *serialize_geom(SEXP sf_, yyjson_mut_doc *doc, geo_serialize_opti
   
   bool geom_collection = false;
   
-  if (inherits(sf_, "POINT")) {
+  if (Rf_inherits(sf_, "POINT")) {
     yyjson_mut_obj_add_str(doc, obj, "type", "Point");
-  } else if (inherits(sf_, "MULTIPOINT")) {
+  } else if (Rf_inherits(sf_, "MULTIPOINT")) {
     yyjson_mut_obj_add_str(doc, obj, "type", "MultiPoint");
-  } else if (inherits(sf_, "LINESTRING")) {
+  } else if (Rf_inherits(sf_, "LINESTRING")) {
     yyjson_mut_obj_add_str(doc, obj, "type", "LineString");
-  } else if (inherits(sf_, "MULTILINESTRING")) {
+  } else if (Rf_inherits(sf_, "MULTILINESTRING")) {
     yyjson_mut_obj_add_str(doc, obj, "type", "MultiLineString");
-  } else if (inherits(sf_, "POLYGON")) {
+  } else if (Rf_inherits(sf_, "POLYGON")) {
     yyjson_mut_obj_add_str(doc, obj, "type", "Polygon");
-  } else if (inherits(sf_, "MULTIPOLYGON")) {
+  } else if (Rf_inherits(sf_, "MULTIPOLYGON")) {
     yyjson_mut_obj_add_str(doc, obj, "type", "MultiPolygon");
-  } else if (inherits(sf_, "GEOMETRYCOLLECTION")) {
+  } else if (Rf_inherits(sf_, "GEOMETRYCOLLECTION")) {
     geom_collection = true;
     yyjson_mut_obj_add_str(doc, obj, "type", "GeometryCollection");
   } else {
-    error("@@@@@@@ serialize_geom Issue. Unhandled geometry type\n");
+    Rf_error("@@@@@@@ serialize_geom Issue. Unhandled geometry type\n");
   }
   
   
@@ -87,15 +87,15 @@ yyjson_mut_val *serialize_geom(SEXP sf_, yyjson_mut_doc *doc, geo_serialize_opti
     yyjson_mut_obj_add(obj, key, serialize_core(sf_, doc, opt->serialize_opt));
   } else{
     
-    if (!isNewList(sf_)) {
-      error("Expecting geomcollection to be a VECSXP not: %s", type2char((SEXPTYPE)TYPEOF(sf_)));
+    if (!Rf_isNewList(sf_)) {
+      Rf_error("Expecting geomcollection to be a VECSXP not: %s", Rf_type2char((SEXPTYPE)TYPEOF(sf_)));
     }
     
     // An array of geoms
     yyjson_mut_val *geoms = yyjson_mut_arr(doc);
     
     // Unpack each element of the 'sf_' list as a geom and add to the array
-    for (unsigned int i = 0; i < length(sf_); i++) {
+    for (unsigned int i = 0; i < Rf_length(sf_); i++) {
       yyjson_mut_val *geom = serialize_geom(VECTOR_ELT(sf_, i), doc, opt);
       yyjson_mut_arr_add_val(geoms, geom);
     }
@@ -115,13 +115,13 @@ yyjson_mut_val *serialize_geom(SEXP sf_, yyjson_mut_doc *doc, geo_serialize_opti
 SEXP sfc_to_str(SEXP sfc_, geo_serialize_options *opt) {
   
   int nprotect = 0;
-  if (!isNewList(sfc_)) {
-    error("serialize_sfc(): Expeting list\n");
+  if (!Rf_isNewList(sfc_)) {
+    Rf_error("serialize_sfc(): Expeting list\n");
   }
   
   
-  R_xlen_t N = xlength(sfc_);
-  SEXP geojson_ = PROTECT(allocVector(STRSXP, N)); nprotect++;
+  R_xlen_t N = Rf_xlength(sfc_);
+  SEXP geojson_ = PROTECT(Rf_allocVector(STRSXP, N)); nprotect++;
   
   for (unsigned int idx = 0; idx < N; idx++) {
     yyjson_mut_doc *doc = yyjson_mut_doc_new(NULL);
@@ -133,10 +133,10 @@ SEXP sfc_to_str(SEXP sfc_, geo_serialize_options *opt) {
     char *json = yyjson_mut_write_opts(doc, opt->serialize_opt->yyjson_write_flag, NULL, NULL, &err);
     if (json == NULL) {
       yyjson_mut_doc_free(doc);
-      error("Write to string error: %s code: %u\n", err.msg, err.code);
+      Rf_error("Write to string error: %s code: %u\n", err.msg, err.code);
     }
     
-    SET_STRING_ELT(geojson_, idx, mkChar(json));
+    SET_STRING_ELT(geojson_, idx, Rf_mkChar(json));
     yyjson_mut_doc_free(doc);
   }
   
@@ -152,34 +152,34 @@ SEXP sfc_to_str(SEXP sfc_, geo_serialize_options *opt) {
 yyjson_mut_doc *sf_to_json(SEXP sf_, geo_serialize_options *opt) {
 
   // int nprotect = 0;
-  if (!isNewList(sf_) || !inherits(sf_, "data.frame")) {
-    error("serialize_sf(): Expecting data.frame\n");
+  if (!Rf_isNewList(sf_) || !Rf_inherits(sf_, "data.frame")) {
+    Rf_error("serialize_sf(): Expecting data.frame\n");
   }
 
   yyjson_mut_doc *doc = yyjson_mut_doc_new(NULL);
-  // int ncol = length(sf_);
-  int nrow = length(VECTOR_ELT(sf_, 0));
+  // int ncol = Rf_length(sf_);
+  int nrow = Rf_length(VECTOR_ELT(sf_, 0));
   // Rprintf("[%i, %i] data.frame\n", nrow, ncol);
   
   //~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
   // Determine index of geometry collection
   //~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
   int geom_col_idx = -1;
-  // SEXP geom_col_name_ = getAttrib(sf_, mkString("sf_column"));
-  SEXP geom_col_name_ = getAttrib(sf_, Rf_install("sf_column"));
-  if (isNull(geom_col_name_)) {
-    error("sf_to_str(): Couldn't determine 'sf_column' name");
+  // SEXP geom_col_name_ = Rf_getAttrib(sf_, Rf_mkString("sf_column"));
+  SEXP geom_col_name_ = Rf_getAttrib(sf_, Rf_install("sf_column"));
+  if (Rf_isNull(geom_col_name_)) {
+    Rf_error("sf_to_str(): Couldn't determine 'sf_column' name");
   }
   const char *geom_col_name = CHAR(STRING_ELT(geom_col_name_, 0));
-  SEXP colnames_ = getAttrib(sf_, R_NamesSymbol);
-  for (int i = 0; i < length(colnames_); i++) {
+  SEXP colnames_ = Rf_getAttrib(sf_, R_NamesSymbol);
+  for (int i = 0; i < Rf_length(colnames_); i++) {
     if (strcmp(CHAR(STRING_ELT(colnames_, i)), geom_col_name) == 0) {
       geom_col_idx = i;
       break;
     }
   }
   if (geom_col_idx == -1) {
-    error("sf_to_str(): Couldn't 'sf_column' name '%s' in column names of sf object", geom_col_name);
+    Rf_error("sf_to_str(): Couldn't 'sf_column' name '%s' in column names of sf object", geom_col_name);
   }
   
   SEXP geom_col_ = VECTOR_ELT(sf_, geom_col_idx);
@@ -237,13 +237,13 @@ SEXP sf_to_str(SEXP sf_, geo_serialize_options *opt) {
   char *json = yyjson_mut_write_opts(doc, opt->serialize_opt->yyjson_write_flag, NULL, NULL, &err);
   if (json == NULL) {
     yyjson_mut_doc_free(doc);
-    error("serialize_sf() Write to string error: %s code: %u\n", err.msg, err.code);
+    Rf_error("serialize_sf() Write to string error: %s code: %u\n", err.msg, err.code);
   }
   
   //~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
   // Convert string to R character, tidy and return
   //~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
-  SEXP geojson_ = PROTECT(mkString(json)); nprotect++;
+  SEXP geojson_ = PROTECT(Rf_mkString(json)); nprotect++;
   free(json);
   yyjson_mut_doc_free(doc);
   UNPROTECT(nprotect);
@@ -265,7 +265,7 @@ SEXP sf_to_file(SEXP sf_, SEXP filename_, geo_serialize_options *opt) {
   bool success = yyjson_mut_write_file(filename, doc, opt->serialize_opt->yyjson_write_flag, NULL, &err);
   if (!success) {
     yyjson_mut_doc_free(doc);
-    error("Write to file error '%s': %s code: %u\n", filename, err.msg, err.code);
+    Rf_error("Write to file error '%s': %s code: %u\n", filename, err.msg, err.code);
   }
   yyjson_mut_doc_free(doc);
   return R_NilValue;
@@ -288,8 +288,8 @@ SEXP sf_to_file(SEXP sf_, SEXP filename_, geo_serialize_options *opt) {
 SEXP serialize_sf_to_str_(SEXP sf_, SEXP to_geo_opts_, SEXP serialize_opts_) {
 
   int nprotect = 0;
-  if (!inherits(sf_, "sf") && !inherits(sf_, "sfc")) {
-    error("Not an sf object");
+  if (!Rf_inherits(sf_, "sf") && !Rf_inherits(sf_, "sfc")) {
+    Rf_error("Not an sf object");
   }
   geo_serialize_options opt = create_geo_serialize_options(to_geo_opts_);
   
@@ -297,12 +297,12 @@ SEXP serialize_sf_to_str_(SEXP sf_, SEXP to_geo_opts_, SEXP serialize_opts_) {
   opt.serialize_opt = &serialize_opt;
 
   SEXP res_ = R_NilValue;
-  if (inherits(sf_, "sfc")) {
+  if (Rf_inherits(sf_, "sfc")) {
     res_ = PROTECT(sfc_to_str(sf_, &opt)); nprotect++;
-  } else if (inherits(sf_, "sf")) {
+  } else if (Rf_inherits(sf_, "sf")) {
     res_ = PROTECT(sf_to_str(sf_, &opt)); nprotect++;
   } else {
-    error("serialize_sf_to_str_: class not handled yet");
+    Rf_error("serialize_sf_to_str_: class not handled yet");
   }
 
   UNPROTECT(nprotect);
@@ -312,8 +312,8 @@ SEXP serialize_sf_to_str_(SEXP sf_, SEXP to_geo_opts_, SEXP serialize_opts_) {
 SEXP serialize_sf_to_file_(SEXP sf_, SEXP filename_, SEXP to_geo_opts_, SEXP serialize_opts_) {
   
   int nprotect = 0;
-  if (!inherits(sf_, "sf") && !inherits(sf_, "sfc")) {
-    error("Not an sf object");
+  if (!Rf_inherits(sf_, "sf") && !Rf_inherits(sf_, "sfc")) {
+    Rf_error("Not an sf object");
   }
   geo_serialize_options opt = create_geo_serialize_options(to_geo_opts_);
   
@@ -321,13 +321,13 @@ SEXP serialize_sf_to_file_(SEXP sf_, SEXP filename_, SEXP to_geo_opts_, SEXP ser
   opt.serialize_opt = &serialize_opt;
   
   // SEXP res_ = R_NilValue;
-  if (inherits(sf_, "sfc")) {
+  if (Rf_inherits(sf_, "sfc")) {
     // res_ = PROTECT(sfc_to_str(sf_, &opt)); nprotect++;
-    error("Serializing 'sfc' objects to file not done yet");
-  } else if (inherits(sf_, "sf")) {
+    Rf_error("Serializing 'sfc' objects to file not done yet");
+  } else if (Rf_inherits(sf_, "sf")) {
     PROTECT(sf_to_file(sf_, filename_, &opt)); nprotect++;
   } else {
-    error("serialize_sf_to_file_: class not handled yet");
+    Rf_error("serialize_sf_to_file_: class not handled yet");
   }
   
   UNPROTECT(nprotect);

@@ -1,5 +1,5 @@
 
-
+#define R_NO_REMAP
 
 #include <R.h>
 #include <Rinternals.h>
@@ -19,5 +19,5 @@
 // inner yyjson version
 //~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 SEXP yyjson_version_(void) {
-  return mkString(YYJSON_VERSION_STRING);
+  return Rf_mkString(YYJSON_VERSION_STRING);
 }
