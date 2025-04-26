@@ -280,6 +280,10 @@ opts_read_json <- function(
 #'        \code{YYJSON_WRITE_INF_AND_NAN_AS_NULL} options for \code{yyjson_write_flags}
 #'        and should consult the \code{yyjson} API documentation for 
 #'        further details.
+#' @param json_verbatim Write strings with class 'json' directly into 
+#'        the result?  Default: FALSE.  If \code{json_verbatim = TRUE} and
+#'        a string has the class \code{"json"}, then it will be written verbatim
+#'        into the output.
 #' @param yyjson_write_flag integer vector corresponding to internal \code{yyjson}
 #'        options.  See \code{yyjson_write_flag} in this package, and read
 #'        the yyjson API documentation for more information.  This is considered
@@ -304,6 +308,7 @@ opts_write_json <- function(
     num_specials      = c('null', 'string'),
     str_specials      = c('null', 'string'),
     fast_numerics     = FALSE,
+    json_verbatim     = FALSE,
     yyjson_write_flag = 0L) {
   
   structure(
@@ -319,6 +324,7 @@ opts_write_json <- function(
       str_specials      = match.arg(str_specials),
       num_specials      = match.arg(num_specials),
       fast_numerics     = isTRUE(fast_numerics),
+      json_verbatim     = isTRUE(json_verbatim),
       yyjson_write_flag = as.integer(yyjson_write_flag)
     ),
     class = "opts_write_json"

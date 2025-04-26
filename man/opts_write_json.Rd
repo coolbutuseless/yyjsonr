@@ -16,6 +16,7 @@ opts_write_json(
   num_specials = c("null", "string"),
   str_specials = c("null", "string"),
   fast_numerics = FALSE,
+  json_verbatim = FALSE,
   yyjson_write_flag = 0L
 )
 }
@@ -69,6 +70,11 @@ Expert users are invited to also consider the
 \code{YYJSON_WRITE_INF_AND_NAN_AS_NULL} options for \code{yyjson_write_flags}
 and should consult the \code{yyjson} API documentation for
 further details.}
+
+\item{json_verbatim}{Write strings with class 'json' directly into
+the result?  Default: FALSE.  If \code{json_verbatim = TRUE} and
+a string has the class \code{"json"}, then it will be written verbatim
+into the output.}
 
 \item{yyjson_write_flag}{integer vector corresponding to internal \code{yyjson}
 options.  See \code{yyjson_write_flag} in this package, and read

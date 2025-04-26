@@ -95,6 +95,8 @@ serialize_options parse_serialize_options(SEXP serialize_opts_) {
     } else if (strcmp(opt_name, "num_specials") == 0) {
       const char *val = CHAR(STRING_ELT(val_, 0));
       opt.num_specials = strcmp(val, "string") == 0 ? NUM_SPECIALS_AS_STRING : NUM_SPECIALS_AS_NULL;
+    } else if (strcmp(opt_name, "json_verbatim") == 0) {
+      opt.json_verbatim = Rf_asLogical(val_);
     } else if (strcmp(opt_name, "fast_numerics") == 0) {
       opt.fast_numerics = Rf_asLogical(val_);
     } else {
@@ -376,6 +378,8 @@ yyjson_mut_val *scalar_strsxp_to_json_val(SEXP str_, R_xlen_t idx, yyjson_mut_do
     } else {  
       val = yyjson_mut_null(doc);
     }
+  } else if (opt->json_verbatim && Rf_inherits(str_, "json")) { 
+    val = yyjson_mut_rawcpy(doc, CHAR(charsxp_));
   } else {
     val = yyjson_mut_strcpy(doc, CHAR(charsxp_));
   }
