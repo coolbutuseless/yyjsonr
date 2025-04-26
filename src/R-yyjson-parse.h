@@ -103,6 +103,7 @@ typedef struct {
   unsigned int str_specials;
   unsigned int num_specials;
   bool promote_num_to_string;
+  int digits_promote;
   unsigned int yyjson_read_flag;
 } parse_options;
 

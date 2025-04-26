@@ -1,6 +1,6 @@
 
 
-# yyjsonr 0.1.20.9007 2025-04-26
+# yyjsonr 0.1.20.9008 2025-04-26
 
 * [9000] Get size of gzipped file in an endian-neutral way. Issue #39
 * [9001] Fix underflow issue when trying to verbosely report an error at position 0
@@ -13,6 +13,8 @@
          fractional seconds
 * [9006] Added `digits_signif` to control significant digits in numeric representation
 * [9007] Properly support `YYJSON_READ_NUMBER_AS_RAW` to read all numbers as strings
+* [9008] Add option `digits_promote` to control decimal places when numbers in
+         JSON []-arrays are promoted to strings.
 
 # yyjsonr 0.1.20 2024-04-10
 

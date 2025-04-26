@@ -194,6 +194,9 @@ yyjson_write_flag <- list(
 #'        then array of mixed string/numeric types will be promoted to all 
 #'        string values and returned as an atomic character vector.  Set this to \code{TRUE}
 #'        if you want to emulate the behaviour of \code{jsonlite::fromJSON()}
+#' @param digits_promote When promoting numbers to be strings, how many decimal 
+#'        places should be used in the representation. Default: 6.  This option is only 
+#'        valid if \code{promote_num_to_string = TRUE}. Valid range 0 to 30
 #' @param length1_array_asis logical. Should JSON arrays with length = 1 be 
 #'        marked with class \code{AsIs}.  Default: FALSE
 #'
@@ -206,6 +209,7 @@ yyjson_write_flag <- list(
 #~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 opts_read_json <- function(
     promote_num_to_string = FALSE,
+    digits_promote        = 6,
     df_missing_list_elem  = NULL,
     obj_of_arrs_to_df     = TRUE,
     arr_of_objs_to_df     = TRUE,
@@ -219,6 +223,7 @@ opts_read_json <- function(
   structure(
     list(
       promote_num_to_string = isTRUE(promote_num_to_string),
+      digits_promote        = as.integer(digits_promote),
       df_missing_list_elem  = df_missing_list_elem,
       obj_of_arrs_to_df     = isTRUE(obj_of_arrs_to_df),
       arr_of_objs_to_df     = isTRUE(arr_of_objs_to_df),

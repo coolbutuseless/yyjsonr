@@ -39,6 +39,7 @@ parse_options create_parse_options(SEXP parse_opts_) {
     .str_specials          = STR_SPECIALS_AS_STRING,
     .num_specials          = NUM_SPECIALS_AS_SPECIAL,
     .promote_num_to_string = false,
+    .digits_promote        = 6,
     .yyjson_read_flag      = 0
   };
   
@@ -90,6 +91,11 @@ parse_options create_parse_options(SEXP parse_opts_) {
       opt.num_specials = strcmp(val, "string") == 0 ? NUM_SPECIALS_AS_STRING : NUM_SPECIALS_AS_SPECIAL;
     } else if (strcmp(opt_name, "promote_num_to_string") == 0) {
       opt.promote_num_to_string = Rf_asLogical(val_);
+    } else if (strcmp(opt_name, "digits_promote") == 0) {
+      opt.digits_promote = Rf_asInteger(val_);
+      if (opt.digits_promote < 0 || opt.digits_promote > 30) {
+        Rf_error("'digits_promote' must be integer in range [0, 30]");
+      }
     } else {
       Rf_warning("Unknown option ignored: '%s'\n", opt_name);
     }
@@ -337,8 +343,17 @@ SEXP json_val_to_charsxp(yyjson_val *val, parse_options *opt) {
       return Rf_mkChar(buf);
       break;
     case YYJSON_SUBTYPE_REAL:
-      snprintf(buf, 128, "%f", yyjson_get_real(val));
+    {
+      const char *fs[31] = {
+        "%.0f", "%.1f", "%.2f", "%.3f", "%.4f", "%.5f", "%.6f", "%.7f", 
+        "%.8f", "%.9f", "%.10f", "%.11f", "%.12f", "%.13f", "%.14f", 
+        "%.15f", "%.16f", "%.17f", "%.18f", "%.19f", "%.20f", "%.21f", 
+        "%.22f", "%.23f", "%.24f", "%.25f", "%.26f", "%.27f", "%.28f", 
+        "%.29f", "%.30f"
+      };
+      snprintf(buf, 128, fs[opt->digits_promote], yyjson_get_real(val));
       return Rf_mkChar(buf);
+    }
       break;
     default:
       Rf_warning("json_val_to_charsxp unhandled numeric type %s\n", yyjson_get_type_desc(val));
