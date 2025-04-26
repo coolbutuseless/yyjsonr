@@ -34,7 +34,7 @@ serialize_options parse_serialize_options(SEXP serialize_opts_) {
     .auto_unbox        = FALSE,
     .digits            = -1,
     .digits_secs       =  0,
-    .signif            = -1,
+    .digits_signif     = -1,
     .name_repair       = NAME_REPAIR_NONE,
     .num_specials      = NUM_SPECIALS_AS_NULL,
     .str_specials      = STR_SPECIALS_AS_NULL,
@@ -63,8 +63,8 @@ serialize_options parse_serialize_options(SEXP serialize_opts_) {
     
     if (strcmp(opt_name, "digits") == 0) {
       opt.digits = Rf_asInteger(val_);
-    } else if (strcmp(opt_name, "signif") == 0) {
-      opt.signif = Rf_asInteger(val_);
+    } else if (strcmp(opt_name, "digits_signif") == 0) {
+      opt.digits_signif = Rf_asInteger(val_);
     } else if (strcmp(opt_name, "digits_secs") == 0) {
       opt.digits_secs = Rf_asInteger(val_);
       if (opt.digits_secs < 0 || opt.digits_secs > 6) {
@@ -334,8 +334,8 @@ yyjson_mut_val *scalar_double_to_json_val(double rdbl, yyjson_mut_doc *doc, seri
       }
     }
   } else if ( R_FINITE(rdbl) ) {
-    if (opt->signif > 0) {
-      val = yyjson_mut_real(doc, signif(rdbl, opt->signif));
+    if (opt->digits_signif > 0) {
+      val = yyjson_mut_real(doc, signif(rdbl, opt->digits_signif));
     } else if (opt->digits < 0) {
       val = yyjson_mut_real(doc, rdbl);
     } else if (opt->digits == 0) {

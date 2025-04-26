@@ -351,6 +351,9 @@ SEXP json_val_to_charsxp(yyjson_val *val, parse_options *opt) {
       return Rf_mkChar(yyjson_get_str(val));
       }
     break;
+  case YYJSON_TYPE_RAW:
+    return Rf_mkChar(yyjson_get_raw(val));
+    break;
   default:
     // This shouldn't happen if the type checking done elsewhere is correct!
     Rf_warning("json_val_to_charsxp(). Unhandled type: %s\n", yyjson_get_type_desc(val));
@@ -569,6 +572,9 @@ unsigned int update_type_bitset(unsigned int type_bitset, yyjson_val *val, parse
     break;
   case YYJSON_TYPE_OBJ:
     type_bitset |= VAL_OBJ;
+    break;
+  case YYJSON_TYPE_RAW:
+    type_bitset |= VAL_STR;
     break;
   case YYJSON_TYPE_NULL:
     // Don't do anything with JSON 'null'

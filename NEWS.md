@@ -1,6 +1,6 @@
 
 
-# yyjsonr 0.1.20.9006 2025-04-25
+# yyjsonr 0.1.20.9007 2025-04-26
 
 * [9000] Get size of gzipped file in an endian-neutral way. Issue #39
 * [9001] Fix underflow issue when trying to verbosely report an error at position 0
@@ -11,7 +11,8 @@
 * [9005] Depends on R >= 4.1.0 (using new pipe and lambda syntax in examples)
 * [9006] Added `digits_secs` to control conversion of POSIXct datetimes with 
          fractional seconds
-* [9006] Added `signif` to control significant digits in numeric representation
+* [9006] Added `digits_signif` to control significant digits in numeric representation
+* [9007] Properly support `YYJSON_READ_NUMBER_AS_RAW` to read all numbers as strings
 
 # yyjsonr 0.1.20 2024-04-10
 

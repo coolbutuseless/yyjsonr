@@ -71,7 +71,7 @@ typedef struct {
   unsigned int null;
   int digits;
   int digits_secs;
-  int signif;
+  int digits_signif;
   bool auto_unbox; 
   unsigned int name_repair;
   unsigned int str_specials;
