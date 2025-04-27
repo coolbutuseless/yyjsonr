@@ -8,6 +8,7 @@ opts_read_json(
   promote_num_to_string = FALSE,
   digits_promote = 6,
   df_missing_list_elem = NULL,
+  any_single_null_elem = NULL,
   obj_of_arrs_to_df = TRUE,
   arr_of_objs_to_df = TRUE,
   str_specials = c("string", "special"),
@@ -32,6 +33,8 @@ valid if \code{promote_num_to_string = TRUE}. Valid range 0 to 30}
 
 \item{df_missing_list_elem}{R value to use when elements are missing in list
 columns in data.frames. Default: NULL}
+
+\item{any_single_null_elem}{R value to use for any single NULL element. Default: NULL}
 
 \item{obj_of_arrs_to_df}{logical. Should a named list of equal-length
 vectors be promoted to a data.frame?  Default: TRUE.  If FALSE, then
