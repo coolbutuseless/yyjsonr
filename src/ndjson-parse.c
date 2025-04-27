@@ -171,7 +171,7 @@ SEXP parse_ndjson_file_as_list_(SEXP filename_, SEXP nread_limit_, SEXP nskip_, 
     // Grow list if we need more room
     //~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
     if (nread_actual >= list_size) {
-      REPROTECT(list_ = Rf_lengthgets(list_, 2 * list_size), ipx);
+      REPROTECT(list_ = Rf_lengthgets(list_, 2 * (R_len_t)list_size), ipx);
       list_size = XLENGTH(list_);
     }
     
@@ -199,7 +199,7 @@ SEXP parse_ndjson_file_as_list_(SEXP filename_, SEXP nread_limit_, SEXP nskip_, 
   // 'list_' is oversized 
   // Need to copy list into a new list which contains just the valid elements
   //~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
-  REPROTECT(list_ = Rf_lengthgets(list_, nread_actual), ipx);
+  REPROTECT(list_ = Rf_lengthgets(list_, (R_len_t)nread_actual), ipx);
 
   //~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
   // Close input, tidy memory and return
@@ -290,7 +290,7 @@ SEXP parse_ndjson_str_as_list_(SEXP str_, SEXP nread_, SEXP nskip_, SEXP parse_o
     // Grow list if we need more room
     //~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
     if (i >= list_size) {
-      REPROTECT(list_ = Rf_lengthgets(list_, 2 * list_size), ipx);
+      REPROTECT(list_ = Rf_lengthgets(list_, 2 * (R_len_t)list_size), ipx);
       list_size = XLENGTH(list_);
     }
     
@@ -323,7 +323,7 @@ SEXP parse_ndjson_str_as_list_(SEXP str_, SEXP nread_, SEXP nskip_, SEXP parse_o
   // 'list_' is oversized 
   // Need to copy list into a new list which contains just the valid elements
   //~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
-  REPROTECT(list_ = Rf_lengthgets(list_, i), ipx);
+  REPROTECT(list_ = Rf_lengthgets(list_, (R_len_t)i), ipx);
   
   
   //~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~

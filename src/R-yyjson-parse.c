@@ -395,7 +395,7 @@ SEXP json_val_to_charsxp(yyjson_val *val, parse_options *opt) {
 // which JSON types have been seen.
 //
 // In simple cases only a single bit in the bitset will be turned on - 
-// which indicates that the []-array of {}-object only contains a single 
+// which indicates that the []-array or {}-object only contains a single 
 // type of value and is thus easily matched to an R vector.
 //
 // In more complex cases, the bitset has multiple bit sets indicating that
@@ -1870,9 +1870,9 @@ SEXP parse_json_from_str(const char *str, size_t len, parse_options *opt) {
   if (doc == NULL) {
     output_verbose_error(str, err);
 #if defined(_WIN32)
-    Rf_error("Error parsing JSON: %s code: %u at position: %llu\n", err.msg, err.code, err.pos);
+    Rf_error("Error parsing JSON [Loc: %llu]: %s", err.pos, err.msg);
 #else
-    Rf_error("Error parsing JSON: %s code: %u at position: %lu\n", err.msg, err.code, err.pos);
+    Rf_error("Error parsing JSON [Loc: %lu]: %s", err.pos, err.msg);
 #endif
   }
   
@@ -1907,9 +1907,9 @@ SEXP parse_json_from_file(const char *filename, parse_options *opt) {
   //~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
   if (doc == NULL) {
 #if defined(_WIN32)
-    Rf_error("Error parsing JSON file '%s': %s code: %u at position: %llu\n", filename, err.msg, err.code, err.pos);
+    Rf_error("Error parsing JSON file '%s' [Loc: %llu]: %s\n", filename, err.pos, err.msg);
 #else
-    Rf_error("Error parsing JSON file '%s': %s code: %u at position: %lu\n", filename, err.msg, err.code, err.pos);
+    Rf_error("Error parsing JSON file '%s' [Loc: %lu]: %s code", filename, err.pos, err.msg);
 #endif
     
   }
@@ -2056,9 +2056,9 @@ SEXP validate_json_file_(SEXP filename_, SEXP verbose_, SEXP parse_opts_) {
   if (doc == NULL) {
     if (Rf_asLogical(verbose_)) {
 #if defined(_WIN32)
-      Rf_warning("Error parsing JSON file '%s': %s code: %u at position: %llu\n", filename, err.msg, err.code, err.pos);
+      Rf_warning("Error parsing JSON file '%s' [Loc: %llu]: %s", filename, err.pos, err.msg);
 #else
-      Rf_warning("Error parsing JSON file '%s': %s code: %u at position: %lu\n", filename, err.msg, err.code, err.pos);
+      Rf_warning("Error parsing JSON file '%s' [Loc: %lu]: %s", filename, err.pos, err.msg);
 #endif
     }
     return Rf_ScalarLogical(0);
@@ -2088,9 +2088,9 @@ SEXP validate_json_str_(SEXP str_, SEXP verbose_, SEXP parse_opts_) {
     if (Rf_asLogical(verbose_)) {
       output_verbose_error(str, err);
 #if defined(_WIN32)
-      Rf_warning("Error parsing JSON: %s code: %u at position: %llu\n", err.msg, err.code, err.pos);
+      Rf_warning("Error parsing JSON [Loc: %llu]: %s", err.pos, err.msg);
 #else
-      Rf_warning("Error parsing JSON: %s code: %u at position: %lu\n", err.msg, err.code, err.pos);
+      Rf_warning("Error parsing JSON [Loc: %lu]: %s", err.pos, err.msg);
 #endif
     }
     return Rf_ScalarLogical(0);

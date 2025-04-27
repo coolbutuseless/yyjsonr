@@ -133,7 +133,7 @@ SEXP sfc_to_str(SEXP sfc_, geo_serialize_options *opt) {
     char *json = yyjson_mut_write_opts(doc, opt->serialize_opt->yyjson_write_flag, NULL, NULL, &err);
     if (json == NULL) {
       yyjson_mut_doc_free(doc);
-      Rf_error("Write to string error: %s code: %u\n", err.msg, err.code);
+      Rf_error("Write to string error: %s", err.msg);
     }
     
     SET_STRING_ELT(geojson_, idx, Rf_mkChar(json));
@@ -237,7 +237,7 @@ SEXP sf_to_str(SEXP sf_, geo_serialize_options *opt) {
   char *json = yyjson_mut_write_opts(doc, opt->serialize_opt->yyjson_write_flag, NULL, NULL, &err);
   if (json == NULL) {
     yyjson_mut_doc_free(doc);
-    Rf_error("serialize_sf() Write to string error: %s code: %u\n", err.msg, err.code);
+    Rf_error("serialize_sf() Write to string error: %s", err.msg);
   }
   
   //~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
@@ -265,7 +265,7 @@ SEXP sf_to_file(SEXP sf_, SEXP filename_, geo_serialize_options *opt) {
   bool success = yyjson_mut_write_file(filename, doc, opt->serialize_opt->yyjson_write_flag, NULL, &err);
   if (!success) {
     yyjson_mut_doc_free(doc);
-    Rf_error("Write to file error '%s': %s code: %u\n", filename, err.msg, err.code);
+    Rf_error("Write to file error '%s': %s", filename, err.msg);
   }
   yyjson_mut_doc_free(doc);
   return R_NilValue;

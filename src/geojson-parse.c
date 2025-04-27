@@ -1562,7 +1562,7 @@ SEXP parse_geojson_str_(SEXP str_, SEXP geo_opts_, SEXP parse_opts_) {
   //~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
   if (doc == NULL) {
     output_verbose_error(str, err);
-    Rf_error("Error parsing JSON: %s code: %u at position: %ld\n", err.msg, err.code, (long)err.pos);
+    Rf_error("Error parsing JSON [Loc: %ld]: %s", (long)err.pos, err.msg);
   }
   
   //~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
@@ -1601,8 +1601,8 @@ SEXP parse_geojson_file_(SEXP filename_, SEXP geo_opts_, SEXP parse_opts_) {
   //   - add a visual pointer to the output so the user knows where this was
   //~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
   if (doc == NULL) {
-    Rf_error("Error parsing JSON file '%s': %s code: %u at position: %ld\n", 
-          filename, err.msg, err.code, (long)err.pos);
+    Rf_error("Error parsing JSON file '%s' [Loc %ld]: %s", 
+          filename, (long)err.pos, err.msg);
   }
   
   //~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~

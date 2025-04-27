@@ -1269,7 +1269,7 @@ SEXP serialize_to_str_(SEXP robj_, SEXP serialize_opts_) {
   char *json = yyjson_mut_write_opts(doc, opt.yyjson_write_flag, NULL, NULL, &err);
   if (json == NULL) {
     yyjson_mut_doc_free(doc);
-    Rf_error("Write to string error: %s code: %u\n", err.msg, err.code);
+    Rf_error("Write to string error: %s", err.msg);
   }
   
   SEXP res_ = PROTECT(Rf_mkString(json));
@@ -1309,7 +1309,7 @@ SEXP serialize_to_file_(SEXP robj_, SEXP filename_, SEXP serialize_opts_) {
   bool success = yyjson_mut_write_file(filename, doc, opt.yyjson_write_flag, NULL, &err);
   if (!success) {
     yyjson_mut_doc_free(doc);
-    Rf_error("Write to file error '%s': %s code: %u\n", filename, err.msg, err.code);
+    Rf_error("Write to file error '%s': %s", filename, err.msg);
   }
   yyjson_mut_doc_free(doc);
   return R_NilValue;
