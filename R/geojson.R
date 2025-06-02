@@ -62,8 +62,7 @@ opts_write_geojson <- function() {
 #' Coordinate reference system is always WGS84 in accordance with GeoJSON RFC.
 #' 
 #' @param filename Filename
-#' @param str Single string containing GeoJSON. Raw vector of chracter data also 
-#'        allowed
+#' @param str Single string containing GeoJSON.
 #' @param opts Named list of GeoJSON-specific options. Usually created 
 #'        with \code{opts_read_geojson()}.
 #'        Default: empty \code{list()} to use the default options.
@@ -109,22 +108,6 @@ read_geojson_file <- function(filename, opts = list(), ..., json_opts = list()) 
 }
 
 
-#~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
-#' @rdname read_geojson_str
-#' @export
-#~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
-read_geojson_raw <- function(str, opts = list(), ..., json_opts = list()) {
-  opts <- modify_list(opts, list(...))
-  
-  .Call(
-    parse_geojson_str_,
-    str, 
-    opts,  # geojson parse opts
-    json_opts
-  )
-}
-
-
 
 #~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 #' Write SF to GeoJSON string
@@ -157,37 +140,7 @@ write_geojson_str <- function(x, opts = list(), ..., json_opts = list()) {
     serialize_sf_to_str_,
     x,
     opts,      # geojson serialize opts
-    json_opts, # general serialize opts
-    FALSE      # as_raw? No. Return string
-  )
-}
-
-
-
-#~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
-#' Write SF to GeoJSON raw vector
-#' 
-#' Coordinate reference system is always WGS84 in accordance with GeoJSON RFC.
-#' 
-#' @inheritParams write_geojson_str
-#'
-#' @return Raw vector containing GeoJSON.
-#' 
-#' @examples
-#' geojson_file <- system.file("geojson-example.json", package = 'yyjsonr')
-#' sf <- read_geojson_file(geojson_file)
-#' js <- write_geojson_raw(sf)
-#' @export
-#~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
-write_geojson_raw <- function(x, opts = list(), ..., json_opts = list()) {
-  opts <- modify_list(opts, list(...))
-  
-  .Call(
-    serialize_sf_to_str_,
-    x,
-    opts,      # geojson serialize opts
-    json_opts, # general serialize opts
-    TRUE       # as_raw? Yes!
+    json_opts  # general serialize opts
   )
 }
 

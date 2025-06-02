@@ -1549,18 +1549,9 @@ SEXP parse_geojson_str_(SEXP str_, SEXP geo_opts_, SEXP parse_opts_) {
   parse_options parse_opt = create_parse_options(parse_opts_);
   
   opt.parse_opt = &parse_opt;
-  
-  // Raw string may or may not have a NULL byte terminator.
-  // So ask 'yyjson' to stop parsing when the json parsing naturally ends
-  // rather than running over into dead space after the raw string ends
   opt.yyjson_read_flag |= YYJSON_READ_STOP_WHEN_DONE;
   
-  char *str;
-  if (TYPEOF(str_) == RAWSXP) {
-    str = (char *)RAW(str_); 
-  } else {
-    str = (char *)CHAR(STRING_ELT(str_, 0));
-  }
+  char *str  = (char *)CHAR(STRING_ELT(str_, 0));
   
   yyjson_read_err err;
   yyjson_doc *doc = yyjson_read_opts((char *)str, strlen(str), opt.yyjson_read_flag, NULL, &err);

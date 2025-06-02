@@ -113,15 +113,11 @@ yyjson_mut_val *serialize_geom(SEXP sf_, yyjson_mut_doc *doc, geo_serialize_opti
 //~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 // 
 //~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
-SEXP sfc_to_str(SEXP sfc_, geo_serialize_options *opt, bool as_raw) {
+SEXP sfc_to_str(SEXP sfc_, geo_serialize_options *opt) {
   
   int nprotect = 0;
   if (!Rf_isNewList(sfc_)) {
     Rf_error("sfc_to_str(): Expeting list\n");
-  }
-  
-  if (as_raw) {
-    Rf_error("sfc_to_str(): Not currently possible to serialize 'sfc' to raw vector");
   }
   
   R_xlen_t N = Rf_xlength(sfc_);
@@ -229,7 +225,7 @@ yyjson_mut_doc *sf_to_json(SEXP sf_, geo_serialize_options *opt) {
 //~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 // sf data.frame to feature collection
 //~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
-SEXP sf_to_str(SEXP sf_, geo_serialize_options *opt, bool as_raw) {
+SEXP sf_to_str(SEXP sf_, geo_serialize_options *opt) {
   
   int nprotect = 0;
   yyjson_mut_doc *doc = sf_to_json(sf_, opt);
@@ -247,13 +243,7 @@ SEXP sf_to_str(SEXP sf_, geo_serialize_options *opt, bool as_raw) {
   //~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
   // Convert string to R character, tidy and return
   //~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
-  SEXP geojson_;
-  if (as_raw) {
-    geojson_ = PROTECT(Rf_allocVector(RAWSXP, (R_xlen_t)strlen(json))); nprotect++;
-    memcpy(RAW(geojson_), json, strlen(json));
-  } else {
-    geojson_ = PROTECT(Rf_mkString(json)); nprotect++;
-  }
+  SEXP geojson_ = PROTECT(Rf_mkString(json)); nprotect++;
   
   free(json);
   yyjson_mut_doc_free(doc);
@@ -296,7 +286,7 @@ SEXP sf_to_file(SEXP sf_, SEXP filename_, geo_serialize_options *opt) {
 //
 // Serialize R object to JSON string.  Callable from R
 //===========================================================================
-SEXP serialize_sf_to_str_(SEXP sf_, SEXP to_geo_opts_, SEXP serialize_opts_, SEXP as_raw_) {
+SEXP serialize_sf_to_str_(SEXP sf_, SEXP to_geo_opts_, SEXP serialize_opts_) {
 
   int nprotect = 0;
   if (!Rf_inherits(sf_, "sf") && !Rf_inherits(sf_, "sfc")) {
@@ -309,9 +299,9 @@ SEXP serialize_sf_to_str_(SEXP sf_, SEXP to_geo_opts_, SEXP serialize_opts_, SEX
 
   SEXP res_ = R_NilValue;
   if (Rf_inherits(sf_, "sfc")) {
-    res_ = PROTECT(sfc_to_str(sf_, &opt, Rf_asLogical(as_raw_))); nprotect++;
+    res_ = PROTECT(sfc_to_str(sf_, &opt)); nprotect++;
   } else if (Rf_inherits(sf_, "sf")) {
-    res_ = PROTECT(sf_to_str(sf_, &opt, Rf_asLogical(as_raw_))); nprotect++;
+    res_ = PROTECT(sf_to_str(sf_, &opt)); nprotect++;
   } else {
     Rf_error("serialize_sf_to_str_: class not handled yet");
   }
