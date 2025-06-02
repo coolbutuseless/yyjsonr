@@ -28,7 +28,9 @@ write_ndjson_str(head(mtcars))
 \seealso{
 Other JSON Serializer: 
 \code{\link{write_json_file}()},
+\code{\link{write_json_raw}()},
 \code{\link{write_json_str}()},
-\code{\link{write_ndjson_file}()}
+\code{\link{write_ndjson_file}()},
+\code{\link{write_ndjson_raw}()}
 }
 \concept{JSON Serializer}

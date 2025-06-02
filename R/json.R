@@ -119,7 +119,8 @@ write_json_str <- function(x, opts = list(), ...) {
   .Call(
     serialize_to_str_, 
     x, 
-    modify_list(opts, list(...))
+    modify_list(opts, list(...)),
+    FALSE  # as_raw? No. return: string
   )
 }
 
@@ -148,6 +149,34 @@ write_json_file <- function(x, filename, opts = list(), ...) {
   )
   
   invisible(NULL)
+}
+
+
+#~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+#' Convert R object to a raw vector of JSON data
+#' 
+#' @param x the object to be encoded
+#' @param opts Named list of serialization options. Usually created by [opts_write_json()]
+#' @param ... Other named options can be used to override any options in \code{opts}.
+#'        The valid named options are identical to arguments to [opts_write_json()]
+#' 
+#' @return Raw vector containing the JSON
+#' 
+#' @family JSON Serializer
+#' @export
+#' 
+#' @examples
+#' js <- write_json_raw(head(iris, 3))
+#' js
+#' read_json_raw(js)
+#~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+write_json_raw <- function(x, opts = list(), ...) {
+  .Call(
+    serialize_to_str_, 
+    x, 
+    modify_list(opts, list(...)),
+    TRUE  # as_raw? Yes!
+  )
 }
 
 

@@ -2,7 +2,7 @@
 % Please edit documentation in R/ndjson.R
 \name{read_ndjson_str}
 \alias{read_ndjson_str}
-\title{Parse an NDJSON file to a data.frame or list}
+\title{Parse an NDJSON string to a data.frame or list}
 \usage{
 read_ndjson_str(
   x,
@@ -63,6 +63,7 @@ Other JSON Parsers:
 \code{\link{read_json_file}()},
 \code{\link{read_json_raw}()},
 \code{\link{read_json_str}()},
-\code{\link{read_ndjson_file}()}
+\code{\link{read_ndjson_file}()},
+\code{\link{read_ndjson_raw}()}
 }
 \concept{JSON Parsers}

@@ -252,10 +252,20 @@ SEXP parse_ndjson_str_as_list_(SEXP str_, SEXP nread_, SEXP nskip_, SEXP parse_o
   //        insert resulting robject into list
   //   - free the doc
   //~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
-  char *str = (char *)CHAR( STRING_ELT(str_, 0) );
-  size_t str_size = strlen(str);
-  size_t orig_str_size = strlen(str);
-  size_t total_read = 0;
+  char *str;
+  size_t str_size;      
+  size_t orig_str_size; 
+  size_t total_read = 0;    
+  
+  if (TYPEOF(str_) == RAWSXP) {
+    str           = (char *)RAW(str_);
+    str_size      = (size_t)Rf_length(str_);
+    orig_str_size = (size_t)Rf_length(str_);
+  } else {
+    str           = (char *)CHAR( STRING_ELT(str_, 0) );
+    str_size      = strlen(str);
+    orig_str_size = strlen(str);
+  }
   
   
   
@@ -704,10 +714,20 @@ SEXP parse_ndjson_str_as_df_(SEXP str_, SEXP nread_, SEXP nskip_, SEXP nprobe_, 
   //        insert resulting robject into list
   //   - free the doc
   //~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
-  char *str = (char *)CHAR( STRING_ELT(str_, 0) );
-  size_t str_size = strlen(str);
-  size_t orig_str_size = strlen(str);
-  size_t total_read = 0;
+  char *str;
+  size_t str_size;      
+  size_t orig_str_size; 
+  size_t total_read = 0;    
+  
+  if (TYPEOF(str_) == RAWSXP) {
+    str           = (char *)RAW(str_);
+    str_size      = (size_t)Rf_length(str_);
+    orig_str_size = (size_t)Rf_length(str_);
+  } else {
+    str           = (char *)CHAR( STRING_ELT(str_, 0) );
+    str_size      = strlen(str);
+    orig_str_size = strlen(str);
+  }
   
   
   

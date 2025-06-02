@@ -6,6 +6,7 @@
 #include <Rdefines.h>
 
 #include <stdio.h>
+#include <stdbool.h>
 #include <stdlib.h>
 #include <unistd.h>
 #include <time.h>
@@ -1245,7 +1246,7 @@ yyjson_mut_val *serialize_core(SEXP robj_, yyjson_mut_doc *doc, serialize_option
 //
 // Serialize R object to JSON string.  Callable from R
 //===========================================================================
-SEXP serialize_to_str_(SEXP robj_, SEXP serialize_opts_) {
+SEXP serialize_to_str_(SEXP robj_, SEXP serialize_opts_, SEXP as_raw_) {
   
   
   serialize_options opt = parse_serialize_options(serialize_opts_);
@@ -1272,11 +1273,23 @@ SEXP serialize_to_str_(SEXP robj_, SEXP serialize_opts_) {
     Rf_error("Write to string error: %s", err.msg);
   }
   
-  SEXP res_ = PROTECT(Rf_mkString(json));
-  free(json);
-  yyjson_mut_doc_free(doc);
-  UNPROTECT(1);
-  return res_;
+  if (Rf_asLogical(as_raw_)) {
+    // return a raw vector
+    unsigned long len = strlen(json) + 1;
+    SEXP res_ = PROTECT(Rf_allocVector(RAWSXP, (R_xlen_t)len));
+    memcpy(RAW(res_), json, len);
+    free(json);
+    yyjson_mut_doc_free(doc);
+    UNPROTECT(1);
+    return res_;
+  } else {
+    // Return a string
+    SEXP res_ = PROTECT(Rf_mkString(json));
+    free(json);
+    yyjson_mut_doc_free(doc);
+    UNPROTECT(1);
+    return res_;
+  }
   
 }
 

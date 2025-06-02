@@ -32,7 +32,9 @@ read_ndjson_file(tmp)
 \seealso{
 Other JSON Serializer: 
 \code{\link{write_json_file}()},
+\code{\link{write_json_raw}()},
 \code{\link{write_json_str}()},
+\code{\link{write_ndjson_raw}()},
 \code{\link{write_ndjson_str}()}
 }
 \concept{JSON Serializer}

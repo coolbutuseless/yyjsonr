@@ -7,6 +7,7 @@
 #include <R_ext/Connections.h>
 
 #include <stdio.h>
+#include <stdbool.h>
 #include <stdlib.h>
 #include <unistd.h>
 
@@ -1548,7 +1549,13 @@ SEXP parse_geojson_str_(SEXP str_, SEXP geo_opts_, SEXP parse_opts_) {
   parse_options parse_opt = create_parse_options(parse_opts_);
   opt.parse_opt = &parse_opt;
   
-  const char *str = CHAR(STRING_ELT(str_, 0));
+  char *str;
+  if (TYPEOF(str_) == RAWSXP) {
+    str = (char *)RAW(str_); 
+  } else {
+    str = (char *)CHAR(STRING_ELT(str_, 0));
+  }
+  
   yyjson_read_err err;
   yyjson_doc *doc = yyjson_read_opts((char *)str, strlen(str), opt.yyjson_read_flag, NULL, &err);
   

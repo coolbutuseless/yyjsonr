@@ -34,22 +34,22 @@ This package contains specialized functions for each type of operation
 |  | string | file | raw | conn | options |
 |----|----|----|----|----|----|
 | read | read_json_str() | read_json_file() | read_json_raw() | read_json_conn() | opts_read_json() |
-| write | write_json_str() | write_json_file() |  |  | opts_write_json() |
+| write | write_json_str() | write_json_file() | write_json_raw() |  | opts_write_json() |
 | validate | validate_json_str() | validate_json_file() |  |  |  |
 
 #### NDJSON
 
-|       | string             | file                | raw | conn | options           |
-|-------|--------------------|---------------------|-----|------|-------------------|
-| read  | read_ndjson_str()  | read_ndjson_file()  |     |      | opts_read_json()  |
-| write | write_ndjson_str() | write_ndjson_file() |     |      | opts_write_json() |
+|  | string | file | raw | conn | options |
+|----|----|----|----|----|----|
+| read | read_ndjson_str() | read_ndjson_file() | read_ndjson_raw() |  | opts_read_json() |
+| write | write_ndjson_str() | write_ndjson_file() | write_ndjson_raw() |  | opts_write_json() |
 
 #### GeoJSON
 
-|       | string              | file                 | raw | conn | options              |
-|-------|---------------------|----------------------|-----|------|----------------------|
-| read  | read_geojson_str()  | read_geojson_file()  |     |      | opts_read_geojson()  |
-| write | write_geojson_str() | write_geojson_file() |     |      | opts_write_geojson() |
+|  | string | file | raw | conn | options |
+|----|----|----|----|----|----|
+| read | read_geojson_str() | read_geojson_file() | read_geojson_raw() |  | opts_read_geojson() |
+| write | write_geojson_str() | write_geojson_file() | write_geojson_raw() |  | opts_write_geojson() |
 
 ### Speed
 

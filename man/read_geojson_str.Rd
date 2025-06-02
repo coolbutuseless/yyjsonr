@@ -3,14 +3,18 @@
 \name{read_geojson_str}
 \alias{read_geojson_str}
 \alias{read_geojson_file}
+\alias{read_geojson_raw}
 \title{Load GeoJSON as \code{sf} object}
 \usage{
 read_geojson_str(str, opts = list(), ..., json_opts = list())
 
 read_geojson_file(filename, opts = list(), ..., json_opts = list())
+
+read_geojson_raw(str, opts = list(), ..., json_opts = list())
 }
 \arguments{
-\item{str}{Single string containing GeoJSON}
+\item{str}{Single string containing GeoJSON. Raw vector of chracter data also
+allowed}
 
 \item{opts}{Named list of GeoJSON-specific options. Usually created
 with \code{opts_read_geojson()}.

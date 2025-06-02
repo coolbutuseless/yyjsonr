@@ -64,7 +64,7 @@ read_ndjson_file <- function(filename, type = c('df', 'list'), nread = -1, nskip
 
 
 #~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
-#' Parse an NDJSON file to a data.frame or list
+#' Parse an NDJSON string to a data.frame or list
 #' 
 #' If reading as data.frame, each row of NDJSON becomes a row in the data.frame.  
 #' If reading as a list, then each row becomes an element in the list.
@@ -92,6 +92,60 @@ read_ndjson_file <- function(filename, type = c('df', 'list'), nread = -1, nskip
 #' @export
 #~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 read_ndjson_str <- function(x, type = c('df', 'list'), nread = -1, nskip = 0, nprobe = 100, opts = list(), ...) {
+  
+  type <- match.arg(type)
+  
+  if (type == 'list') {
+    .Call(
+      parse_ndjson_str_as_list_,
+      x, 
+      nread,
+      nskip,
+      modify_list(opts, list(...))
+    )
+  } else {
+    .Call(
+      parse_ndjson_str_as_df_,
+      x, 
+      nread,
+      nskip,
+      nprobe,
+      modify_list(opts, list(...))
+    )
+  }
+}
+
+
+#~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+#' Parse an NDJSON within a raw vector to a data.frame or list
+#' 
+#' If reading as data.frame, each row of NDJSON becomes a row in the data.frame.  
+#' If reading as a list, then each row becomes an element in the list.
+#' 
+#' If parsing NDJSON to a data.frame it is usually better if the json objects
+#' are consistent from line-to-line.  Type inference for the data.frame is done
+#' during initialisation by reading through \code{nprobe} lines.  Warning: if
+#' there is a type-mismatch further into the file than it is probed, then you 
+#' will get missing values in the data.frame, or JSON values not captured in 
+#' the R data.
+#' 
+#' No flattening of the namespace is done i.e. nested object remain nested.
+#' 
+#' @inheritParams read_ndjson_file
+#' @param x string containing NDJSON
+#'
+#' @examples
+#' js <- write_ndjson_raw(head(mtcars))
+#' js
+#' read_ndjson_raw(js, 'list')
+#' read_ndjson_raw(js, 'df')
+#' 
+#' @family JSON Parsers
+#' @return NDJSON data read into R as list or data.frame depending 
+#'         on \code{'type'} argument
+#' @export
+#~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+read_ndjson_raw <- function(x, type = c('df', 'list'), nread = -1, nskip = 0, nprobe = 100, opts = list(), ...) {
   
   type <- match.arg(type)
   
@@ -182,13 +236,54 @@ write_ndjson_str <- function(x, opts = list(), ...) {
     .Call(
       serialize_df_to_ndjson_str_,
       x,
-      opts
+      opts,
+      FALSE  # as_raw? NO. return string
     )
   } else {
     .Call(
       serialize_list_to_ndjson_str_,
       x,
-      opts
+      opts,
+      FALSE  # as_raw? NO. return string
+    )
+  }
+}
+
+
+#~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+#' Write list or data.frame object to NDJSON in a raw vector
+#' 
+#' For \code{list} input, each element of the list is written as a single JSON string.
+#' For \code{data.frame} input, each row of the \code{data.frame} is written
+#' as aJSON string.
+#' 
+#' @inherit write_ndjson_file
+#'
+#' @return Raw vector containing NDJSON character data
+#' @family JSON Serializer
+#' @export
+#' 
+#' @examples
+#' js <- write_ndjson_raw(head(mtcars))
+#' js
+#' read_ndjson_raw(js, 'list')
+#~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+write_ndjson_raw <- function(x, opts = list(), ...) {
+  opts <- modify_list(opts, list(...))
+  
+  if (is.data.frame(x)) {
+    .Call(
+      serialize_df_to_ndjson_str_,
+      x,
+      opts,
+      TRUE  # as_raw? Yes!
+    )
+  } else {
+    .Call(
+      serialize_list_to_ndjson_str_,
+      x,
+      opts,
+      TRUE  # as_raw? Yes!
     )
   }
 }

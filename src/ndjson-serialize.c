@@ -7,6 +7,7 @@
 #include <R_ext/Connections.h>
 
 #include <stdio.h>
+#include <stdbool.h>
 #include <stdlib.h>
 #include <unistd.h>
 
@@ -61,7 +62,7 @@ SEXP serialize_list_to_ndjson_file_(SEXP robj_, SEXP filename_, SEXP serialize_o
 //~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 // 
 //~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
-SEXP serialize_list_to_ndjson_str_(SEXP robj_, SEXP serialize_opts_) {
+SEXP serialize_list_to_ndjson_str_(SEXP robj_, SEXP serialize_opts_, SEXP as_raw_) {
   serialize_options opt = parse_serialize_options(serialize_opts_);
   
   char **ndjson = NULL;
@@ -101,8 +102,16 @@ SEXP serialize_list_to_ndjson_str_(SEXP robj_, SEXP serialize_opts_) {
   if (total_len >= 2) {
     total_str[total_len - 2] = '\0';
   }  
-  SEXP ndjson_ = PROTECT(Rf_allocVector(STRSXP, 1));
-  SET_STRING_ELT(ndjson_, 0, Rf_mkChar(total_str));
+  
+  SEXP ndjson_;
+  if (Rf_asLogical(as_raw_)) {
+    ndjson_ = PROTECT(Rf_allocVector(RAWSXP, total_len - 1));
+    memcpy(RAW(ndjson_), total_str, total_len - 1);
+  } else {
+    ndjson_ = PROTECT(Rf_allocVector(STRSXP, 1));
+    SET_STRING_ELT(ndjson_, 0, Rf_mkChar(total_str));
+  }
+  
   free(total_str);
   
   for (int i = 0; i < nelems; i++) {
@@ -233,7 +242,7 @@ SEXP serialize_df_to_ndjson_file_(SEXP robj_, SEXP filename_, SEXP serialize_opt
 //~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 // Serialize list or data.frame to NDJSON
 //~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
-SEXP serialize_df_to_ndjson_str_(SEXP robj_, SEXP serialize_opts_) {
+SEXP serialize_df_to_ndjson_str_(SEXP robj_, SEXP serialize_opts_, SEXP as_raw_) {
   
   serialize_options opt = parse_serialize_options(serialize_opts_);
   
@@ -346,8 +355,15 @@ SEXP serialize_df_to_ndjson_str_(SEXP robj_, SEXP serialize_opts_) {
     }
   }
   
-  SEXP ndjson_ = PROTECT(Rf_allocVector(STRSXP, 1));
-  SET_STRING_ELT(ndjson_, 0, Rf_mkChar(total_str));
+  SEXP ndjson_;
+  if (Rf_asLogical(as_raw_)) {
+    ndjson_ = PROTECT(Rf_allocVector(RAWSXP, total_len - 1));
+    memcpy(RAW(ndjson_), total_str, total_len - 1);
+  } else {
+    ndjson_ = PROTECT(Rf_allocVector(STRSXP, 1));
+    SET_STRING_ELT(ndjson_, 0, Rf_mkChar(total_str));
+  }
+  
   free(total_str);
   
   for (int i = 0; i < nrows; i++) {

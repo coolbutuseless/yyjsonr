@@ -19,6 +19,7 @@
          into the output
 * [9010] Add option `single_null` to specify R value to use for single 
          JSON `null` values
+* [9011] Add raw IO for json, ndjson and geojson
 
 # yyjsonr 0.1.20 2024-04-10
 
