@@ -508,7 +508,7 @@ unsigned int get_best_sexp_to_represent_type_bitset(unsigned int type_bitset, pa
   } else if ((type_bitset & VAL_ARR) | (type_bitset & VAL_OBJ)) {
     sexp_type = VECSXP;
   } else if (type_bitset == 0) {
-    sexp_type = Rf_isNull(opt->single_null) ? VECSXP : TYPEOF(opt->single_null);
+    sexp_type = Rf_isNull(opt->single_null) ? VECSXP : (unsigned int)TYPEOF(opt->single_null);
   } else {
     Rf_warning("get_best_sexp_to_represent_type_bitset(): unhandled type_bitset %i\n.", type_bitset);
     sexp_type = VECSXP;

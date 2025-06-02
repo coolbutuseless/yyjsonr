@@ -1,6 +1,6 @@
 
 
-# yyjsonr 0.1.20.9010 2025-06-02
+# yyjsonr 0.1.20.9012 2025-06-02
 
 * [9000] Get size of gzipped file in an endian-neutral way. Issue #39
 * [9001] Fix underflow issue when trying to verbosely report an error at position 0
@@ -20,6 +20,7 @@
 * [9010] Add option `single_null` to specify R value to use for single 
          JSON `null` values
 * [9011] Add raw IO for json, ndjson and geojson
+* [9012] Update to `yyjson` v0.11.1 (May 2025)
 
 # yyjsonr 0.1.20 2024-04-10
 

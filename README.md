@@ -19,7 +19,7 @@ In most cases it is around 2x to 10x faster than `{jsonlite}` at both
 reading and writing JSON.
 
 It is a wrapper for the [`yyjson`](https://github.com/ibireme/yyjson) C
-library (v0.10.0 July 9, 2024). `yyjson` is MIT licensed - see
+library (v0.11.1 May 2025). `yyjson` is MIT licensed - see
 `LICENSE-yyjson.txt` in this package for more details -
 `readLines(system.file('LICENSE-yyjson.txt', package = 'yyjsonr', mustWork = TRUE))`
 

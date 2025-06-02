@@ -249,7 +249,7 @@ SEXP sf_to_str(SEXP sf_, geo_serialize_options *opt, bool as_raw) {
   //~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
   SEXP geojson_;
   if (as_raw) {
-    geojson_ = PROTECT(Rf_allocVector(RAWSXP, strlen(json))); nprotect++;
+    geojson_ = PROTECT(Rf_allocVector(RAWSXP, (R_xlen_t)strlen(json))); nprotect++;
     memcpy(RAW(geojson_), json, strlen(json));
   } else {
     geojson_ = PROTECT(Rf_mkString(json)); nprotect++;

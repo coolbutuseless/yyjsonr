@@ -1,7 +1,7 @@
 Package: yyjsonr
 Type: Package
 Title: Fast 'JSON', 'NDJSON' and 'GeoJSON' Parser and Generator 
-Version: 0.1.20.9011
+Version: 0.1.20.9012
 Authors@R: c(
     person("Mike", "Cheng", role = c("aut", "cre", 'cph'), 
     email = "mikefc@coolbutuseless.com"),
