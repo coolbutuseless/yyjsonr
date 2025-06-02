@@ -339,8 +339,8 @@ Option `yyjson_read_flag` - internal `YYJSON` C library options
 
 The `yyjson` C library supports a number of internal options for reading JSON.
 
-These options are considered advanced, and the user is referred to the
-[`yyjson` documentation](https://ibireme.github.io/yyjson/doc/doxygen/html/md_doc__a_p_i.html#autotoc_md36) for further explanation on what they control.
+These options are considered advanced, and the user should read the
+original `yyjson` documentation for further explanation on what they control.
 
 **Warning**: some of these advanced options do not make sense for interfacing with R,
 or otherwise conflict with how this package converts JSON to R objects. 
