@@ -197,6 +197,9 @@ yyjson_write_flag <- list(
 #' @param digits_promote When promoting numbers to be strings, how many decimal 
 #'        places should be used in the representation. Default: 6.  This option is only 
 #'        valid if \code{promote_num_to_string = TRUE}. Valid range 0 to 30
+#' @param single_null R object to return for isolated JSON \code{null} values.
+#'        Default: NULL.  Note: JSON \code{null} values in arrays may still be
+#'        promoted to \code{NAs} of the appropriate type if possible.
 #' @param length1_array_asis logical. Should JSON arrays with length = 1 be 
 #'        marked with class \code{AsIs}.  Default: FALSE
 #'
@@ -217,6 +220,7 @@ opts_read_json <- function(
     num_specials          = c('special', 'string'),
     int64                 = c('string', 'double', 'bit64'),
     length1_array_asis    = FALSE,
+    single_null           = NULL,
     yyjson_read_flag      = 0L
 ) {
   
@@ -231,6 +235,7 @@ opts_read_json <- function(
       str_specials          = match.arg(str_specials),
       num_specials          = match.arg(num_specials),
       int64                 = match.arg(int64),
+      single_null           = single_null,
       yyjson_read_flag      = as.integer(yyjson_read_flag)
     ),
     class = "opts_read_json"

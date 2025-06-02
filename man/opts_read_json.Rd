@@ -14,6 +14,7 @@ opts_read_json(
   num_specials = c("special", "string"),
   int64 = c("string", "double", "bit64"),
   length1_array_asis = FALSE,
+  single_null = NULL,
   yyjson_read_flag = 0L
 )
 }
@@ -58,6 +59,10 @@ be stored in this type.}
 
 \item{length1_array_asis}{logical. Should JSON arrays with length = 1 be
 marked with class \code{AsIs}.  Default: FALSE}
+
+\item{single_null}{R object to return for isolated JSON \code{null} values.
+Default: NULL.  Note: JSON \code{null} values in arrays may still be
+promoted to \code{NAs} of the appropriate type if possible.}
 
 \item{yyjson_read_flag}{integer vector of internal \code{yyjson}
 options.  See \code{yyjson_read_flag} in this package, and read

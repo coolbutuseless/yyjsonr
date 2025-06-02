@@ -1,7 +1,7 @@
 Package: yyjsonr
 Type: Package
 Title: Fast 'JSON', 'NDJSON' and 'GeoJSON' Parser and Generator 
-Version: 0.1.20.9009
+Version: 0.1.20.9010
 Authors@R: c(
     person("Mike", "Cheng", role = c("aut", "cre", 'cph'), 
     email = "mikefc@coolbutuseless.com"),
@@ -35,6 +35,6 @@ Suggests:
     testthat (>= 3.0.0)
 Config/testthat/edition: 3
 VignetteBuilder: knitr
-Copyright: The included 'yyjson' code is Copyright (c) 2020 YaoYuan. See 'COPYRIGHTS' for LICENSE for inclued code.
+Copyright: The included 'yyjson' code is Copyright (c) 2020 YaoYuan. See 'COPYRIGHTS' for LICENSE for included code.
 Depends:
     R (>= 4.1.0)

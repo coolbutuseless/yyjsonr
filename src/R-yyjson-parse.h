@@ -104,6 +104,7 @@ typedef struct {
   unsigned int num_specials;
   bool promote_num_to_string;
   int digits_promote;
+  SEXP single_null;
   unsigned int yyjson_read_flag;
 } parse_options;
 

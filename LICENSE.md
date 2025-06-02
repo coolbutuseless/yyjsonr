@@ -1,6 +1,6 @@
 MIT License
 
-Copyright (c) 2023,2024 mikefc@coolbutuseless.com
+Copyright (c) 2023,2024,2025 mikefc@coolbutuseless.com
 
     Permission is hereby granted, free of charge, to any person obtaining a copy
 of this software and associated documentation files (the "Software"), to deal

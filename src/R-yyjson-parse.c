@@ -40,6 +40,7 @@ parse_options create_parse_options(SEXP parse_opts_) {
     .num_specials          = NUM_SPECIALS_AS_SPECIAL,
     .promote_num_to_string = false,
     .digits_promote        = 6,
+    .single_null           = R_NilValue,
     .yyjson_read_flag      = 0
   };
   
@@ -91,6 +92,8 @@ parse_options create_parse_options(SEXP parse_opts_) {
       opt.num_specials = strcmp(val, "string") == 0 ? NUM_SPECIALS_AS_STRING : NUM_SPECIALS_AS_SPECIAL;
     } else if (strcmp(opt_name, "promote_num_to_string") == 0) {
       opt.promote_num_to_string = Rf_asLogical(val_);
+    } else if (strcmp(opt_name, "single_null") == 0) {
+      opt.single_null = val_;
     } else if (strcmp(opt_name, "digits_promote") == 0) {
       opt.digits_promote = Rf_asInteger(val_);
       if (opt.digits_promote < 0 || opt.digits_promote > 30) {
@@ -504,7 +507,7 @@ unsigned int get_best_sexp_to_represent_type_bitset(unsigned int type_bitset, pa
   } else if ((type_bitset & VAL_ARR) | (type_bitset & VAL_OBJ)) {
     sexp_type = VECSXP;
   } else if (type_bitset == 0) {
-    sexp_type = VECSXP;
+    sexp_type = Rf_isNull(opt->single_null) ? VECSXP : TYPEOF(opt->single_null);
   } else {
     Rf_warning("get_best_sexp_to_represent_type_bitset(): unhandled type_bitset %i\n.", type_bitset);
     sexp_type = VECSXP;
@@ -1815,7 +1818,7 @@ SEXP json_as_robj(yyjson_val *val, parse_options *opt) {
     res_ = PROTECT(Rf_mkString(yyjson_get_str(val))); nprotect++;
     break;
   case YYJSON_TYPE_NULL:
-    res_ = R_NilValue;
+    res_ = PROTECT(Rf_duplicate(opt->single_null)); nprotect++;
     break;
   default:
     Rf_warning("json_as_robj(): unhandled: %s\n", yyjson_get_type_desc(val));
