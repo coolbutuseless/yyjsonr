@@ -802,6 +802,11 @@ SEXP parse_ndjson_str_as_df_(SEXP str_, SEXP nread_, SEXP nskip_, SEXP nprobe_, 
         strcpy(colname[ncols], new_name);
         ncols++;
         if (ncols == MAX_DF_COLS) {
+          // TODO: Switch to dynamic allocation and 'realloc()' as needed.
+          // Free the 'colnames' we copied out of JSON docs when probing
+          for (int i = 0; i < ncols; i++) {
+            free(colname[i]);
+          }
           Rf_error("Maximum columns for data.frame exceeded: %i", MAX_DF_COLS);
         }
       }
