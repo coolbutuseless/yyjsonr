@@ -117,7 +117,44 @@ test_that("write_ndjson_str list works", {
 
 
 
+test_that("red_ndjson_str() empty inputs", {
+  
+  # write_ndjson_str(head(mtcars, 2))
+  input <- r"({"mpg":21.0,"cyl":6.0,"disp":160.0,"hp":110.0,"drat":3.9,"wt":2.62,"qsec":16.46,"vs":0.0,"am":1.0,"gear":4.0,"carb":4.0}
+{"mpg":21.0,"cyl":6.0,"disp":160.0,"hp":110.0,"drat":3.9,"wt":2.875,"qsec":17.02,"vs":0.0,"am":1.0,"gear":4.0,"carb":4.0})"
+  expect_no_error({
+    read_ndjson_str(input)
+  })
+  
+  input <- r"({"mpg":21.0,"cyl":6.0,"disp":160.0,"hp":110.0,"drat":3.9,"wt":2.62,"qsec":16.46,"vs":0.0,"am":1.0,"gear":4.0,"carb":4.0})"
+  expect_no_error({
+    read_ndjson_str(input)
+  })
+  
+  input <- r"()"
+  expect_no_error({
+    read_ndjson_str(input)
+  })
+  
+})
 
 
+
+
+
+test_that("red_ndjson_raw() empty inputs", {
+  
+  input <- write_ndjson_raw(head(mtcars, 2))
+  expect_no_error({
+    read_ndjson_raw(input)
+  })
+  
+  
+  input <- raw(0)
+  expect_no_error({
+    read_ndjson_raw(input)
+  })
+  
+})
 
 
