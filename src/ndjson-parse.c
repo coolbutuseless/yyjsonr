@@ -385,11 +385,17 @@ SEXP promote_list_to_data_frame(SEXP df_, char **colname, int ncols) {
   //~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
   // Set empty rownames on data.frame
   //~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
-  int nrows = Rf_length(VECTOR_ELT(df_, 1));
-  SEXP rownames = PROTECT(Rf_allocVector(INTSXP, 2)); nprotect++;
-  SET_INTEGER_ELT(rownames, 0, NA_INTEGER);
-  SET_INTEGER_ELT(rownames, 1, -nrows);
-  Rf_setAttrib(df_, R_RowNamesSymbol, rownames);
+  if (ncols == 0) {
+    SEXP rownames = PROTECT(Rf_allocVector(INTSXP, 0)); nprotect++;
+    Rf_setAttrib(df_, R_RowNamesSymbol, rownames);
+  } else {  
+    int nrows = Rf_length(VECTOR_ELT(df_, 0));
+    SEXP rownames = PROTECT(Rf_allocVector(INTSXP, 2)); nprotect++;
+    SET_INTEGER_ELT(rownames, 0, NA_INTEGER);
+    SET_INTEGER_ELT(rownames, 1, -nrows);
+    Rf_setAttrib(df_, R_RowNamesSymbol, rownames);
+  }
+  
   
   //~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
   // Set 'data.frame' class
@@ -727,6 +733,13 @@ SEXP parse_ndjson_str_as_df_(SEXP str_, SEXP nread_, SEXP nskip_, SEXP nprobe_, 
     str           = (char *)CHAR( STRING_ELT(str_, 0) );
     str_size      = strlen(str);
     orig_str_size = strlen(str);
+  }
+  
+  if (str_size == 0) {
+    SEXP ll_ = PROTECT(Rf_allocVector(VECSXP, 0)); nprotect++;
+    SEXP df_ = PROTECT(promote_list_to_data_frame(ll_, NULL, 0)); nprotect++;
+    UNPROTECT(nprotect);
+    return(df_);
   }
   
   

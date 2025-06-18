@@ -117,7 +117,7 @@ test_that("write_ndjson_str list works", {
 
 
 
-test_that("red_ndjson_str() empty inputs", {
+test_that("read_ndjson_str() empty inputs", {
   
   # write_ndjson_str(head(mtcars, 2))
   input <- r"({"mpg":21.0,"cyl":6.0,"disp":160.0,"hp":110.0,"drat":3.9,"wt":2.62,"qsec":16.46,"vs":0.0,"am":1.0,"gear":4.0,"carb":4.0}
@@ -131,10 +131,16 @@ test_that("red_ndjson_str() empty inputs", {
     read_ndjson_str(input)
   })
   
+  input <- r"(a)"
+  expect_error(
+    read_ndjson_str(input),
+    "Couldn't parse"
+  )
+  
+  
   input <- r"()"
-  expect_no_error({
-    read_ndjson_str(input)
-  })
+  expect_equal(read_ndjson_raw(input, type =   'df'), data.frame())
+  expect_equal(read_ndjson_raw(input, type = 'list'), list())
   
 })
 
@@ -142,7 +148,7 @@ test_that("red_ndjson_str() empty inputs", {
 
 
 
-test_that("red_ndjson_raw() empty inputs", {
+test_that("read_ndjson_raw() empty inputs", {
   
   input <- write_ndjson_raw(head(mtcars, 2))
   expect_no_error({
@@ -150,10 +156,16 @@ test_that("red_ndjson_raw() empty inputs", {
   })
   
   
+  input <- raw(1)
+  expect_error(
+    read_ndjson_raw(input),
+    "Couldn't parse"
+  )
+  
+  
   input <- raw(0)
-  expect_no_error({
-    read_ndjson_raw(input)
-  })
+  expect_equal(read_ndjson_raw(input, type =   'df'), data.frame())
+  expect_equal(read_ndjson_raw(input, type = 'list'), list())
   
 })
 
