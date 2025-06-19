@@ -7,7 +7,7 @@ test_that("valgrind check works", {
   # fails to free all memory?
   #~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
   expect_error(
-    read_json_str('[1, 2, {"a":1, "b":"hello", "c":"test"}, [{1}]')
+    read_json_str('[1, 2, {"a":1, "b":"hello", "c":"test"}, [[[[[[[[[[[[1, {1}]]]]]]]]]]]] ]')
   )
   
 })
