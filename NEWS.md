@@ -1,4 +1,13 @@
 
+# yyjsonr 0.1.21.9001  2025-07-28
+
+* Fix: ndjson error with zero-length input when parsing to data.frame. 
+       Now returns empty data.frame(). This matches the parsing of ndjson
+       to lists, where zero-length input is not an error, and just returns
+       empty lists.
+* Fix: segfault in parse_ndjson_str_as_df_.  Now freeing allocated colnames
+       when error occurs
+* Fix: free yyjson doc on error in geojson parse
 
 # yyjsonr 0.1.21 2025-06-03
 
