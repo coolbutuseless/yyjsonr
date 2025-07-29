@@ -15,6 +15,14 @@
 #include "R-yyjson-parse.h"
 
 
+//~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+// Free all things in the state
+//~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+void free_state(state_t *state) {
+  if (state->doc) {
+    yyjson_doc_free(state->doc);
+  }
+}
 
 //~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 // Forward declarations
@@ -1861,7 +1869,8 @@ void output_verbose_error(const char *str, yyjson_read_err err) {
 SEXP parse_json_from_str(const char *str, size_t len, parse_options *opt) {
   
   yyjson_read_err err;
-  yyjson_doc *doc = yyjson_read_opts((char *)str, len, opt->yyjson_read_flag, NULL, &err);
+  state_t state = { 0 };
+  state.doc = yyjson_read_opts((char *)str, len, opt->yyjson_read_flag, NULL, &err);
   
   //~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
   // If doc is NULL, then an error occurred during parsing.
@@ -1871,7 +1880,7 @@ SEXP parse_json_from_str(const char *str, size_t len, parse_options *opt) {
   //   - print the index in the character string where the error occurred
   //   - add a visual pointer to the output so the user knows where this was
   //~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
-  if (doc == NULL) {
+  if (state.doc == NULL) {
     output_verbose_error(str, err);
 #if defined(_WIN32)
     Rf_error("Error parsing JSON [Loc: %llu]: %s", err.pos, err.msg);
@@ -1883,10 +1892,10 @@ SEXP parse_json_from_str(const char *str, size_t len, parse_options *opt) {
   //~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
   // Parse the document from the root node
   //~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
-  SEXP res_ = PROTECT(json_as_robj(yyjson_doc_get_root(doc), opt));
+  SEXP res_ = PROTECT(json_as_robj(yyjson_doc_get_root(state.doc), opt));
   
-  yyjson_doc_free(doc);
   
+  free_state(&state);
   UNPROTECT(1);
   return res_;
 } 
@@ -1904,12 +1913,13 @@ SEXP parse_json_from_file(const char *filename, parse_options *opt) {
   //                              const yyjson_alc *alc,
   //                              yyjson_read_err *err);
   
-  yyjson_doc *doc = yyjson_read_file((char *)filename, opt->yyjson_read_flag, NULL, &err);
+  state_t state = { 0 };
+  state.doc = yyjson_read_file((char *)filename, opt->yyjson_read_flag, NULL, &err);
   
   //~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
   // If doc is NULL, then an error occurred during parsing.
   //~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
-  if (doc == NULL) {
+  if (state.doc == NULL) {
 #if defined(_WIN32)
     Rf_error("Error parsing JSON file '%s' [Loc: %llu]: %s\n", filename, err.pos, err.msg);
 #else
@@ -1921,10 +1931,9 @@ SEXP parse_json_from_file(const char *filename, parse_options *opt) {
   //~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
   // Parse the document from the root node
   //~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
-  SEXP res_ = PROTECT(json_as_robj(yyjson_doc_get_root(doc), opt));
+  SEXP res_ = PROTECT(json_as_robj(yyjson_doc_get_root(state.doc), opt));
   
-  yyjson_doc_free(doc);
-  
+  free_state(&state);
   UNPROTECT(1);
   return res_;
 } 
@@ -2052,12 +2061,13 @@ SEXP validate_json_file_(SEXP filename_, SEXP verbose_, SEXP parse_opts_) {
   parse_options opt = create_parse_options(parse_opts_);
   
   yyjson_read_err err;
-  yyjson_doc *doc = yyjson_read_file((char *)filename, opt.yyjson_read_flag, NULL, &err);
+  state_t state = { 0 };
+  state.doc = yyjson_read_file((char *)filename, opt.yyjson_read_flag, NULL, &err);
   
   //~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
   // If doc is NULL, then an error occurred during parsing.
   //~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
-  if (doc == NULL) {
+  if (state.doc == NULL) {
     if (Rf_asLogical(verbose_)) {
 #if defined(_WIN32)
       Rf_warning("Error parsing JSON file '%s' [Loc: %llu]: %s", filename, err.pos, err.msg);
@@ -2069,8 +2079,7 @@ SEXP validate_json_file_(SEXP filename_, SEXP verbose_, SEXP parse_opts_) {
     
   }
   
-  yyjson_doc_free(doc);
-  
+  free_state(&state);
   return Rf_ScalarLogical(1);
 }
 
@@ -2083,12 +2092,13 @@ SEXP validate_json_str_(SEXP str_, SEXP verbose_, SEXP parse_opts_) {
   parse_options opt = create_parse_options(parse_opts_);
   
   yyjson_read_err err;
-  yyjson_doc *doc = yyjson_read_opts((char *)str, strlen(str), opt.yyjson_read_flag, NULL, &err);
-  
+  state_t state = { 0 };
+  state.doc = yyjson_read_opts((char *)str, strlen(str), opt.yyjson_read_flag, NULL, &err);
+
   //~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
   // If doc is NULL, then an error occurred during parsing.
   //~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
-  if (doc == NULL) {
+  if (state.doc == NULL) {
     if (Rf_asLogical(verbose_)) {
       output_verbose_error(str, err);
 #if defined(_WIN32)
@@ -2100,7 +2110,7 @@ SEXP validate_json_str_(SEXP str_, SEXP verbose_, SEXP parse_opts_) {
     return Rf_ScalarLogical(0);
   }
   
-  yyjson_doc_free(doc);
+  free_state(&state);
   return Rf_ScalarLogical(1);
 }
 
