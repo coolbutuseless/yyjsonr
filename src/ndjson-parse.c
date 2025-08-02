@@ -794,6 +794,7 @@ SEXP parse_ndjson_str_as_df_(SEXP str_, SEXP nread_, SEXP nskip_, SEXP nprobe_, 
     size_t pos = yyjson_doc_get_read_size(state.doc);
     if (state.doc == NULL) {
       // output_verbose_error(buf, err);
+      free_state(&state);
       Rf_error("Couldn't parse JSON during probe line %i\n", nrows + 1);
     }
     
@@ -817,7 +818,10 @@ SEXP parse_ndjson_str_as_df_(SEXP str_, SEXP nread_, SEXP nskip_, SEXP nprobe_, 
         char *new_name = (char *)yyjson_get_str(key);
         size_t n = strlen(new_name) + 1;
         colname[ncols] = calloc(n, 1);
-        if (colname[ncols] == 0) Rf_error("Failed to allocate 'colname'");
+        if (colname[ncols] == 0) {
+          free_state(&state);
+          Rf_error("Failed to allocate 'colname'");
+        }
         strcpy(colname[ncols], new_name);
         ncols++;
         if (ncols == MAX_DF_COLS) {
@@ -826,6 +830,7 @@ SEXP parse_ndjson_str_as_df_(SEXP str_, SEXP nread_, SEXP nskip_, SEXP nprobe_, 
           for (int i = 0; i < ncols; i++) {
             free(colname[i]);
           }
+          free_state(&state);
           Rf_error("Maximum columns for data.frame exceeded: %i", MAX_DF_COLS);
         }
       }
