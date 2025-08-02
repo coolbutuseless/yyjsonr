@@ -1845,6 +1845,8 @@ void output_verbose_error(const char *str, yyjson_read_err err) {
   size_t max_idx = err.pos + ERR_CONTEXT;
   max_idx = max_idx > strlen(str) ? strlen(str) : max_idx;
   
+  if (strlen(str) == 0) return;
+  
   // copy this context into a temp string. ensure it ends in '\0'
   char err_string[3 * ERR_CONTEXT];
   strncpy((char *)&err_string, str + min_idx, max_idx - min_idx);
