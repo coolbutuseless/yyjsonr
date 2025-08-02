@@ -635,6 +635,7 @@ SEXP parse_ndjson_file_as_df_(SEXP filename_, SEXP nread_, SEXP nskip_, SEXP npr
     
     yyjson_val *obj = yyjson_doc_get_root(state.doc);
     if (yyjson_get_type(obj) != YYJSON_TYPE_OBJ) {
+      free_state(&state);
       Rf_error("parse_ndjson_as_df() only works if all lines represent JSON objects");
     }
     

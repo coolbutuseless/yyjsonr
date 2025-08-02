@@ -1884,6 +1884,7 @@ SEXP parse_json_from_str(const char *str, size_t len, parse_options *opt) {
   //   - add a visual pointer to the output so the user knows where this was
   //~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
   if (state.doc == NULL) {
+    free_state(&state);
     output_verbose_error(str, err);
 #if defined(_WIN32)
     Rf_error("Error parsing JSON [Loc: %llu]: %s", err.pos, err.msg);
@@ -1923,6 +1924,7 @@ SEXP parse_json_from_file(const char *filename, parse_options *opt) {
   // If doc is NULL, then an error occurred during parsing.
   //~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
   if (state.doc == NULL) {
+    free_state(&state);
 #if defined(_WIN32)
     Rf_error("Error parsing JSON file '%s' [Loc: %llu]: %s\n", filename, err.pos, err.msg);
 #else
@@ -2110,6 +2112,7 @@ SEXP validate_json_str_(SEXP str_, SEXP verbose_, SEXP parse_opts_) {
       Rf_warning("Error parsing JSON [Loc: %lu]: %s", err.pos, err.msg);
 #endif
     }
+    free_state(&state);
     return Rf_ScalarLogical(0);
   }
   
