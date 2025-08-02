@@ -518,6 +518,7 @@ SEXP parse_ndjson_file_as_df_(SEXP filename_, SEXP nread_, SEXP nskip_, SEXP npr
     state.doc = yyjson_read_opts(buf, strlen(buf), opt.yyjson_read_flag, NULL, &err);
     if (state.doc == NULL) {
       output_verbose_error(buf, err);
+      free_state(&state);
       Rf_error("Couldn't parse JSON during probe line %i\n", i + 1);
     }
     
@@ -546,6 +547,7 @@ SEXP parse_ndjson_file_as_df_(SEXP filename_, SEXP nread_, SEXP nskip_, SEXP npr
         strcpy(colname[ncols], new_name);
         ncols++;
         if (ncols == MAX_DF_COLS) {
+          free_state(&state);
           Rf_error("Maximum columns for data.frame exceeded: %i", MAX_DF_COLS);
         }
       }
@@ -627,6 +629,7 @@ SEXP parse_ndjson_file_as_df_(SEXP filename_, SEXP nread_, SEXP nskip_, SEXP npr
     state.doc = yyjson_read_opts(buf, strlen(buf), opt.yyjson_read_flag, NULL, &err);
     if (state.doc == NULL) {
       output_verbose_error(buf, err);
+      free_state(&state);
       Rf_error("Couldn't parse JSON on line %i\n", i + 1);
     }
     
@@ -670,6 +673,7 @@ SEXP parse_ndjson_file_as_df_(SEXP filename_, SEXP nread_, SEXP nskip_, SEXP npr
         }
         break;
       default:
+        free_state(&state);
         Rf_error("parse_ndjson_file_as_df_(): Unknown type");
       } 
       
@@ -931,11 +935,13 @@ SEXP parse_ndjson_str_as_df_(SEXP str_, SEXP nread_, SEXP nskip_, SEXP nprobe_, 
     size_t pos = yyjson_doc_get_read_size(state.doc);
     if (state.doc == NULL) {
       // output_verbose_error(buf, err);
+      free_state(&state);
       Rf_error("Couldn't parse JSON on line %i\n", i + 1);
     }
     
     yyjson_val *obj = yyjson_doc_get_root(state.doc);
     if (yyjson_get_type(obj) != YYJSON_TYPE_OBJ) {
+      free_state(&state);
       Rf_error("parse_ndjson_as_df() only works if all lines represent JSON objects");
     }
     
@@ -974,6 +980,7 @@ SEXP parse_ndjson_str_as_df_(SEXP str_, SEXP nread_, SEXP nskip_, SEXP nprobe_, 
         }
         break;
       default:
+        free_state(&state);
         Rf_error("parse_ndjson_file_as_df_(): Unknown type");
       } 
       
