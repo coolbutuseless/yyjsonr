@@ -14,6 +14,7 @@
 #include <zlib.h>
 
 #include "yyjson.h"
+#include "R-yyjson-state.h"
 #include "R-yyjson-parse.h"
 
 #define SF_POINT               1 << 1
@@ -70,7 +71,6 @@ typedef struct {
   double zmax;
   double mmin;
   double mmax;
-  yyjson_doc *doc; // Pass around a referece to the doc so it can be freed on error
 } geo_parse_options;
 
 //~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
@@ -89,8 +89,7 @@ geo_parse_options create_geo_parse_options(SEXP geo_opts_) {
     .zmin =  INFINITY,
     .zmax = -INFINITY,
     .mmin =  INFINITY,
-    .mmax = -INFINITY,
-    .doc  = NULL
+    .mmax = -INFINITY
   };
   
   if (Rf_isNull(geo_opts_) || Rf_length(geo_opts_) == 0) {
@@ -226,7 +225,8 @@ bool needs_m_range(geo_parse_options *opt) {
 //~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 // Forward Declarations
 //~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
-SEXP geojson_as_sf(yyjson_val *val, geo_parse_options *opt, unsigned int depth);
+SEXP geojson_as_sf(yyjson_val *val, geo_parse_options *opt, state_t *state, 
+                   unsigned int depth);
 
 #define COORD_XY   2
 #define COORD_XYZ  3
@@ -643,7 +643,6 @@ SEXP prop_to_rchar(yyjson_val *prop_val, geo_parse_options *opt) {
     yyjson_mut_doc_set_root(doc, val);
     char *json = yyjson_mut_write(doc, 0, NULL);
     if (json == NULL) {
-      if (opt->doc != NULL) yyjson_doc_free(opt->doc);
       Rf_error("Error converting json to string in prop_to_strsxp");
     }
     SEXP res_ = PROTECT(Rf_mkChar(json));
@@ -715,7 +714,7 @@ SEXP prop_to_strsxp(yyjson_val *features, char *prop_name, geo_parse_options *op
 //~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 // Parse a property as a character string from a feature collection
 //~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
-SEXP prop_to_vecsxp(yyjson_val *features, char *prop_name, geo_parse_options *opt) {
+SEXP prop_to_vecsxp(yyjson_val *features, char *prop_name, geo_parse_options *opt, state_t *state) {
   size_t N = yyjson_get_len(features);
   SEXP vec_ = PROTECT(Rf_allocVector(VECSXP, (R_xlen_t)N)); 
   
@@ -728,7 +727,7 @@ SEXP prop_to_vecsxp(yyjson_val *features, char *prop_name, geo_parse_options *op
     if (prop_val == NULL) {
       SET_VECTOR_ELT(vec_, idx, Rf_ScalarLogical(NA_LOGICAL));
     } else {
-      SET_VECTOR_ELT(vec_, idx, json_as_robj(prop_val, opt->parse_opt));
+      SET_VECTOR_ELT(vec_, idx, json_as_robj(prop_val, opt->parse_opt, state));
     }
     idx++;
   }
@@ -816,12 +815,12 @@ SEXP prop_to_realsxp(yyjson_val *features, char *prop_name, geo_parse_options *o
 //~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 // Forward declaration
 //~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
-SEXP parse_geometry_type(yyjson_val *val, geo_parse_options *opt);
+SEXP parse_geometry_type(yyjson_val *val, geo_parse_options *opt, state_t *state);
 
 //~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 // Parse a feature
 //~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
-SEXP parse_feature(yyjson_val *obj, geo_parse_options *opt) {
+SEXP parse_feature(yyjson_val *obj, geo_parse_options *opt, state_t *state) {
   // Rprintf(">>> Feature\n");
   
   reset_bbox(opt);
@@ -832,7 +831,7 @@ SEXP parse_feature(yyjson_val *obj, geo_parse_options *opt) {
   //~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
   yyjson_val *geom  = yyjson_obj_get(obj, "geometry");
   SEXP geom_col_ = PROTECT(Rf_allocVector(VECSXP, 1)); nprotect++;
-  SEXP geom_ = PROTECT(parse_geometry_type(geom, opt)); nprotect++;
+  SEXP geom_ = PROTECT(parse_geometry_type(geom, opt, state)); nprotect++;
   SET_VECTOR_ELT(geom_col_, 0, geom_);
   
   //~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
@@ -897,7 +896,7 @@ SEXP parse_feature(yyjson_val *obj, geo_parse_options *opt) {
   unsigned int idx = 0;
   while ((key = yyjson_obj_iter_next(&iter))) {
     val = yyjson_obj_iter_get_val(key);
-    SEXP robj_ = PROTECT(json_as_robj(val, opt->parse_opt)); 
+    SEXP robj_ = PROTECT(json_as_robj(val, opt->parse_opt, state)); 
     
     if (Rf_isNull(robj_)) {
       // compatibilty with geojson: promotes NULL values to NA_character_
@@ -990,14 +989,14 @@ SEXP parse_feature(yyjson_val *obj, geo_parse_options *opt) {
 //  #       ###    ####    ##    ## #  #       ###     ###    ###    ###    ### 
 //===========================================================================
 
-SEXP parse_feature_collection_geometry(yyjson_val *features, geo_parse_options *opt) {
+SEXP parse_feature_collection_geometry(yyjson_val *features, geo_parse_options *opt, 
+                                       state_t * state) {
   
   int nprotect = 0;
   reset_bbox(opt);
   
   if (!yyjson_is_arr(features)) {
-    if (opt->doc != NULL) yyjson_doc_free(opt->doc);
-    Rf_error("Expecting FeatureCollection::features to be an array");
+    error_and_destroy_state(state, "Expecting FeatureCollection::features to be an array");
   }
   size_t nrows = yyjson_get_len(features);
   
@@ -1017,7 +1016,7 @@ SEXP parse_feature_collection_geometry(yyjson_val *features, geo_parse_options *
   while ((feature = yyjson_arr_iter_next(&feature_iter))) {
     
     yyjson_val *geom = yyjson_obj_get(feature, "geometry");
-    SET_VECTOR_ELT(geom_col_, feature_idx, geojson_as_sf(geom, opt, 1));
+    SET_VECTOR_ELT(geom_col_, feature_idx, geojson_as_sf(geom, opt, state, 1));
     
     yyjson_val *geom_type = yyjson_obj_get(geom, "type");
     
@@ -1114,7 +1113,7 @@ SEXP parse_feature_collection_geometry(yyjson_val *features, geo_parse_options *
 //===========================================================================
 // 
 //===========================================================================
-SEXP parse_feature_collection(yyjson_val *obj, geo_parse_options *opt) {
+SEXP parse_feature_collection(yyjson_val *obj, geo_parse_options *opt, state_t *state) {
   
   int nprotect = 0;
   
@@ -1127,19 +1126,17 @@ SEXP parse_feature_collection(yyjson_val *obj, geo_parse_options *opt) {
     // This is just a JSON []-array with multiple features in it.
     features  = obj;
   } else {    
-    if (opt->doc != NULL) yyjson_doc_free(opt->doc);
-    Rf_error("parse_feature_collection() obj not array or object, but %s", yyjson_get_type_desc(obj));
+    error_and_destroy_state(state, "parse_feature_collection() obj not array or object, but %s", yyjson_get_type_desc(obj));
   }
   
   if (!yyjson_is_arr(features)) {
-    if (opt->doc != NULL) yyjson_doc_free(opt->doc);
-    Rf_error("Expecting FeatureCollection::features to be an array. Got %s", yyjson_get_type_desc(features));
+    error_and_destroy_state(state, "Expecting FeatureCollection::features to be an array. Got %s", yyjson_get_type_desc(features));
   }
   
   //~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
   // Parse the geometry
   //~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
-  SEXP geom_col_ = PROTECT(parse_feature_collection_geometry(features, opt)); nprotect++;
+  SEXP geom_col_ = PROTECT(parse_feature_collection_geometry(features, opt, state)); nprotect++;
   if (opt->type == SFC_TYPE) {
     // we onlyl care about geometry! Don't worry about parsing properties
     UNPROTECT(nprotect);
@@ -1181,8 +1178,7 @@ SEXP parse_feature_collection(yyjson_val *obj, geo_parse_options *opt) {
         // Rprintf("Key: %s\n", yyjson_get_str(prop_name));
         nprops++;
         if (nprops == MAX_PROPS) {
-          if (opt->doc != NULL) yyjson_doc_free(opt->doc);
-          Rf_error("Maximum properies exceeded parsing feature collection: %i", MAX_PROPS);
+          error_and_destroy_state(state, "Maximum properies exceeded parsing feature collection: %i", MAX_PROPS);
         }
       }
       
@@ -1243,7 +1239,7 @@ SEXP parse_feature_collection(yyjson_val *obj, geo_parse_options *opt) {
       SET_VECTOR_ELT(df_, idx, prop_to_strsxp(features, prop_names[idx], opt));
       break;
     case VECSXP:
-      SET_VECTOR_ELT(df_, idx, prop_to_vecsxp(features, prop_names[idx], opt));
+      SET_VECTOR_ELT(df_, idx, prop_to_vecsxp(features, prop_names[idx], opt, state));
       break;
     default:
       Rf_warning("Unhandled 'prop' coltype: %i -> %s\n", sexp_type, Rf_type2char(sexp_type));
@@ -1293,7 +1289,8 @@ SEXP parse_feature_collection(yyjson_val *obj, geo_parse_options *opt) {
 //===========================================================================
 // 
 //===========================================================================
-SEXP promote_bare_geometry_to_list(SEXP geom_, yyjson_val *val, geo_parse_options *opt) {
+SEXP promote_bare_geometry_to_list(SEXP geom_, yyjson_val *val, geo_parse_options *opt,
+                                   state_t *state) {
   int nprotect = 0;
   
   SEXP geom_col_ = PROTECT(Rf_allocVector(VECSXP, 1)); nprotect++;
@@ -1305,14 +1302,12 @@ SEXP promote_bare_geometry_to_list(SEXP geom_, yyjson_val *val, geo_parse_option
   SEXP geom_col_class_ = PROTECT(Rf_allocVector(STRSXP, 2)); nprotect++;
   
   if (!yyjson_is_obj(val)) {
-    if (opt->doc != NULL) yyjson_doc_free(opt->doc);
-    Rf_error("promote_bare_geometry_to_list(): Expecting object. Got %s", yyjson_get_type_desc(val));
+    error_and_destroy_state(state, "promote_bare_geometry_to_list(): Expecting object. Got %s", yyjson_get_type_desc(val));
   }
   
   yyjson_val *type = yyjson_obj_get(val, "type");
   if (type == NULL) {
-    if (opt->doc != NULL) yyjson_doc_free(opt->doc);
-    Rf_error("parse_geometry(): type == NULL");
+    error_and_destroy_state(state, "parse_geometry(): type == NULL");
   }
   
   if (yyjson_equals_str(type, "Point")) {
@@ -1331,8 +1326,7 @@ SEXP promote_bare_geometry_to_list(SEXP geom_, yyjson_val *val, geo_parse_option
     SET_STRING_ELT(geom_col_class_, 0, Rf_mkChar("sfc_GEOMETRY"));
     Rf_setAttrib(geom_col_, Rf_mkString("classes")  , Rf_mkString("GEOMETRYCOLLECTION"));
   } else {
-    if (opt->doc != NULL) yyjson_doc_free(opt->doc);
-    Rf_error("promote_bare_geometry_to_list(): Unknown geojson type: %s", yyjson_get_str(type));
+    error_and_destroy_state(state, "promote_bare_geometry_to_list(): Unknown geojson type: %s", yyjson_get_str(type));
   }
   
   SET_STRING_ELT(geom_col_class_, 1, Rf_mkChar("sfc"));
@@ -1365,14 +1359,15 @@ SEXP promote_bare_geometry_to_list(SEXP geom_, yyjson_val *val, geo_parse_option
 //===========================================================================
 // 
 //===========================================================================
-SEXP promote_bare_geometry_to_df(SEXP geom_, yyjson_val *val, geo_parse_options *opt) {
+SEXP promote_bare_geometry_to_df(SEXP geom_, yyjson_val *val, geo_parse_options *opt,
+                                 state_t *state) {
   
   int nprotect = 0;
   
   // Setup data.frame with single column called 'geometry'
   // 'geometry' is a list column
   SEXP df_ = PROTECT(Rf_allocVector(VECSXP, 1)); nprotect++;
-  SET_VECTOR_ELT(df_, 0, promote_bare_geometry_to_list(geom_, val, opt));
+  SET_VECTOR_ELT(df_, 0, promote_bare_geometry_to_list(geom_, val, opt, state));
   Rf_setAttrib(df_, R_NamesSymbol, Rf_mkString("geometry"));
   
   //~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
@@ -1411,15 +1406,15 @@ SEXP promote_bare_geometry_to_df(SEXP geom_, yyjson_val *val, geo_parse_options 
 //
 // Geometry Collection 
 //===========================================================================
-SEXP parse_geometry_collection(yyjson_val *obj, geo_parse_options *opt) {
+SEXP parse_geometry_collection(yyjson_val *obj, geo_parse_options *opt, 
+                               state_t *state) {
   
   int nprotect = 0;
   reset_bbox(opt);
   
   yyjson_val *geoms = yyjson_obj_get(obj, "geometries");
   if (!yyjson_is_arr(geoms)) {
-    if (opt->doc != NULL) yyjson_doc_free(opt->doc);
-    Rf_error("Expecting GeomCollection::geometries to be an array. not %s", 
+    error_and_destroy_state(state, "Expecting GeomCollection::geometries to be an array. not %s", 
           yyjson_get_type_desc(geoms));
   }
   size_t ngeoms = yyjson_get_len(geoms);
@@ -1438,7 +1433,7 @@ SEXP parse_geometry_collection(yyjson_val *obj, geo_parse_options *opt) {
   unsigned int geom_idx = 0;
   while ((geom = yyjson_arr_iter_next(&geom_iter))) {
     
-    SEXP geom_ = PROTECT(geojson_as_sf(geom, opt, 1)); 
+    SEXP geom_ = PROTECT(geojson_as_sf(geom, opt, state, 1)); 
     SET_VECTOR_ELT(geoms_, geom_idx, geom_);
     
     UNPROTECT(1);
@@ -1461,17 +1456,15 @@ SEXP parse_geometry_collection(yyjson_val *obj, geo_parse_options *opt) {
 //===========================================================================
 // Parse geometry
 //===========================================================================
-SEXP parse_geometry_type(yyjson_val *val, geo_parse_options *opt) {
+SEXP parse_geometry_type(yyjson_val *val, geo_parse_options *opt, state_t *state) {
   
   if (!yyjson_is_obj(val)) {
-    if (opt->doc != NULL) yyjson_doc_free(opt->doc);
-    Rf_error("parse_geometry(): Expecting object. Got %s", yyjson_get_type_desc(val));
+    error_and_destroy_state(state, "parse_geometry(): Expecting object. Got %s", yyjson_get_type_desc(val));
   }
   
   yyjson_val *type = yyjson_obj_get(val, "type");
   if (type == NULL) {
-    if (opt->doc != NULL) yyjson_doc_free(opt->doc);
-    Rf_error("parse_geometry(): type == NULL");
+    error_and_destroy_state(state, "parse_geometry(): type == NULL");
   }
   
   if (yyjson_equals_str(type, "Point")) {
@@ -1487,10 +1480,10 @@ SEXP parse_geometry_type(yyjson_val *val, geo_parse_options *opt) {
   } else if (yyjson_equals_str(type, "MultiPolygon")) {
     return parse_multipolygon(val, opt);
   } else if (yyjson_equals_str(type, "GeometryCollection")) {
-    return parse_geometry_collection(val, opt);
+    return parse_geometry_collection(val, opt, state);
   } else {
-    if (opt->doc != NULL) yyjson_doc_free(opt->doc);
-    Rf_error("parse_geometry(): Unknown geojson type: %s", yyjson_get_str(type));
+    error_and_destroy_state(state, "parse_geometry(): Unknown geojson type: %s", yyjson_get_str(type));
+    return R_NilValue;
   }
 }
 
@@ -1498,31 +1491,30 @@ SEXP parse_geometry_type(yyjson_val *val, geo_parse_options *opt) {
 //===========================================================================
 // 
 //===========================================================================
-SEXP geojson_as_sf(yyjson_val *val, geo_parse_options *opt, unsigned int depth) {
+SEXP geojson_as_sf(yyjson_val *val, geo_parse_options *opt, 
+                   state_t *state, unsigned int depth) {
   
   if (yyjson_is_arr(val)) {
     // Assume this is a JSON []-array of features  
-    return parse_feature_collection(val, opt);
+    return parse_feature_collection(val, opt, state);
   }
   
   if (!yyjson_is_obj(val)) {
-    if (opt->doc != NULL) yyjson_doc_free(opt->doc);
-    Rf_error("geojson_as_sf(): Expecting object. Got %s", yyjson_get_type_desc(val));
+    error_and_destroy_state(state, "geojson_as_sf(): Expecting object. Got %s", yyjson_get_type_desc(val));
   }
   
   yyjson_val *type = yyjson_obj_get(val, "type");
   if (type == NULL) {
-    if (opt->doc != NULL) yyjson_doc_free(opt->doc);
-    Rf_error("geojson_as_sf(): type == NULL");
+    error_and_destroy_state(state, "geojson_as_sf(): type == NULL");
   }
   
   if (yyjson_equals_str(type, "Feature")) {
-    return parse_feature(val, opt);
+    return parse_feature(val, opt, state);
   } else if (yyjson_equals_str(type, "FeatureCollection")) {
-    return parse_feature_collection(val, opt);
+    return parse_feature_collection(val, opt, state);
   } else {
     int nprotect = 0;
-    SEXP res_= PROTECT(parse_geometry_type(val, opt)); nprotect++;
+    SEXP res_= PROTECT(parse_geometry_type(val, opt, state)); nprotect++;
     
     // If this is not a top-level object, then just return it.
     // the calling function will wrap it in a data.frame or whatever
@@ -1536,11 +1528,11 @@ SEXP geojson_as_sf(yyjson_val *val, geo_parse_options *opt, unsigned int depth) 
     //  POLYGON/MULTIPOLYGON/GEOMETRYCOLLECTION
     if (opt->type == SF_TYPE) {
       // Return as a df
-      res_ = PROTECT(promote_bare_geometry_to_df(res_, val, opt)); nprotect++;
+      res_ = PROTECT(promote_bare_geometry_to_df(res_, val, opt, state)); nprotect++;
     } else {
       // opt->type == SFC_TYPE
       // return as a list
-      res_ = PROTECT(promote_bare_geometry_to_list(res_, val, opt)); nprotect++;
+      res_ = PROTECT(promote_bare_geometry_to_list(res_, val, opt, state)); nprotect++;
     }
     
     UNPROTECT(nprotect);
@@ -1570,7 +1562,8 @@ SEXP parse_geojson_str_(SEXP str_, SEXP geo_opts_, SEXP parse_opts_) {
   char *str  = (char *)CHAR(STRING_ELT(str_, 0));
   
   yyjson_read_err err;
-  yyjson_doc *doc = yyjson_read_opts((char *)str, strlen(str), opt.yyjson_read_flag, NULL, &err);
+  state_t *state = create_state();
+  state->doc = yyjson_read_opts((char *)str, strlen(str), opt.yyjson_read_flag, NULL, &err);
   
   //~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
   // If doc is NULL, then an error occurred during parsing.
@@ -1580,18 +1573,17 @@ SEXP parse_geojson_str_(SEXP str_, SEXP geo_opts_, SEXP parse_opts_) {
   //   - print the index in the character string where the error occurred
   //   - add a visual pointer to the output so the user knows where this was
   //~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
-  if (doc == NULL) {
-    output_verbose_error(str, err);
-    Rf_error("Error parsing JSON [Loc: %ld]: %s", (long)err.pos, err.msg);
+  if (state->doc == NULL) {
+    output_verbose_error(str, strlen(str), err);
+    error_and_destroy_state(state, "Error parsing JSON [Loc: %ld]: %s", (long)err.pos, err.msg);
   }
   
   //~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
   // Parse the document from the root node
   //~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
-  SEXP res_ = PROTECT(geojson_as_sf(yyjson_doc_get_root(doc), &opt, 0));
+  SEXP res_ = PROTECT(geojson_as_sf(yyjson_doc_get_root(state->doc), &opt, state, 0));
   
-  yyjson_doc_free(doc);
-  
+  destroy_state(state);
   UNPROTECT(1);
   return res_;
 }
@@ -1610,7 +1602,8 @@ SEXP parse_geojson_file_(SEXP filename_, SEXP geo_opts_, SEXP parse_opts_) {
   const char *filename = (const char *)CHAR( STRING_ELT(filename_, 0) );
   filename = R_ExpandFileName(filename);
   yyjson_read_err err;
-  yyjson_doc *doc = yyjson_read_file((char *)filename, opt.yyjson_read_flag, NULL, &err);
+  state_t *state = create_state();
+  state->doc = yyjson_read_file((char *)filename, opt.yyjson_read_flag, NULL, &err);
   
   //~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
   // If doc is NULL, then an error occurred during parsing.
@@ -1620,21 +1613,17 @@ SEXP parse_geojson_file_(SEXP filename_, SEXP geo_opts_, SEXP parse_opts_) {
   //   - print the index in the character string where the error occurred
   //   - add a visual pointer to the output so the user knows where this was
   //~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
-  if (doc == NULL) {
-    Rf_error("Error parsing JSON file '%s' [Loc %ld]: %s", 
+  if (state->doc == NULL) {
+    error_and_destroy_state(state, "Error parsing JSON file '%s' [Loc %ld]: %s", 
           filename, (long)err.pos, err.msg);
   }
-  
-  // Pass around the 'doc' pointer so we can free it on error
-  opt.doc = doc;
   
   //~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
   // Parse the document from the root node
   //~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
-  SEXP res_ = PROTECT(geojson_as_sf(yyjson_doc_get_root(doc), &opt, 0));
+  SEXP res_ = PROTECT(geojson_as_sf(yyjson_doc_get_root(state->doc), &opt, state, 0));
   
-  yyjson_doc_free(doc);
-  
+  destroy_state(state);
   UNPROTECT(1);
   return res_;
 }

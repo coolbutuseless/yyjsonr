@@ -12,15 +12,15 @@
 
 #include "zlib.h"
 #include "yyjson.h"
+#include "R-yyjson-state.h"
 #include "R-yyjson-parse.h"
-
 
 
 //~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 // Forward declarations
 //~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
-SEXP json_array_of_objects_to_data_frame(yyjson_val *arr, parse_options *opt);
-SEXP json_as_robj(yyjson_val *val, parse_options *opt);
+SEXP json_array_of_objects_to_data_frame(yyjson_val *arr, parse_options *opt, state_t *state);
+SEXP json_as_robj(yyjson_val *val, parse_options *opt, state_t *state);
 
 
 //===========================================================================
@@ -922,13 +922,14 @@ SEXP json_array_as_strsxp(yyjson_val *arr, parse_options *opt) {
 // Parse a JSON []-array to a VECSXP (list)
 // This can handle any json values 
 //===========================================================================
-SEXP json_array_as_vecsxp(yyjson_val *arr, parse_options *opt) {
+SEXP json_array_as_vecsxp(yyjson_val *arr, parse_options *opt, state_t *state) {
   
   //~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
   // Sanity check
   //~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
   if (yyjson_get_type(arr) != YYJSON_TYPE_ARR) {
-    Rf_error("Error in json_array_as_vecsxp(): type = %s", yyjson_get_type_desc(arr));
+    error_and_destroy_state(state, 
+                            "Error in json_array_as_vecsxp(): type = %s", yyjson_get_type_desc(arr));
   }
   
   //~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
@@ -943,7 +944,7 @@ SEXP json_array_as_vecsxp(yyjson_val *arr, parse_options *opt) {
   yyjson_val *val;
   unsigned int idx = 0;
   while ((val = yyjson_arr_iter_next(&iter))) {
-    SET_VECTOR_ELT(res_, idx, json_as_robj(val, opt));
+    SET_VECTOR_ELT(res_, idx, json_as_robj(val, opt, state));
     ++idx;
   }
   
@@ -1144,13 +1145,13 @@ SEXP json_array_as_matrix(yyjson_val *arr, unsigned int sexp_type, parse_options
 //   - 3D array
 //   - Data.frame
 //===========================================================================
-SEXP json_array_as_robj(yyjson_val *arr, parse_options *opt) {
+SEXP json_array_as_robj(yyjson_val *arr, parse_options *opt, state_t *state) {
   
   int nprotect = 0;
   SEXP res_ = R_NilValue;
   
   if (!yyjson_is_arr(arr)) {
-    Rf_error("json_array_() got passed something NOT a json array");
+    error_and_destroy_state(state, "json_array_() got passed something NOT a json array");
   }
   
   
@@ -1191,13 +1192,13 @@ SEXP json_array_as_robj(yyjson_val *arr, parse_options *opt) {
       res_ = PROTECT(json_array_as_strsxp(arr, opt)); nprotect++;
       break;
     case VECSXP:
-      res_ = PROTECT(json_array_as_vecsxp(arr, opt)); nprotect++;
+      res_ = PROTECT(json_array_as_vecsxp(arr, opt, state)); nprotect++;
       break;
     case INT64SXP:
       res_ = PROTECT(json_array_as_integer64(arr, opt)); nprotect++;
       break;
     default:
-      Rf_error("json_array_as_robj(). Ooops\n");
+      error_and_destroy_state(state, "json_array_as_robj(). Ooops\n");
     }
     
     //~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
@@ -1212,7 +1213,7 @@ SEXP json_array_as_robj(yyjson_val *arr, parse_options *opt) {
     if (sexp_type != 0) {
       res_ = PROTECT(json_array_as_matrix(arr, sexp_type, opt)); nprotect++;
     } else {
-      res_ = PROTECT(json_array_as_vecsxp(arr, opt)); nprotect++;
+      res_ = PROTECT(json_array_as_vecsxp(arr, opt, state)); nprotect++;
       
       // Check if compatible sub-matrices to make a 3d matrix
       //  i.e. 
@@ -1327,13 +1328,13 @@ SEXP json_array_as_robj(yyjson_val *arr, parse_options *opt) {
     // []-array ONLY contains {}-objects!
     // Parse as a data.frame
     //~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
-    res_ = json_array_of_objects_to_data_frame(arr, opt);
+    res_ = json_array_of_objects_to_data_frame(arr, opt, state);
   } else {
     //~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
     // This array contains a mixture of container types
     // Parse as list
     //~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
-    res_ = PROTECT(json_array_as_vecsxp(arr, opt)); nprotect++;
+    res_ = PROTECT(json_array_as_vecsxp(arr, opt, state)); nprotect++;
   }
   
   //~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
@@ -1369,7 +1370,8 @@ SEXP json_array_as_robj(yyjson_val *arr, parse_options *opt) {
 //   - all values within {}-objects accessible by key='key_name' can 
 //     be contained in an LGLSXP
 //~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
-SEXP json_array_of_objects_to_lglsxp(yyjson_val *arr, const char *key_name, parse_options *opt) {
+SEXP json_array_of_objects_to_lglsxp(yyjson_val *arr, const char *key_name, 
+                                     parse_options *opt, state_t *state) {
   
   size_t nrow = yyjson_get_len(arr);
   SEXP vec_ = PROTECT(Rf_allocVector(LGLSXP, (R_xlen_t)nrow)); 
@@ -1393,7 +1395,8 @@ SEXP json_array_of_objects_to_lglsxp(yyjson_val *arr, const char *key_name, pars
 //   - all values within {}-objects accessible by key='key_name' can 
 //     be contained in an INTSXP
 //~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
-SEXP json_array_of_objects_to_intsxp(yyjson_val *arr, const char *key_name, parse_options *opt) {
+SEXP json_array_of_objects_to_intsxp(yyjson_val *arr, const char *key_name, 
+                                     parse_options *opt, state_t *state) {
   
   size_t nrow = yyjson_get_len(arr);
   SEXP vec_ = PROTECT(Rf_allocVector(INTSXP, (R_xlen_t)nrow)); 
@@ -1417,7 +1420,8 @@ SEXP json_array_of_objects_to_intsxp(yyjson_val *arr, const char *key_name, pars
 //   - all values within {}-objects accessible by key='key_name' can 
 //     be contained in an REALSXP
 //~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
-SEXP json_array_of_objects_to_realsxp(yyjson_val *arr, const char *key_name, parse_options *opt) {
+SEXP json_array_of_objects_to_realsxp(yyjson_val *arr, const char *key_name, 
+                                      parse_options *opt, state_t *state) {
   
   size_t nrow = yyjson_get_len(arr);
   SEXP vec_ = PROTECT(Rf_allocVector(REALSXP, (R_xlen_t)nrow));
@@ -1441,7 +1445,8 @@ SEXP json_array_of_objects_to_realsxp(yyjson_val *arr, const char *key_name, par
 //   - all values within {}-objects accessible by key='key_name' can 
 //     be contained in an STRSXP
 //~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
-SEXP json_array_of_objects_to_strsxp(yyjson_val *arr, const char *key_name, parse_options *opt) {
+SEXP json_array_of_objects_to_strsxp(yyjson_val *arr, const char *key_name, 
+                                     parse_options *opt, state_t *state) {
   
   size_t nrow = yyjson_get_len(arr);
   SEXP vec_ = PROTECT(Rf_allocVector(STRSXP, (R_xlen_t)nrow)); 
@@ -1465,7 +1470,8 @@ SEXP json_array_of_objects_to_strsxp(yyjson_val *arr, const char *key_name, pars
 // All values within {}-objects accessible by key='key_name' are 
 // stored in a VECSXP (i.e. list)
 //~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
-SEXP json_array_of_objects_to_vecsxp(yyjson_val *arr, const char *key_name, parse_options *opt) {
+SEXP json_array_of_objects_to_vecsxp(yyjson_val *arr, const char *key_name, 
+                                     parse_options *opt, state_t *state) {
   
   size_t nrow = yyjson_get_len(arr);
   SEXP vec_ = PROTECT(Rf_allocVector(VECSXP, (R_xlen_t)nrow));
@@ -1480,7 +1486,7 @@ SEXP json_array_of_objects_to_vecsxp(yyjson_val *arr, const char *key_name, pars
     if (val == NULL) {
         SET_VECTOR_ELT(vec_, idx, opt->df_missing_list_elem); // NA_logical_
     } else {
-      SET_VECTOR_ELT(vec_, idx, json_as_robj(val, opt));
+      SET_VECTOR_ELT(vec_, idx, json_as_robj(val, opt, state));
     }
     
     idx++;
@@ -1501,7 +1507,7 @@ SEXP json_array_of_objects_to_vecsxp(yyjson_val *arr, const char *key_name, pars
 //     - 'arr' is a JSON []-array
 //     - all members of []-array are {}-objects
 //===========================================================================
-SEXP json_array_of_objects_to_data_frame(yyjson_val *arr, parse_options *opt) {
+SEXP json_array_of_objects_to_data_frame(yyjson_val *arr, parse_options *opt, state_t *state) {
   
   int nprotect = 0;
   
@@ -1549,7 +1555,7 @@ SEXP json_array_of_objects_to_data_frame(yyjson_val *arr, parse_options *opt) {
         colname[ncols] = (char *)yyjson_get_str(key);
         ncols++;
         if (ncols == MAX_DF_COLS) {
-          Rf_error("Maximum columns for data.frame exceeded: %i", MAX_DF_COLS);
+          error_and_destroy_state(state, "Maximum columns for data.frame exceeded: %i", MAX_DF_COLS);
         }
       }
       
@@ -1587,19 +1593,19 @@ SEXP json_array_of_objects_to_data_frame(yyjson_val *arr, parse_options *opt) {
     
     switch (sexp_type) {
     case LGLSXP:
-      SET_VECTOR_ELT(df_, col, json_array_of_objects_to_lglsxp(arr, colname[col], opt));
+      SET_VECTOR_ELT(df_, col, json_array_of_objects_to_lglsxp(arr, colname[col], opt, state));
       break;
     case INTSXP:
-      SET_VECTOR_ELT(df_, col, json_array_of_objects_to_intsxp(arr, colname[col], opt));
+      SET_VECTOR_ELT(df_, col, json_array_of_objects_to_intsxp(arr, colname[col], opt, state));
       break;
     case REALSXP:
-      SET_VECTOR_ELT(df_, col, json_array_of_objects_to_realsxp(arr, colname[col], opt));
+      SET_VECTOR_ELT(df_, col, json_array_of_objects_to_realsxp(arr, colname[col], opt, state));
       break;
     case STRSXP:
-      SET_VECTOR_ELT(df_, col, json_array_of_objects_to_strsxp(arr, colname[col], opt));
+      SET_VECTOR_ELT(df_, col, json_array_of_objects_to_strsxp(arr, colname[col], opt, state));
       break;
     case VECSXP:
-      SET_VECTOR_ELT(df_, col, json_array_of_objects_to_vecsxp(arr, colname[col], opt));
+      SET_VECTOR_ELT(df_, col, json_array_of_objects_to_vecsxp(arr, colname[col], opt, state));
       break;
     default:
       Rf_warning("Unhandled 'df' coltype: %i -> %s\n", sexp_type, Rf_type2char(sexp_type));
@@ -1648,12 +1654,14 @@ SEXP json_array_of_objects_to_data_frame(yyjson_val *arr, parse_options *opt) {
 //
 // JSON {}-object to R List
 //===========================================================================
-SEXP json_object_as_list(yyjson_val *obj, parse_options *opt) {
+SEXP json_object_as_list(yyjson_val *obj, parse_options *opt, state_t *state) {
   int nprotect = 0;
   
   if (!yyjson_is_obj(obj)) {
-    Rf_error("json_object(): Must be object. Not %i -> %s\n", yyjson_get_type(obj), 
-          yyjson_get_type_desc(obj));
+    error_and_destroy_state(
+      state, "json_object(): Must be object. Not %i -> %s\n", yyjson_get_type(obj), 
+          yyjson_get_type_desc(obj)
+    );
   }
   R_xlen_t n = (R_xlen_t)yyjson_get_len(obj);
   
@@ -1665,7 +1673,7 @@ SEXP json_object_as_list(yyjson_val *obj, parse_options *opt) {
   unsigned int idx = 0;
   while ((key = yyjson_obj_iter_next(&iter))) {
     val = yyjson_obj_iter_get_val(key);
-    SET_VECTOR_ELT(res_, idx, json_as_robj(val, opt));
+    SET_VECTOR_ELT(res_, idx, json_as_robj(val, opt, state));
     SET_STRING_ELT(nms_, idx, Rf_mkChar(yyjson_get_str(key)));
     ++idx;
   }
@@ -1730,7 +1738,7 @@ SEXP json_object_as_list(yyjson_val *obj, parse_options *opt) {
 //  #   #  #   #  #      #     
 //   ###    ###   #       ### 
 //===========================================================================
-SEXP json_as_robj(yyjson_val *val, parse_options *opt) {
+SEXP json_as_robj(yyjson_val *val, parse_options *opt, state_t *state) {
   
   int nprotect = 0;
   static char buf[128];
@@ -1738,10 +1746,10 @@ SEXP json_as_robj(yyjson_val *val, parse_options *opt) {
   
   switch (yyjson_get_type(val)) {
   case YYJSON_TYPE_OBJ:
-    res_ = PROTECT(json_object_as_list(val, opt)); nprotect++;
+    res_ = PROTECT(json_object_as_list(val, opt, state)); nprotect++;
     break;
   case YYJSON_TYPE_ARR:
-    res_ = PROTECT(json_array_as_robj(val, opt)); nprotect++;
+    res_ = PROTECT(json_array_as_robj(val, opt, state)); nprotect++;
     break;
   case YYJSON_TYPE_BOOL:
     res_ = PROTECT(Rf_ScalarLogical(json_val_to_logical(val, opt))); nprotect++;
@@ -1771,7 +1779,7 @@ SEXP json_as_robj(yyjson_val *val, parse_options *opt) {
           ((long long *)(REAL(res_)))[0] = x;
           Rf_setAttrib(res_, R_ClassSymbol, Rf_mkString("integer64"));
         } else {
-          Rf_error("Unhandled opt.bit64 option for YYJSON_SUBTYPE_UINT");
+          error_and_destroy_state(state, "Unhandled opt.bit64 option for YYJSON_SUBTYPE_UINT");
         }
       } else {
         res_ = PROTECT(Rf_ScalarInteger((int32_t)tmp)); nprotect++;
@@ -1801,7 +1809,7 @@ SEXP json_as_robj(yyjson_val *val, parse_options *opt) {
           ((long long *)(REAL(res_)))[0] = x;
           Rf_setAttrib(res_, R_ClassSymbol, Rf_mkString("integer64"));
         } else {
-          Rf_error("Unhandled opt.bit64 option for YYJSON_SUBTYPE_SINT");
+          error_and_destroy_state(state, "Unhandled opt.bit64 option for YYJSON_SUBTYPE_SINT");
         }
       } else {
         res_ = PROTECT(Rf_ScalarInteger((int32_t)tmp)); nprotect++;
@@ -1831,11 +1839,17 @@ SEXP json_as_robj(yyjson_val *val, parse_options *opt) {
 
 
 #define ERR_CONTEXT 20
-void output_verbose_error(const char *str, yyjson_read_err err) {
+void output_verbose_error(const char *str, unsigned long len, yyjson_read_err err) {
+  
+  // 'len' is used as a Workaround for 
+  // 'raw' strings which may not be properly NULL terminated.
+  
+  if (str == NULL || len <= 1) return;
+  
   // Slice off a bit of the string within +/- ERR_CONTEXT of the error pos
   size_t min_idx = err.pos < ERR_CONTEXT ? 0 : err.pos - ERR_CONTEXT;
   size_t max_idx = err.pos + ERR_CONTEXT;
-  max_idx = max_idx > strlen(str) ? strlen(str) : max_idx;
+  max_idx = max_idx > len ? len : max_idx;
   
   // copy this context into a temp string. ensure it ends in '\0'
   char err_string[3 * ERR_CONTEXT];
@@ -1861,7 +1875,8 @@ void output_verbose_error(const char *str, yyjson_read_err err) {
 SEXP parse_json_from_str(const char *str, size_t len, parse_options *opt) {
   
   yyjson_read_err err;
-  yyjson_doc *doc = yyjson_read_opts((char *)str, len, opt->yyjson_read_flag, NULL, &err);
+  state_t *state = create_state();
+  state->doc = yyjson_read_opts((char *)str, len, opt->yyjson_read_flag, NULL, &err);
   
   //~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
   // If doc is NULL, then an error occurred during parsing.
@@ -1871,22 +1886,22 @@ SEXP parse_json_from_str(const char *str, size_t len, parse_options *opt) {
   //   - print the index in the character string where the error occurred
   //   - add a visual pointer to the output so the user knows where this was
   //~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
-  if (doc == NULL) {
-    output_verbose_error(str, err);
+  if (state->doc == NULL) {
+    output_verbose_error(str, len, err);
 #if defined(_WIN32)
-    Rf_error("Error parsing JSON [Loc: %llu]: %s", err.pos, err.msg);
+    error_and_destroy_state(state, "Error parsing JSON [Loc: %llu]: %s", err.pos, err.msg);
 #else
-    Rf_error("Error parsing JSON [Loc: %lu]: %s", err.pos, err.msg);
+    error_and_destroy_state(state, "Error parsing JSON [Loc: %lu]: %s", err.pos, err.msg);
 #endif
   }
   
   //~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
   // Parse the document from the root node
   //~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
-  SEXP res_ = PROTECT(json_as_robj(yyjson_doc_get_root(doc), opt));
+  SEXP res_ = PROTECT(json_as_robj(yyjson_doc_get_root(state->doc), opt, state));
   
-  yyjson_doc_free(doc);
   
+  destroy_state(state);
   UNPROTECT(1);
   return res_;
 } 
@@ -1904,16 +1919,21 @@ SEXP parse_json_from_file(const char *filename, parse_options *opt) {
   //                              const yyjson_alc *alc,
   //                              yyjson_read_err *err);
   
-  yyjson_doc *doc = yyjson_read_file((char *)filename, opt->yyjson_read_flag, NULL, &err);
+  state_t *state = create_state();
+  state->doc = yyjson_read_file((char *)filename, opt->yyjson_read_flag, NULL, &err);
   
   //~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
   // If doc is NULL, then an error occurred during parsing.
   //~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
-  if (doc == NULL) {
+  if (state->doc == NULL) {
 #if defined(_WIN32)
-    Rf_error("Error parsing JSON file '%s' [Loc: %llu]: %s\n", filename, err.pos, err.msg);
+    error_and_destroy_state(
+      state, "Error parsing JSON file '%s' [Loc: %llu]: %s\n", filename, err.pos, err.msg
+    );
 #else
-    Rf_error("Error parsing JSON file '%s' [Loc: %lu]: %s code", filename, err.pos, err.msg);
+    error_and_destroy_state(
+      state, "Error parsing JSON file '%s' [Loc: %lu]: %s code", filename, err.pos, err.msg
+    );
 #endif
     
   }
@@ -1921,10 +1941,9 @@ SEXP parse_json_from_file(const char *filename, parse_options *opt) {
   //~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
   // Parse the document from the root node
   //~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
-  SEXP res_ = PROTECT(json_as_robj(yyjson_doc_get_root(doc), opt));
+  SEXP res_ = PROTECT(json_as_robj(yyjson_doc_get_root(state->doc), opt, state));
   
-  yyjson_doc_free(doc);
-  
+  destroy_state(state);
   UNPROTECT(1);
   return res_;
 } 
@@ -2000,7 +2019,7 @@ SEXP parse_from_gzfile_(SEXP filename_, SEXP parse_opts_) {
   // Allocate a buffer to hold the uncompressed file.
   // Note: this approach will change if/when yyjson implements streaming
   //~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
-  char *buf = (char *)malloc((unsigned long)uncompressed_len + 1);
+  char *buf = R_alloc(1, (unsigned long)uncompressed_len + 1);
   if (buf == 0) {
     Rf_error("Couldn't allocate buffer for reading json.gz file: %s", filename);
   }
@@ -2019,7 +2038,6 @@ SEXP parse_from_gzfile_(SEXP filename_, SEXP parse_opts_) {
   // Parse buffer as string
   //~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
   SEXP res_ = PROTECT(parse_json_from_str(buf, (size_t)uncompressed_len, &opt));
-  free(buf);
   
   UNPROTECT(1);
   return res_;
@@ -2052,12 +2070,13 @@ SEXP validate_json_file_(SEXP filename_, SEXP verbose_, SEXP parse_opts_) {
   parse_options opt = create_parse_options(parse_opts_);
   
   yyjson_read_err err;
-  yyjson_doc *doc = yyjson_read_file((char *)filename, opt.yyjson_read_flag, NULL, &err);
+  state_t *state = create_state();
+  state->doc = yyjson_read_file((char *)filename, opt.yyjson_read_flag, NULL, &err);
   
   //~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
   // If doc is NULL, then an error occurred during parsing.
   //~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
-  if (doc == NULL) {
+  if (state->doc == NULL) {
     if (Rf_asLogical(verbose_)) {
 #if defined(_WIN32)
       Rf_warning("Error parsing JSON file '%s' [Loc: %llu]: %s", filename, err.pos, err.msg);
@@ -2065,12 +2084,12 @@ SEXP validate_json_file_(SEXP filename_, SEXP verbose_, SEXP parse_opts_) {
       Rf_warning("Error parsing JSON file '%s' [Loc: %lu]: %s", filename, err.pos, err.msg);
 #endif
     }
+    destroy_state(state);
     return Rf_ScalarLogical(0);
     
   }
   
-  yyjson_doc_free(doc);
-  
+  destroy_state(state);
   return Rf_ScalarLogical(1);
 }
 
@@ -2083,24 +2102,26 @@ SEXP validate_json_str_(SEXP str_, SEXP verbose_, SEXP parse_opts_) {
   parse_options opt = create_parse_options(parse_opts_);
   
   yyjson_read_err err;
-  yyjson_doc *doc = yyjson_read_opts((char *)str, strlen(str), opt.yyjson_read_flag, NULL, &err);
-  
+  state_t *state = create_state();
+  state->doc = yyjson_read_opts((char *)str, strlen(str), opt.yyjson_read_flag, NULL, &err);
+
   //~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
   // If doc is NULL, then an error occurred during parsing.
   //~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
-  if (doc == NULL) {
+  if (state->doc == NULL) {
     if (Rf_asLogical(verbose_)) {
-      output_verbose_error(str, err);
+      output_verbose_error(str, strlen(str), err);
 #if defined(_WIN32)
       Rf_warning("Error parsing JSON [Loc: %llu]: %s", err.pos, err.msg);
 #else
       Rf_warning("Error parsing JSON [Loc: %lu]: %s", err.pos, err.msg);
 #endif
     }
+    destroy_state(state);
     return Rf_ScalarLogical(0);
   }
   
-  yyjson_doc_free(doc);
+  destroy_state(state);
   return Rf_ScalarLogical(1);
 }
 

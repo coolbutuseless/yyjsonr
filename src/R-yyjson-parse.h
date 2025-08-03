@@ -83,15 +83,6 @@
 
 
 //===========================================================================
-// max columns currently allocated for parsing data.frames
-// TODO: Instead of static value, switch to dynamic allocation and grow
-//       as-needed.  Did not want to think about this at the moment, so 
-//       just set a high-ish value.  Code throws an error if this is 
-//       exceeded during a parse.
-//===========================================================================
-#define MAX_DF_COLS 2048
-
-//===========================================================================
 // Struct of parse options
 //===========================================================================
 typedef struct {
@@ -107,6 +98,7 @@ typedef struct {
   SEXP single_null;
   unsigned int yyjson_read_flag;
 } parse_options;
+
 
 //===========================================================================
 // Number of context characters to print when an error occurs
@@ -126,9 +118,9 @@ int32_t json_val_to_integer(yyjson_val *val, parse_options *opt);
 double json_val_to_double(yyjson_val *val, parse_options *opt);
 long long json_val_to_integer64(yyjson_val *val, parse_options *opt);
 SEXP json_val_to_charsxp(yyjson_val *val, parse_options *opt);
-SEXP json_as_robj(yyjson_val *val, parse_options *opt);
+SEXP json_as_robj(yyjson_val *val, parse_options *opt, state_t *state);
 
 //===========================================================================
 // Error reporting
 //===========================================================================
-void output_verbose_error(const char *str, yyjson_read_err err);
+void output_verbose_error(const char *str, unsigned long len, yyjson_read_err err);
