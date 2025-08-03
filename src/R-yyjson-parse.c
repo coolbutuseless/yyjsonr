@@ -2084,6 +2084,7 @@ SEXP validate_json_file_(SEXP filename_, SEXP verbose_, SEXP parse_opts_) {
       Rf_warning("Error parsing JSON file '%s' [Loc: %lu]: %s", filename, err.pos, err.msg);
 #endif
     }
+    destroy_state(state);
     return Rf_ScalarLogical(0);
     
   }
