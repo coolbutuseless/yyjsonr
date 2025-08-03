@@ -1839,15 +1839,19 @@ SEXP json_as_robj(yyjson_val *val, parse_options *opt, state_t *state) {
 
 
 #define ERR_CONTEXT 20
-void output_verbose_error(const char *str, yyjson_read_err err) {
+void output_verbose_error(const char *str, unsigned long len, yyjson_read_err err) {
   
-  if (str == NULL || strlen(str) == 0) return;
+  // 'len' is used as a Workaround for 
+  // 'raw' strings which may not be properly NULL terminated.
+  
+  if (str == NULL || len <= 1) return;
   
   // Slice off a bit of the string within +/- ERR_CONTEXT of the error pos
   size_t min_idx = err.pos < ERR_CONTEXT ? 0 : err.pos - ERR_CONTEXT;
   size_t max_idx = err.pos + ERR_CONTEXT;
-  max_idx = max_idx > strlen(str) ? strlen(str) : max_idx;
+  max_idx = max_idx > len ? len : max_idx;
   
+  Rprintf("___________________________________ %i %i \n", (int)min_idx, (int)max_idx);
   // copy this context into a temp string. ensure it ends in '\0'
   char err_string[3 * ERR_CONTEXT];
   strncpy((char *)&err_string, str + min_idx, max_idx - min_idx);
@@ -1884,7 +1888,7 @@ SEXP parse_json_from_str(const char *str, size_t len, parse_options *opt) {
   //   - add a visual pointer to the output so the user knows where this was
   //~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
   if (state->doc == NULL) {
-    output_verbose_error(str, err);
+    output_verbose_error(str, len, err);
 #if defined(_WIN32)
     error_and_destroy_state(state, "Error parsing JSON [Loc: %llu]: %s", err.pos, err.msg);
 #else
@@ -2016,7 +2020,7 @@ SEXP parse_from_gzfile_(SEXP filename_, SEXP parse_opts_) {
   // Allocate a buffer to hold the uncompressed file.
   // Note: this approach will change if/when yyjson implements streaming
   //~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
-  char *buf = (char *)malloc((unsigned long)uncompressed_len + 1);
+  char *buf = R_alloc(1, (unsigned long)uncompressed_len + 1);
   if (buf == 0) {
     Rf_error("Couldn't allocate buffer for reading json.gz file: %s", filename);
   }
@@ -2035,7 +2039,6 @@ SEXP parse_from_gzfile_(SEXP filename_, SEXP parse_opts_) {
   // Parse buffer as string
   //~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
   SEXP res_ = PROTECT(parse_json_from_str(buf, (size_t)uncompressed_len, &opt));
-  free(buf);
   
   UNPROTECT(1);
   return res_;
@@ -2108,7 +2111,7 @@ SEXP validate_json_str_(SEXP str_, SEXP verbose_, SEXP parse_opts_) {
   //~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
   if (state->doc == NULL) {
     if (Rf_asLogical(verbose_)) {
-      output_verbose_error(str, err);
+      output_verbose_error(str, strlen(str), err);
 #if defined(_WIN32)
       Rf_warning("Error parsing JSON [Loc: %llu]: %s", err.pos, err.msg);
 #else

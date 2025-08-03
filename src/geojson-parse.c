@@ -1573,7 +1573,7 @@ SEXP parse_geojson_str_(SEXP str_, SEXP geo_opts_, SEXP parse_opts_) {
   //   - add a visual pointer to the output so the user knows where this was
   //~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
   if (state->doc == NULL) {
-    output_verbose_error(str, err);
+    output_verbose_error(str, strlen(str), err);
     error_and_destroy_state(state, "Error parsing JSON [Loc: %ld]: %s", (long)err.pos, err.msg);
   }
   

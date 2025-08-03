@@ -898,6 +898,7 @@ unsigned int *detect_data_frame_types(SEXP df_, serialize_options *opt) {
       col_type[col] = RAWSXP;
       break;
     default:
+      free(col_type);
       Rf_error("detect_data_frame_types(): Unhandled scalar SEXP: %s\n", Rf_type2char((SEXPTYPE)TYPEOF(col_)));
     }
   }

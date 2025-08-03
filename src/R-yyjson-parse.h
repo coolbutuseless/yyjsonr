@@ -123,4 +123,4 @@ SEXP json_as_robj(yyjson_val *val, parse_options *opt, state_t *state);
 //===========================================================================
 // Error reporting
 //===========================================================================
-void output_verbose_error(const char *str, yyjson_read_err err);
+void output_verbose_error(const char *str, unsigned long len, yyjson_read_err err);
