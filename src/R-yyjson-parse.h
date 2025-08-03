@@ -83,15 +83,6 @@
 
 
 //===========================================================================
-// max columns currently allocated for parsing data.frames
-// TODO: Instead of static value, switch to dynamic allocation and grow
-//       as-needed.  Did not want to think about this at the moment, so 
-//       just set a high-ish value.  Code throws an error if this is 
-//       exceeded during a parse.
-//===========================================================================
-#define MAX_DF_COLS 2048
-
-//===========================================================================
 // Struct of parse options
 //===========================================================================
 typedef struct {

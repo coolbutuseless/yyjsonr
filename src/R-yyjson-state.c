@@ -36,6 +36,10 @@ void destroy_state(state_t *state) {
     yyjson_doc_free(state->doc);
   }
   
+  for (int i = 0; i < state->ncols; i++) {
+    free(state->colnames[i]);
+  }
+  
   free(state);
 }
 
