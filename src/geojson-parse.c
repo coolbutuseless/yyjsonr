@@ -1483,6 +1483,7 @@ SEXP parse_geometry_type(yyjson_val *val, geo_parse_options *opt, state_t *state
     return parse_geometry_collection(val, opt, state);
   } else {
     error_and_destroy_state(state, "parse_geometry(): Unknown geojson type: %s", yyjson_get_str(type));
+    return R_NilValue;
   }
 }
 

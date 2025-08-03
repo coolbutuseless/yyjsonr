@@ -1851,7 +1851,6 @@ void output_verbose_error(const char *str, unsigned long len, yyjson_read_err er
   size_t max_idx = err.pos + ERR_CONTEXT;
   max_idx = max_idx > len ? len : max_idx;
   
-  Rprintf("___________________________________ %i %i \n", (int)min_idx, (int)max_idx);
   // copy this context into a temp string. ensure it ends in '\0'
   char err_string[3 * ERR_CONTEXT];
   strncpy((char *)&err_string, str + min_idx, max_idx - min_idx);
