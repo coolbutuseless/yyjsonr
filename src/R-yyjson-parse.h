@@ -144,7 +144,7 @@ int32_t json_val_to_integer(yyjson_val *val, parse_options *opt);
 double json_val_to_double(yyjson_val *val, parse_options *opt);
 long long json_val_to_integer64(yyjson_val *val, parse_options *opt);
 SEXP json_val_to_charsxp(yyjson_val *val, parse_options *opt);
-SEXP json_as_robj(yyjson_val *val, parse_options *opt);
+SEXP json_as_robj(yyjson_val *val, parse_options *opt, state_t *state);
 
 //===========================================================================
 // Error reporting

@@ -713,7 +713,7 @@ SEXP prop_to_strsxp(yyjson_val *features, char *prop_name, geo_parse_options *op
 //~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 // Parse a property as a character string from a feature collection
 //~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
-SEXP prop_to_vecsxp(yyjson_val *features, char *prop_name, geo_parse_options *opt) {
+SEXP prop_to_vecsxp(yyjson_val *features, char *prop_name, geo_parse_options *opt, state_t *state) {
   size_t N = yyjson_get_len(features);
   SEXP vec_ = PROTECT(Rf_allocVector(VECSXP, (R_xlen_t)N)); 
   
@@ -726,7 +726,7 @@ SEXP prop_to_vecsxp(yyjson_val *features, char *prop_name, geo_parse_options *op
     if (prop_val == NULL) {
       SET_VECTOR_ELT(vec_, idx, Rf_ScalarLogical(NA_LOGICAL));
     } else {
-      SET_VECTOR_ELT(vec_, idx, json_as_robj(prop_val, opt->parse_opt));
+      SET_VECTOR_ELT(vec_, idx, json_as_robj(prop_val, opt->parse_opt, state));
     }
     idx++;
   }
@@ -895,7 +895,7 @@ SEXP parse_feature(yyjson_val *obj, geo_parse_options *opt, state_t *state) {
   unsigned int idx = 0;
   while ((key = yyjson_obj_iter_next(&iter))) {
     val = yyjson_obj_iter_get_val(key);
-    SEXP robj_ = PROTECT(json_as_robj(val, opt->parse_opt)); 
+    SEXP robj_ = PROTECT(json_as_robj(val, opt->parse_opt, state)); 
     
     if (Rf_isNull(robj_)) {
       // compatibilty with geojson: promotes NULL values to NA_character_
@@ -1242,7 +1242,7 @@ SEXP parse_feature_collection(yyjson_val *obj, geo_parse_options *opt, state_t *
       SET_VECTOR_ELT(df_, idx, prop_to_strsxp(features, prop_names[idx], opt));
       break;
     case VECSXP:
-      SET_VECTOR_ELT(df_, idx, prop_to_vecsxp(features, prop_names[idx], opt));
+      SET_VECTOR_ELT(df_, idx, prop_to_vecsxp(features, prop_names[idx], opt, state));
       break;
     default:
       Rf_warning("Unhandled 'prop' coltype: %i -> %s\n", sexp_type, Rf_type2char(sexp_type));

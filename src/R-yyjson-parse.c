@@ -27,8 +27,8 @@ void free_state(state_t *state) {
 //~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 // Forward declarations
 //~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
-SEXP json_array_of_objects_to_data_frame(yyjson_val *arr, parse_options *opt);
-SEXP json_as_robj(yyjson_val *val, parse_options *opt);
+SEXP json_array_of_objects_to_data_frame(yyjson_val *arr, parse_options *opt, state_t *state);
+SEXP json_as_robj(yyjson_val *val, parse_options *opt, state_t *state);
 
 
 //===========================================================================
@@ -930,7 +930,7 @@ SEXP json_array_as_strsxp(yyjson_val *arr, parse_options *opt) {
 // Parse a JSON []-array to a VECSXP (list)
 // This can handle any json values 
 //===========================================================================
-SEXP json_array_as_vecsxp(yyjson_val *arr, parse_options *opt) {
+SEXP json_array_as_vecsxp(yyjson_val *arr, parse_options *opt, state_t *state) {
   
   //~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
   // Sanity check
@@ -951,7 +951,7 @@ SEXP json_array_as_vecsxp(yyjson_val *arr, parse_options *opt) {
   yyjson_val *val;
   unsigned int idx = 0;
   while ((val = yyjson_arr_iter_next(&iter))) {
-    SET_VECTOR_ELT(res_, idx, json_as_robj(val, opt));
+    SET_VECTOR_ELT(res_, idx, json_as_robj(val, opt, state));
     ++idx;
   }
   
@@ -1152,7 +1152,7 @@ SEXP json_array_as_matrix(yyjson_val *arr, unsigned int sexp_type, parse_options
 //   - 3D array
 //   - Data.frame
 //===========================================================================
-SEXP json_array_as_robj(yyjson_val *arr, parse_options *opt) {
+SEXP json_array_as_robj(yyjson_val *arr, parse_options *opt, state_t *state) {
   
   int nprotect = 0;
   SEXP res_ = R_NilValue;
@@ -1199,12 +1199,13 @@ SEXP json_array_as_robj(yyjson_val *arr, parse_options *opt) {
       res_ = PROTECT(json_array_as_strsxp(arr, opt)); nprotect++;
       break;
     case VECSXP:
-      res_ = PROTECT(json_array_as_vecsxp(arr, opt)); nprotect++;
+      res_ = PROTECT(json_array_as_vecsxp(arr, opt, state)); nprotect++;
       break;
     case INT64SXP:
       res_ = PROTECT(json_array_as_integer64(arr, opt)); nprotect++;
       break;
     default:
+      free_state(state);
       Rf_error("json_array_as_robj(). Ooops\n");
     }
     
@@ -1220,7 +1221,7 @@ SEXP json_array_as_robj(yyjson_val *arr, parse_options *opt) {
     if (sexp_type != 0) {
       res_ = PROTECT(json_array_as_matrix(arr, sexp_type, opt)); nprotect++;
     } else {
-      res_ = PROTECT(json_array_as_vecsxp(arr, opt)); nprotect++;
+      res_ = PROTECT(json_array_as_vecsxp(arr, opt, state)); nprotect++;
       
       // Check if compatible sub-matrices to make a 3d matrix
       //  i.e. 
@@ -1335,13 +1336,13 @@ SEXP json_array_as_robj(yyjson_val *arr, parse_options *opt) {
     // []-array ONLY contains {}-objects!
     // Parse as a data.frame
     //~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
-    res_ = json_array_of_objects_to_data_frame(arr, opt);
+    res_ = json_array_of_objects_to_data_frame(arr, opt, state);
   } else {
     //~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
     // This array contains a mixture of container types
     // Parse as list
     //~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
-    res_ = PROTECT(json_array_as_vecsxp(arr, opt)); nprotect++;
+    res_ = PROTECT(json_array_as_vecsxp(arr, opt, state)); nprotect++;
   }
   
   //~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
@@ -1377,7 +1378,8 @@ SEXP json_array_as_robj(yyjson_val *arr, parse_options *opt) {
 //   - all values within {}-objects accessible by key='key_name' can 
 //     be contained in an LGLSXP
 //~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
-SEXP json_array_of_objects_to_lglsxp(yyjson_val *arr, const char *key_name, parse_options *opt) {
+SEXP json_array_of_objects_to_lglsxp(yyjson_val *arr, const char *key_name, 
+                                     parse_options *opt, state_t *state) {
   
   size_t nrow = yyjson_get_len(arr);
   SEXP vec_ = PROTECT(Rf_allocVector(LGLSXP, (R_xlen_t)nrow)); 
@@ -1401,7 +1403,8 @@ SEXP json_array_of_objects_to_lglsxp(yyjson_val *arr, const char *key_name, pars
 //   - all values within {}-objects accessible by key='key_name' can 
 //     be contained in an INTSXP
 //~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
-SEXP json_array_of_objects_to_intsxp(yyjson_val *arr, const char *key_name, parse_options *opt) {
+SEXP json_array_of_objects_to_intsxp(yyjson_val *arr, const char *key_name, 
+                                     parse_options *opt, state_t *state) {
   
   size_t nrow = yyjson_get_len(arr);
   SEXP vec_ = PROTECT(Rf_allocVector(INTSXP, (R_xlen_t)nrow)); 
@@ -1425,7 +1428,8 @@ SEXP json_array_of_objects_to_intsxp(yyjson_val *arr, const char *key_name, pars
 //   - all values within {}-objects accessible by key='key_name' can 
 //     be contained in an REALSXP
 //~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
-SEXP json_array_of_objects_to_realsxp(yyjson_val *arr, const char *key_name, parse_options *opt) {
+SEXP json_array_of_objects_to_realsxp(yyjson_val *arr, const char *key_name, 
+                                      parse_options *opt, state_t *state) {
   
   size_t nrow = yyjson_get_len(arr);
   SEXP vec_ = PROTECT(Rf_allocVector(REALSXP, (R_xlen_t)nrow));
@@ -1449,7 +1453,8 @@ SEXP json_array_of_objects_to_realsxp(yyjson_val *arr, const char *key_name, par
 //   - all values within {}-objects accessible by key='key_name' can 
 //     be contained in an STRSXP
 //~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
-SEXP json_array_of_objects_to_strsxp(yyjson_val *arr, const char *key_name, parse_options *opt) {
+SEXP json_array_of_objects_to_strsxp(yyjson_val *arr, const char *key_name, 
+                                     parse_options *opt, state_t *state) {
   
   size_t nrow = yyjson_get_len(arr);
   SEXP vec_ = PROTECT(Rf_allocVector(STRSXP, (R_xlen_t)nrow)); 
@@ -1473,7 +1478,8 @@ SEXP json_array_of_objects_to_strsxp(yyjson_val *arr, const char *key_name, pars
 // All values within {}-objects accessible by key='key_name' are 
 // stored in a VECSXP (i.e. list)
 //~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
-SEXP json_array_of_objects_to_vecsxp(yyjson_val *arr, const char *key_name, parse_options *opt) {
+SEXP json_array_of_objects_to_vecsxp(yyjson_val *arr, const char *key_name, 
+                                     parse_options *opt, state_t *state) {
   
   size_t nrow = yyjson_get_len(arr);
   SEXP vec_ = PROTECT(Rf_allocVector(VECSXP, (R_xlen_t)nrow));
@@ -1488,7 +1494,7 @@ SEXP json_array_of_objects_to_vecsxp(yyjson_val *arr, const char *key_name, pars
     if (val == NULL) {
         SET_VECTOR_ELT(vec_, idx, opt->df_missing_list_elem); // NA_logical_
     } else {
-      SET_VECTOR_ELT(vec_, idx, json_as_robj(val, opt));
+      SET_VECTOR_ELT(vec_, idx, json_as_robj(val, opt, state));
     }
     
     idx++;
@@ -1509,7 +1515,7 @@ SEXP json_array_of_objects_to_vecsxp(yyjson_val *arr, const char *key_name, pars
 //     - 'arr' is a JSON []-array
 //     - all members of []-array are {}-objects
 //===========================================================================
-SEXP json_array_of_objects_to_data_frame(yyjson_val *arr, parse_options *opt) {
+SEXP json_array_of_objects_to_data_frame(yyjson_val *arr, parse_options *opt, state_t *state) {
   
   int nprotect = 0;
   
@@ -1595,19 +1601,19 @@ SEXP json_array_of_objects_to_data_frame(yyjson_val *arr, parse_options *opt) {
     
     switch (sexp_type) {
     case LGLSXP:
-      SET_VECTOR_ELT(df_, col, json_array_of_objects_to_lglsxp(arr, colname[col], opt));
+      SET_VECTOR_ELT(df_, col, json_array_of_objects_to_lglsxp(arr, colname[col], opt, state));
       break;
     case INTSXP:
-      SET_VECTOR_ELT(df_, col, json_array_of_objects_to_intsxp(arr, colname[col], opt));
+      SET_VECTOR_ELT(df_, col, json_array_of_objects_to_intsxp(arr, colname[col], opt, state));
       break;
     case REALSXP:
-      SET_VECTOR_ELT(df_, col, json_array_of_objects_to_realsxp(arr, colname[col], opt));
+      SET_VECTOR_ELT(df_, col, json_array_of_objects_to_realsxp(arr, colname[col], opt, state));
       break;
     case STRSXP:
-      SET_VECTOR_ELT(df_, col, json_array_of_objects_to_strsxp(arr, colname[col], opt));
+      SET_VECTOR_ELT(df_, col, json_array_of_objects_to_strsxp(arr, colname[col], opt, state));
       break;
     case VECSXP:
-      SET_VECTOR_ELT(df_, col, json_array_of_objects_to_vecsxp(arr, colname[col], opt));
+      SET_VECTOR_ELT(df_, col, json_array_of_objects_to_vecsxp(arr, colname[col], opt, state));
       break;
     default:
       Rf_warning("Unhandled 'df' coltype: %i -> %s\n", sexp_type, Rf_type2char(sexp_type));
@@ -1656,10 +1662,11 @@ SEXP json_array_of_objects_to_data_frame(yyjson_val *arr, parse_options *opt) {
 //
 // JSON {}-object to R List
 //===========================================================================
-SEXP json_object_as_list(yyjson_val *obj, parse_options *opt) {
+SEXP json_object_as_list(yyjson_val *obj, parse_options *opt, state_t *state) {
   int nprotect = 0;
   
   if (!yyjson_is_obj(obj)) {
+    free_state(state);
     Rf_error("json_object(): Must be object. Not %i -> %s\n", yyjson_get_type(obj), 
           yyjson_get_type_desc(obj));
   }
@@ -1673,7 +1680,7 @@ SEXP json_object_as_list(yyjson_val *obj, parse_options *opt) {
   unsigned int idx = 0;
   while ((key = yyjson_obj_iter_next(&iter))) {
     val = yyjson_obj_iter_get_val(key);
-    SET_VECTOR_ELT(res_, idx, json_as_robj(val, opt));
+    SET_VECTOR_ELT(res_, idx, json_as_robj(val, opt, state));
     SET_STRING_ELT(nms_, idx, Rf_mkChar(yyjson_get_str(key)));
     ++idx;
   }
@@ -1738,7 +1745,7 @@ SEXP json_object_as_list(yyjson_val *obj, parse_options *opt) {
 //  #   #  #   #  #      #     
 //   ###    ###   #       ### 
 //===========================================================================
-SEXP json_as_robj(yyjson_val *val, parse_options *opt) {
+SEXP json_as_robj(yyjson_val *val, parse_options *opt, state_t *state) {
   
   int nprotect = 0;
   static char buf[128];
@@ -1746,10 +1753,10 @@ SEXP json_as_robj(yyjson_val *val, parse_options *opt) {
   
   switch (yyjson_get_type(val)) {
   case YYJSON_TYPE_OBJ:
-    res_ = PROTECT(json_object_as_list(val, opt)); nprotect++;
+    res_ = PROTECT(json_object_as_list(val, opt, state)); nprotect++;
     break;
   case YYJSON_TYPE_ARR:
-    res_ = PROTECT(json_array_as_robj(val, opt)); nprotect++;
+    res_ = PROTECT(json_array_as_robj(val, opt, state)); nprotect++;
     break;
   case YYJSON_TYPE_BOOL:
     res_ = PROTECT(Rf_ScalarLogical(json_val_to_logical(val, opt))); nprotect++;
@@ -1896,7 +1903,7 @@ SEXP parse_json_from_str(const char *str, size_t len, parse_options *opt) {
   //~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
   // Parse the document from the root node
   //~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
-  SEXP res_ = PROTECT(json_as_robj(yyjson_doc_get_root(state.doc), opt));
+  SEXP res_ = PROTECT(json_as_robj(yyjson_doc_get_root(state.doc), opt, &state));
   
   
   free_state(&state);
@@ -1936,7 +1943,7 @@ SEXP parse_json_from_file(const char *filename, parse_options *opt) {
   //~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
   // Parse the document from the root node
   //~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
-  SEXP res_ = PROTECT(json_as_robj(yyjson_doc_get_root(state.doc), opt));
+  SEXP res_ = PROTECT(json_as_robj(yyjson_doc_get_root(state.doc), opt, &state));
   
   free_state(&state);
   UNPROTECT(1);

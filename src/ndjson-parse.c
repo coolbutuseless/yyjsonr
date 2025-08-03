@@ -670,7 +670,7 @@ SEXP parse_ndjson_file_as_df_(SEXP filename_, SEXP nread_, SEXP nskip_, SEXP npr
         if (val == NULL) {
           SET_VECTOR_ELT(column_, row, opt.df_missing_list_elem);
         } else {
-          SET_VECTOR_ELT(column_, row, json_as_robj(val, &opt));
+          SET_VECTOR_ELT(column_, row, json_as_robj(val, &opt, &state));
         }
         break;
       default:
@@ -977,7 +977,7 @@ SEXP parse_ndjson_str_as_df_(SEXP str_, SEXP nread_, SEXP nskip_, SEXP nprobe_, 
         if (val == NULL) {
           SET_VECTOR_ELT(column_, row, opt.df_missing_list_elem);
         } else {
-          SET_VECTOR_ELT(column_, row, json_as_robj(val, &opt));
+          SET_VECTOR_ELT(column_, row, json_as_robj(val, &opt, &state));
         }
         break;
       default:
