@@ -46,7 +46,7 @@ void destroy_state(state_t *state) {
 #define BUFSIZE 4096
 void error_and_destroy_state(state_t *state, const char *fmt, ...) {
   
-  char *buf = R_calloc_gc(1, BUFSIZE);
+  char *buf = R_alloc(1, BUFSIZE);
   
   va_list args;
   va_start(args, fmt);
