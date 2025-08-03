@@ -1158,6 +1158,7 @@ SEXP json_array_as_robj(yyjson_val *arr, parse_options *opt, state_t *state) {
   SEXP res_ = R_NilValue;
   
   if (!yyjson_is_arr(arr)) {
+    free_state(state);
     Rf_error("json_array_() got passed something NOT a json array");
   }
   
@@ -1563,6 +1564,7 @@ SEXP json_array_of_objects_to_data_frame(yyjson_val *arr, parse_options *opt, st
         colname[ncols] = (char *)yyjson_get_str(key);
         ncols++;
         if (ncols == MAX_DF_COLS) {
+          free_state(state);
           Rf_error("Maximum columns for data.frame exceeded: %i", MAX_DF_COLS);
         }
       }
@@ -1786,6 +1788,7 @@ SEXP json_as_robj(yyjson_val *val, parse_options *opt, state_t *state) {
           ((long long *)(REAL(res_)))[0] = x;
           Rf_setAttrib(res_, R_ClassSymbol, Rf_mkString("integer64"));
         } else {
+          free_state(state);
           Rf_error("Unhandled opt.bit64 option for YYJSON_SUBTYPE_UINT");
         }
       } else {
@@ -1816,6 +1819,7 @@ SEXP json_as_robj(yyjson_val *val, parse_options *opt, state_t *state) {
           ((long long *)(REAL(res_)))[0] = x;
           Rf_setAttrib(res_, R_ClassSymbol, Rf_mkString("integer64"));
         } else {
+          free_state(state);
           Rf_error("Unhandled opt.bit64 option for YYJSON_SUBTYPE_SINT");
         }
       } else {
