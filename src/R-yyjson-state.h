@@ -14,5 +14,6 @@ typedef struct {
   yyjson_doc *doc; // Pass around a referece to the doc so it can be freed on error
 } state_t;
 
-void free_state(state_t *state);
+state_t *create_state(void);
+void destroy_state(state_t *state);
 

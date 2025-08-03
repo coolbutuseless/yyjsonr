@@ -16,11 +16,24 @@
 
 
 //~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+// Create state
+//~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+state_t *create_state(void) {
+  state_t *state = calloc(1, sizeof(state_t));
+  
+  return state;
+}
+
+
+//~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 // Free all things in the state
 //~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
-void free_state(state_t *state) {
+void destroy_state(state_t *state) {
+  if (state == NULL) return;
+  
   if (state->doc) {
     yyjson_doc_free(state->doc);
   }
+  
+  free(state);
 }
-
