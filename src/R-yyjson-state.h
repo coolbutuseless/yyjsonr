@@ -16,4 +16,4 @@ typedef struct {
 
 state_t *create_state(void);
 void destroy_state(state_t *state);
-
+[[noreturn]] void error_and_destroy_state(state_t *state, const char *fmt, ...);
