@@ -14,6 +14,7 @@
 #include <zlib.h>
 
 #include "yyjson.h"
+#include "R-yyjson-state.h"
 #include "R-yyjson-parse.h"
 
 #define SF_POINT               1 << 1

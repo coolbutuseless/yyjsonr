@@ -13,6 +13,7 @@
 #include <zlib.h>
 
 #include "yyjson.h"
+#include "R-yyjson-state.h"
 #include "R-yyjson-parse.h"
 #include "R-yyjson-serialize.h"
 

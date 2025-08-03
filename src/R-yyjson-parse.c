@@ -12,17 +12,9 @@
 
 #include "zlib.h"
 #include "yyjson.h"
+#include "R-yyjson-state.h"
 #include "R-yyjson-parse.h"
 
-
-//~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
-// Free all things in the state
-//~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
-void free_state(state_t *state) {
-  if (state->doc) {
-    yyjson_doc_free(state->doc);
-  }
-}
 
 //~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 // Forward declarations
