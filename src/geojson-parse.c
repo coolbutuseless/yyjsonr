@@ -996,8 +996,7 @@ SEXP parse_feature_collection_geometry(yyjson_val *features, geo_parse_options *
   reset_bbox(opt);
   
   if (!yyjson_is_arr(features)) {
-    destroy_state(state);
-    Rf_error("Expecting FeatureCollection::features to be an array");
+    error_and_destroy_state(state, "Expecting FeatureCollection::features to be an array");
   }
   size_t nrows = yyjson_get_len(features);
   
@@ -1127,13 +1126,11 @@ SEXP parse_feature_collection(yyjson_val *obj, geo_parse_options *opt, state_t *
     // This is just a JSON []-array with multiple features in it.
     features  = obj;
   } else {    
-    destroy_state(state);
-    Rf_error("parse_feature_collection() obj not array or object, but %s", yyjson_get_type_desc(obj));
+    error_and_destroy_state(state, "parse_feature_collection() obj not array or object, but %s", yyjson_get_type_desc(obj));
   }
   
   if (!yyjson_is_arr(features)) {
-    destroy_state(state);
-    Rf_error("Expecting FeatureCollection::features to be an array. Got %s", yyjson_get_type_desc(features));
+    error_and_destroy_state(state, "Expecting FeatureCollection::features to be an array. Got %s", yyjson_get_type_desc(features));
   }
   
   //~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
@@ -1181,8 +1178,7 @@ SEXP parse_feature_collection(yyjson_val *obj, geo_parse_options *opt, state_t *
         // Rprintf("Key: %s\n", yyjson_get_str(prop_name));
         nprops++;
         if (nprops == MAX_PROPS) {
-          destroy_state(state);
-          Rf_error("Maximum properies exceeded parsing feature collection: %i", MAX_PROPS);
+          error_and_destroy_state(state, "Maximum properies exceeded parsing feature collection: %i", MAX_PROPS);
         }
       }
       
@@ -1306,14 +1302,12 @@ SEXP promote_bare_geometry_to_list(SEXP geom_, yyjson_val *val, geo_parse_option
   SEXP geom_col_class_ = PROTECT(Rf_allocVector(STRSXP, 2)); nprotect++;
   
   if (!yyjson_is_obj(val)) {
-    destroy_state(state);
-    Rf_error("promote_bare_geometry_to_list(): Expecting object. Got %s", yyjson_get_type_desc(val));
+    error_and_destroy_state(state, "promote_bare_geometry_to_list(): Expecting object. Got %s", yyjson_get_type_desc(val));
   }
   
   yyjson_val *type = yyjson_obj_get(val, "type");
   if (type == NULL) {
-    destroy_state(state);
-    Rf_error("parse_geometry(): type == NULL");
+    error_and_destroy_state(state, "parse_geometry(): type == NULL");
   }
   
   if (yyjson_equals_str(type, "Point")) {
@@ -1332,8 +1326,7 @@ SEXP promote_bare_geometry_to_list(SEXP geom_, yyjson_val *val, geo_parse_option
     SET_STRING_ELT(geom_col_class_, 0, Rf_mkChar("sfc_GEOMETRY"));
     Rf_setAttrib(geom_col_, Rf_mkString("classes")  , Rf_mkString("GEOMETRYCOLLECTION"));
   } else {
-    destroy_state(state);
-    Rf_error("promote_bare_geometry_to_list(): Unknown geojson type: %s", yyjson_get_str(type));
+    error_and_destroy_state(state, "promote_bare_geometry_to_list(): Unknown geojson type: %s", yyjson_get_str(type));
   }
   
   SET_STRING_ELT(geom_col_class_, 1, Rf_mkChar("sfc"));
@@ -1421,8 +1414,7 @@ SEXP parse_geometry_collection(yyjson_val *obj, geo_parse_options *opt,
   
   yyjson_val *geoms = yyjson_obj_get(obj, "geometries");
   if (!yyjson_is_arr(geoms)) {
-    destroy_state(state);
-    Rf_error("Expecting GeomCollection::geometries to be an array. not %s", 
+    error_and_destroy_state(state, "Expecting GeomCollection::geometries to be an array. not %s", 
           yyjson_get_type_desc(geoms));
   }
   size_t ngeoms = yyjson_get_len(geoms);
@@ -1467,14 +1459,12 @@ SEXP parse_geometry_collection(yyjson_val *obj, geo_parse_options *opt,
 SEXP parse_geometry_type(yyjson_val *val, geo_parse_options *opt, state_t *state) {
   
   if (!yyjson_is_obj(val)) {
-    destroy_state(state);
-    Rf_error("parse_geometry(): Expecting object. Got %s", yyjson_get_type_desc(val));
+    error_and_destroy_state(state, "parse_geometry(): Expecting object. Got %s", yyjson_get_type_desc(val));
   }
   
   yyjson_val *type = yyjson_obj_get(val, "type");
   if (type == NULL) {
-    destroy_state(state);
-    Rf_error("parse_geometry(): type == NULL");
+    error_and_destroy_state(state, "parse_geometry(): type == NULL");
   }
   
   if (yyjson_equals_str(type, "Point")) {
@@ -1492,7 +1482,6 @@ SEXP parse_geometry_type(yyjson_val *val, geo_parse_options *opt, state_t *state
   } else if (yyjson_equals_str(type, "GeometryCollection")) {
     return parse_geometry_collection(val, opt, state);
   } else {
-    // destroy_state(state);
     error_and_destroy_state(state, "parse_geometry(): Unknown geojson type: %s", yyjson_get_str(type));
   }
 }
@@ -1510,14 +1499,12 @@ SEXP geojson_as_sf(yyjson_val *val, geo_parse_options *opt,
   }
   
   if (!yyjson_is_obj(val)) {
-    destroy_state(state);
-    Rf_error("geojson_as_sf(): Expecting object. Got %s", yyjson_get_type_desc(val));
+    error_and_destroy_state(state, "geojson_as_sf(): Expecting object. Got %s", yyjson_get_type_desc(val));
   }
   
   yyjson_val *type = yyjson_obj_get(val, "type");
   if (type == NULL) {
-    destroy_state(state);
-    Rf_error("geojson_as_sf(): type == NULL");
+    error_and_destroy_state(state, "geojson_as_sf(): type == NULL");
   }
   
   if (yyjson_equals_str(type, "Feature")) {
@@ -1586,9 +1573,8 @@ SEXP parse_geojson_str_(SEXP str_, SEXP geo_opts_, SEXP parse_opts_) {
   //   - add a visual pointer to the output so the user knows where this was
   //~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
   if (state->doc == NULL) {
-    destroy_state(state);
     output_verbose_error(str, err);
-    Rf_error("Error parsing JSON [Loc: %ld]: %s", (long)err.pos, err.msg);
+    error_and_destroy_state(state, "Error parsing JSON [Loc: %ld]: %s", (long)err.pos, err.msg);
   }
   
   //~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
@@ -1627,8 +1613,7 @@ SEXP parse_geojson_file_(SEXP filename_, SEXP geo_opts_, SEXP parse_opts_) {
   //   - add a visual pointer to the output so the user knows where this was
   //~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
   if (state->doc == NULL) {
-    destroy_state(state);
-    Rf_error("Error parsing JSON file '%s' [Loc %ld]: %s", 
+    error_and_destroy_state(state, "Error parsing JSON file '%s' [Loc %ld]: %s", 
           filename, (long)err.pos, err.msg);
   }
   

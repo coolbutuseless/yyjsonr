@@ -519,8 +519,7 @@ SEXP parse_ndjson_file_as_df_(SEXP filename_, SEXP nread_, SEXP nskip_, SEXP npr
     state->doc = yyjson_read_opts(buf, strlen(buf), opt.yyjson_read_flag, NULL, &err);
     if (state->doc == NULL) {
       output_verbose_error(buf, err);
-      destroy_state(state);
-      Rf_error("Couldn't parse JSON during probe line %i\n", i + 1);
+      error_and_destroy_state(state, "Couldn't parse JSON during probe line %i\n", i + 1);
     }
     
     yyjson_val *obj = yyjson_doc_get_root(state->doc);
@@ -548,8 +547,7 @@ SEXP parse_ndjson_file_as_df_(SEXP filename_, SEXP nread_, SEXP nskip_, SEXP npr
         strcpy(colname[ncols], new_name);
         ncols++;
         if (ncols == MAX_DF_COLS) {
-          destroy_state(state);
-          Rf_error("Maximum columns for data.frame exceeded: %i", MAX_DF_COLS);
+          error_and_destroy_state(state, "Maximum columns for data.frame exceeded: %i", MAX_DF_COLS);
         }
       }
       
@@ -630,14 +628,12 @@ SEXP parse_ndjson_file_as_df_(SEXP filename_, SEXP nread_, SEXP nskip_, SEXP npr
     state->doc = yyjson_read_opts(buf, strlen(buf), opt.yyjson_read_flag, NULL, &err);
     if (state->doc == NULL) {
       output_verbose_error(buf, err);
-      destroy_state(state);
-      Rf_error("Couldn't parse JSON on line %i\n", i + 1);
+      error_and_destroy_state(state, "Couldn't parse JSON on line %i\n", i + 1);
     }
     
     yyjson_val *obj = yyjson_doc_get_root(state->doc);
     if (yyjson_get_type(obj) != YYJSON_TYPE_OBJ) {
-      destroy_state(state);
-      Rf_error("parse_ndjson_as_df() only works if all lines represent JSON objects");
+      error_and_destroy_state(state, "parse_ndjson_as_df() only works if all lines represent JSON objects");
     }
     
     for (unsigned int col = 0; col < ncols; col++) {
@@ -675,8 +671,7 @@ SEXP parse_ndjson_file_as_df_(SEXP filename_, SEXP nread_, SEXP nskip_, SEXP npr
         }
         break;
       default:
-        destroy_state(state);
-        Rf_error("parse_ndjson_file_as_df_(): Unknown type");
+      error_and_destroy_state(state, "parse_ndjson_file_as_df_(): Unknown type");
       } 
       
     }
@@ -800,8 +795,7 @@ SEXP parse_ndjson_str_as_df_(SEXP str_, SEXP nread_, SEXP nskip_, SEXP nprobe_, 
     size_t pos = yyjson_doc_get_read_size(state->doc);
     if (state->doc == NULL) {
       // output_verbose_error(buf, err);
-      destroy_state(state);
-      Rf_error("Couldn't parse JSON during probe line %i\n", nrows + 1);
+      error_and_destroy_state(state, "Couldn't parse JSON during probe line %i\n", nrows + 1);
     }
     
     yyjson_val *obj = yyjson_doc_get_root(state->doc);
@@ -825,8 +819,7 @@ SEXP parse_ndjson_str_as_df_(SEXP str_, SEXP nread_, SEXP nskip_, SEXP nprobe_, 
         size_t n = strlen(new_name) + 1;
         colname[ncols] = calloc(n, 1);
         if (colname[ncols] == 0) {
-          destroy_state(state);
-          Rf_error("Failed to allocate 'colname'");
+          error_and_destroy_state(state, "Failed to allocate 'colname'");
         }
         strcpy(colname[ncols], new_name);
         ncols++;
@@ -836,8 +829,7 @@ SEXP parse_ndjson_str_as_df_(SEXP str_, SEXP nread_, SEXP nskip_, SEXP nprobe_, 
           for (int i = 0; i < ncols; i++) {
             free(colname[i]);
           }
-          destroy_state(state);
-          Rf_error("Maximum columns for data.frame exceeded: %i", MAX_DF_COLS);
+          error_and_destroy_state(state, "Maximum columns for data.frame exceeded: %i", MAX_DF_COLS);
         }
       }
       
@@ -937,14 +929,12 @@ SEXP parse_ndjson_str_as_df_(SEXP str_, SEXP nread_, SEXP nskip_, SEXP nprobe_, 
     size_t pos = yyjson_doc_get_read_size(state->doc);
     if (state->doc == NULL) {
       // output_verbose_error(buf, err);
-      destroy_state(state);
-      Rf_error("Couldn't parse JSON on line %i\n", i + 1);
+      error_and_destroy_state(state, "Couldn't parse JSON on line %i\n", i + 1);
     }
     
     yyjson_val *obj = yyjson_doc_get_root(state->doc);
     if (yyjson_get_type(obj) != YYJSON_TYPE_OBJ) {
-      destroy_state(state);
-      Rf_error("parse_ndjson_as_df() only works if all lines represent JSON objects");
+      error_and_destroy_state(state, "parse_ndjson_as_df() only works if all lines represent JSON objects");
     }
     
     for (unsigned int col = 0; col < ncols; col++) {
@@ -982,8 +972,7 @@ SEXP parse_ndjson_str_as_df_(SEXP str_, SEXP nread_, SEXP nskip_, SEXP nprobe_, 
         }
         break;
       default:
-        destroy_state(state);
-        Rf_error("parse_ndjson_file_as_df_(): Unknown type");
+        error_and_destroy_state(state, "parse_ndjson_file_as_df_(): Unknown type");
       } 
       
     }
