@@ -70,7 +70,7 @@ int count_lines(const char *filename) {
   gzFile file = gzopen(filename, "r");
   
   for(;;) {
-    size_t res = gzread(buf, 1, MAX_LINE_LENGTH, file);
+    size_t res = gzread(file, buf, MAX_LINE_LENGTH);
     
     int i;
     for(i = 0; i < res; i++) {
