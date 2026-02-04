@@ -17,6 +17,7 @@ opts_write_json(
   str_specials = c("null", "string"),
   fast_numerics = FALSE,
   json_verbatim = FALSE,
+  asis = c("keep", "strip"),
   yyjson_write_flag = 0L
 )
 }
@@ -75,6 +76,11 @@ further details.}
 the result?  Default: FALSE.  If \code{json_verbatim = TRUE} and
 a string has the class \code{"json"}, then it will be written verbatim
 into the output.}
+
+\item{asis}{How to handle \code{I()} (AsIs class) when \code{auto_unbox = TRUE}.
+Default: \code{"keep"} preserves the existing behaviour where \code{I(x)}
+forces array output even with auto_unbox. \code{"strip"} ignores the AsIs
+class and unboxes length-1 vectors normally.}
 
 \item{yyjson_write_flag}{integer vector corresponding to internal \code{yyjson}
 options.  See \code{yyjson_write_flag} in this package, and read

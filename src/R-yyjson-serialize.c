@@ -41,6 +41,7 @@ serialize_options parse_serialize_options(SEXP serialize_opts_) {
     .str_specials      = STR_SPECIALS_AS_NULL,
     .fast_numerics     = FALSE,
     .yyjson_write_flag = 0,
+    .asis              = ASIS_KEEP,
   };
   
   // Sanity check and get option names
@@ -100,6 +101,9 @@ serialize_options parse_serialize_options(SEXP serialize_opts_) {
       opt.json_verbatim = Rf_asLogical(val_);
     } else if (strcmp(opt_name, "fast_numerics") == 0) {
       opt.fast_numerics = Rf_asLogical(val_);
+    } else if (strcmp(opt_name, "asis") == 0) {
+      const char *tmp = CHAR(STRING_ELT(val_, 0));
+      opt.asis = strcmp(tmp, "keep") == 0 ? ASIS_KEEP : ASIS_STRIP;
     } else {
       Rf_warning("Unknown option ignored: '%s'\n", opt_name);
     }
@@ -1184,7 +1188,7 @@ yyjson_mut_val *serialize_core(SEXP robj_, yyjson_mut_doc *doc, serialize_option
     val = dim3_matrix_to_col_major_array(robj_, doc, opt);
   } else if (Rf_isVectorAtomic(robj_) && Rf_length(robj_) == 1 && 
     (opt->auto_unbox || Rf_inherits(robj_, "scalar"))) {
-    if (Rf_inherits(robj_, "AsIs")) {
+    if (opt->asis == ASIS_KEEP && Rf_inherits(robj_, "AsIs")) {
       val = vector_to_json_array(robj_, doc, opt);
     } else {
       switch(TYPEOF(robj_)) {

@@ -285,10 +285,14 @@ opts_read_json <- function(
 #'        \code{YYJSON_WRITE_INF_AND_NAN_AS_NULL} options for \code{yyjson_write_flags}
 #'        and should consult the \code{yyjson} API documentation for 
 #'        further details.
-#' @param json_verbatim Write strings with class 'json' directly into 
+#' @param json_verbatim Write strings with class 'json' directly into
 #'        the result?  Default: FALSE.  If \code{json_verbatim = TRUE} and
 #'        a string has the class \code{"json"}, then it will be written verbatim
 #'        into the output.
+#' @param asis How to handle \code{I()} (AsIs class) when \code{auto_unbox = TRUE}.
+#'        Default: \code{"keep"} preserves the existing behaviour where \code{I(x)}
+#'        forces array output even with auto_unbox. \code{"strip"} ignores the AsIs
+#'        class and unboxes length-1 vectors normally.
 #' @param yyjson_write_flag integer vector corresponding to internal \code{yyjson}
 #'        options.  See \code{yyjson_write_flag} in this package, and read
 #'        the yyjson API documentation for more information.  This is considered
@@ -314,8 +318,9 @@ opts_write_json <- function(
     str_specials      = c('null', 'string'),
     fast_numerics     = FALSE,
     json_verbatim     = FALSE,
+    asis              = c("keep", "strip"),
     yyjson_write_flag = 0L) {
-  
+
   structure(
     list(
       digits            = as.integer(digits),
@@ -330,6 +335,7 @@ opts_write_json <- function(
       num_specials      = match.arg(num_specials),
       fast_numerics     = isTRUE(fast_numerics),
       json_verbatim     = isTRUE(json_verbatim),
+      asis              = match.arg(asis),
       yyjson_write_flag = as.integer(yyjson_write_flag)
     ),
     class = "opts_write_json"

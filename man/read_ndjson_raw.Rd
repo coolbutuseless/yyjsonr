@@ -10,6 +10,7 @@ read_ndjson_raw(
   nread = -1,
   nskip = 0,
   nprobe = 100,
+  col_names = NULL,
   opts = list(),
   ...
 )
@@ -27,6 +28,11 @@ values are 'df' or 'list'.  Default: 'df' (data.frame)}
 
 \item{nprobe}{Number of lines to read to determine types for data.frame
 columns.  Default: 100.   Use \code{-1} to probe entire file.}
+
+\item{col_names}{Character vector of column names.  Used when NDJSON lines
+are JSON arrays (values only, no keys).  If \code{NULL} (default),
+column names are inferred from JSON object keys, or generated as
+"V1", "V2", ... for array-format lines.}
 
 \item{opts}{Named list of options for parsing. Usually created by \code{opts_read_json()}}
 

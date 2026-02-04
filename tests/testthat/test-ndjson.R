@@ -148,6 +148,109 @@ test_that("read_ndjson_str() empty inputs", {
 
 
 
+#~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+# Write unnamed data frame rows as JSON arrays
+#~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+test_that("write_ndjson_str with unnamed df produces arrays", {
+  df <- data.frame(a = 1:3, b = c("x", "y", "z"), stringsAsFactors = FALSE)
+
+  # Named: should produce objects
+  json_named <- write_ndjson_str(df)
+  expect_true(grepl("^\\{", strsplit(json_named, "\n")[[1]][1]))
+
+  # Unnamed: should produce arrays
+  json_unnamed <- write_ndjson_str(unname(df))
+  lines <- strsplit(json_unnamed, "\n")[[1]]
+  expect_true(grepl("^\\[", lines[1]))
+  expect_equal(lines[1], '[1,"x"]')
+  expect_equal(lines[2], '[2,"y"]')
+  expect_equal(lines[3], '[3,"z"]')
+})
+
+test_that("write_ndjson_file with unnamed df produces arrays", {
+  df <- data.frame(a = 1.5, b = TRUE, stringsAsFactors = FALSE)
+  tmp <- tempfile()
+  write_ndjson_file(unname(df), tmp)
+  lines <- readLines(tmp)
+  expect_equal(lines[1], '[1.5,true]')
+})
+
+test_that("write_ndjson_str and write_ndjson_file agree for unnamed df", {
+  df <- unname(data.frame(a = 1:2, b = c("x", "y"), stringsAsFactors = FALSE))
+  tmp <- tempfile()
+  write_ndjson_file(df, tmp)
+  from_file <- paste(readLines(tmp), collapse = "\n")
+  from_str <- write_ndjson_str(df)
+  expect_identical(from_file, from_str)
+})
+
+#~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+# Read array-format NDJSON lines as data frame
+#~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+test_that("read_ndjson_str handles array-format lines as df", {
+  input <- '[1,"a",true]\n[2,"b",false]\n[3,"c",true]'
+  result <- read_ndjson_str(input, type = 'df')
+  expect_equal(ncol(result), 3)
+  expect_equal(nrow(result), 3)
+  expect_equal(names(result), c("V1", "V2", "V3"))
+  expect_equal(result$V1, c(1L, 2L, 3L))
+  expect_equal(result$V2, c("a", "b", "c"))
+  expect_equal(result$V3, c(TRUE, FALSE, TRUE))
+})
+
+test_that("read_ndjson_str handles array-format with col_names", {
+  input <- '[1,"a"]\n[2,"b"]'
+  result <- read_ndjson_str(input, type = 'df', col_names = c("id", "val"))
+  expect_equal(names(result), c("id", "val"))
+  expect_equal(result$id, c(1L, 2L))
+  expect_equal(result$val, c("a", "b"))
+})
+
+test_that("read_ndjson_file handles array-format lines", {
+  df <- data.frame(a = 1:3, b = c("x", "y", "z"), stringsAsFactors = FALSE)
+  tmp <- tempfile()
+  write_ndjson_file(unname(df), tmp)
+  result <- read_ndjson_file(tmp, col_names = c("a", "b"))
+  expect_equal(result$a, 1:3)
+  expect_equal(result$b, c("x", "y", "z"))
+})
+
+test_that("read_ndjson_str with nskip and array-format", {
+  input <- '{"meta":"header"}\n[1,2]\n[3,4]'
+  result <- read_ndjson_str(input, type = 'df', nskip = 1, col_names = c("x", "y"))
+  expect_equal(nrow(result), 2)
+  expect_equal(result$x, c(1L, 3L))
+  expect_equal(result$y, c(2L, 4L))
+})
+
+test_that("col_names length mismatch errors", {
+  input <- '[1,2,3]\n[4,5,6]'
+  expect_error(
+    read_ndjson_str(input, type = 'df', col_names = c("a", "b")),
+    "col_names length"
+  )
+})
+
+test_that("roundtrip: write unnamed df as arrays, read back", {
+  df <- data.frame(
+    x = c(1.1, 2.2, 3.3),
+    y = c("a", "b", "c"),
+    z = c(TRUE, FALSE, TRUE),
+    stringsAsFactors = FALSE
+  )
+
+  # Write as arrays
+  json <- write_ndjson_str(unname(df))
+
+  # Read back with original column names
+  result <- read_ndjson_str(json, col_names = names(df))
+
+  expect_equal(result$x, df$x)
+  expect_equal(result$y, df$y)
+  expect_equal(result$z, df$z)
+})
+
+
 test_that("read_ndjson_raw() empty inputs", {
   
   input <- write_ndjson_raw(head(mtcars, 2))

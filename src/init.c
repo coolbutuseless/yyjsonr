@@ -23,10 +23,10 @@ extern SEXP validate_json_str_ (SEXP str_     , SEXP verbose_, SEXP parse_opts_)
 //~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 // NDJSON
 //~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
-extern SEXP parse_ndjson_file_as_df_  (SEXP filename_, SEXP nread_, SEXP nskip_, SEXP nprobe_, SEXP parse_opts_);
+extern SEXP parse_ndjson_file_as_df_  (SEXP filename_, SEXP nread_, SEXP nskip_, SEXP nprobe_, SEXP col_names_, SEXP parse_opts_);
 extern SEXP parse_ndjson_file_as_list_(SEXP filename_, SEXP nread_, SEXP nskip_,               SEXP parse_opts_);
 
-extern SEXP parse_ndjson_str_as_df_  (SEXP str_, SEXP nread_, SEXP nskip_, SEXP nprobe_, SEXP parse_opts_);
+extern SEXP parse_ndjson_str_as_df_  (SEXP str_, SEXP nread_, SEXP nskip_, SEXP nprobe_, SEXP col_names_, SEXP parse_opts_);
 extern SEXP parse_ndjson_str_as_list_(SEXP str_, SEXP nread_, SEXP nskip_,               SEXP parse_opts_);
 
 extern SEXP serialize_df_to_ndjson_str_ (SEXP robj_,                 SEXP serialize_opts_, SEXP as_raw_);
@@ -65,10 +65,10 @@ static const R_CallMethodDef CEntries[] = {
   //~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
   // NDJSON
   //~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
-  {"parse_ndjson_file_as_df_"  , (DL_FUNC) &parse_ndjson_file_as_df_  , 5},
+  {"parse_ndjson_file_as_df_"  , (DL_FUNC) &parse_ndjson_file_as_df_  , 6},
   {"parse_ndjson_file_as_list_", (DL_FUNC) &parse_ndjson_file_as_list_, 4},
-  
-  {"parse_ndjson_str_as_df_"  , (DL_FUNC) &parse_ndjson_str_as_df_  , 5},
+
+  {"parse_ndjson_str_as_df_"  , (DL_FUNC) &parse_ndjson_str_as_df_  , 6},
   {"parse_ndjson_str_as_list_", (DL_FUNC) &parse_ndjson_str_as_list_, 4},
   
   {"serialize_df_to_ndjson_str_" , (DL_FUNC) &serialize_df_to_ndjson_str_ , 3},

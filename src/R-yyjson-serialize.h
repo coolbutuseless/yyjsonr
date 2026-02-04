@@ -17,6 +17,9 @@
 #define NAME_REPAIR_NONE    0
 #define NAME_REPAIR_MINIMAL 1
 
+#define ASIS_KEEP  0
+#define ASIS_STRIP 1
+
 
 
 //~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
@@ -79,6 +82,7 @@ typedef struct {
   unsigned int yyjson_write_flag;
   bool fast_numerics;
   bool json_verbatim;
+  unsigned int asis;
 } serialize_options;
 
 //~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
@@ -97,4 +101,5 @@ yyjson_mut_val *scalar_double_to_json_val(double rdbl, yyjson_mut_doc *doc, seri
 yyjson_mut_val *scalar_strsxp_to_json_val(SEXP str_, R_xlen_t idx, yyjson_mut_doc *doc, serialize_options *opt);
 
 yyjson_mut_val *data_frame_row_to_json_object(SEXP df_, unsigned int *col_type, unsigned int row, int skip_col, yyjson_mut_doc *doc, serialize_options *opt);
+yyjson_mut_val *data_frame_row_to_json_array(SEXP df_, unsigned int *col_type, unsigned int row, int skip_col, yyjson_mut_doc *doc, serialize_options *opt);
 unsigned int *detect_data_frame_types(SEXP df_, serialize_options *opt);
