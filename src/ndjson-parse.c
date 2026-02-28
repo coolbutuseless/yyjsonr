@@ -587,7 +587,9 @@ SEXP parse_ndjson_file_as_df_(SEXP filename_, SEXP nread_, SEXP nskip_, SEXP npr
     // Allocate memory for column
     SEXP vec_ = PROTECT(Rf_allocVector(alloc_type, nrows));
     if (sexp_type[col] == INT64SXP) {
-      Rf_setAttrib(vec_, R_ClassSymbol, Rf_mkString("integer64"));
+      SEXP att_val_ = PROTECT(Rf_mkString("integer64"));
+      Rf_setAttrib(vec_, R_ClassSymbol, att_val_);
+      UNPROTECT(1);
     }
     
     // place vector into data.frame
@@ -895,7 +897,9 @@ SEXP parse_ndjson_str_as_df_(SEXP str_, SEXP nread_, SEXP nskip_, SEXP nprobe_, 
     // Allocate memory for column
     SEXP vec_ = PROTECT(Rf_allocVector(alloc_type, nrows));
     if (sexp_type[col] == INT64SXP) {
-      Rf_setAttrib(vec_, R_ClassSymbol, Rf_mkString("integer64"));
+      SEXP att_val_ = PROTECT(Rf_mkString("integer64"));
+      Rf_setAttrib(vec_, R_ClassSymbol, att_val_);
+      UNPROTECT(1);
     }
     
     // place vector into list

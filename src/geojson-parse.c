@@ -35,11 +35,13 @@ SEXP make_crs(void) {
   SET_STRING_ELT(nms_, 0, Rf_mkChar("input"));
   SET_STRING_ELT(nms_, 1, Rf_mkChar("wkt"));
   Rf_setAttrib(crs_, R_NamesSymbol, nms_);
-  Rf_setAttrib(crs_, R_ClassSymbol, Rf_mkString("crs"));
+  
+  SEXP att_val_ = PROTECT(Rf_mkString("crs")); 
+  Rf_setAttrib(crs_, R_ClassSymbol, att_val_);
   SET_VECTOR_ELT(crs_, 0, Rf_mkString("4326"));
   SET_VECTOR_ELT(crs_, 1, Rf_mkString("GEOGCS[\"WGS 84\",\n      DATUM[\"WGS_1984\",\n        SPHEROID[\"WGS 84\",6378137,298.257223563,\n          AUTHORITY[\"EPSG\",\"7030\"]],\n        AUTHORITY[\"EPSG\",\"6326\"]],\n      PRIMEM[\"Greenwich\",0,\n        AUTHORITY[\"EPSG\",\"8901\"]],\n      UNIT[\"degree\",0.0174532925199433,\n        AUTHORITY[\"EPSG\",\"9122\"]],\n      AXIS[\"Latitude\",NORTH],\n      AXIS[\"Longitude\",EAST],\n    AUTHORITY[\"EPSG\",\"4326\"]]"));
   
-  UNPROTECT(2);
+  UNPROTECT(3);
   return crs_;
 }
 
@@ -160,7 +162,8 @@ SEXP make_bbox(geo_parse_options *opt) {
   SET_STRING_ELT(bbox_nms_, 2, Rf_mkChar("xmax"));
   SET_STRING_ELT(bbox_nms_, 3, Rf_mkChar("ymax"));
   Rf_setAttrib(bbox_, R_NamesSymbol, bbox_nms_);
-  Rf_setAttrib(bbox_, R_ClassSymbol, Rf_mkString("bbox"));
+  SEXP att_val_ = PROTECT(Rf_mkString("bbox")); nprotect++;
+  Rf_setAttrib(bbox_, R_ClassSymbol, att_val_);
   
   UNPROTECT(nprotect);
   return bbox_;
@@ -180,7 +183,8 @@ SEXP make_z_range(geo_parse_options *opt) {
   SET_STRING_ELT(z_range_nms_, 0, Rf_mkChar("zmin"));
   SET_STRING_ELT(z_range_nms_, 1, Rf_mkChar("zmax"));
   Rf_setAttrib(z_range_, R_NamesSymbol, z_range_nms_);
-  Rf_setAttrib(z_range_, R_ClassSymbol, Rf_mkString("z_range"));
+  SEXP att_val_ = PROTECT(Rf_mkString("z_range")); nprotect++;
+  Rf_setAttrib(z_range_, R_ClassSymbol, att_val_);
   
   UNPROTECT(nprotect);
   return z_range_;
@@ -209,7 +213,8 @@ SEXP make_m_range(geo_parse_options *opt) {
   SET_STRING_ELT(m_range_nms_, 0, Rf_mkChar("mmin"));
   SET_STRING_ELT(m_range_nms_, 1, Rf_mkChar("mmax"));
   Rf_setAttrib(m_range_, R_NamesSymbol, m_range_nms_);
-  Rf_setAttrib(m_range_, R_ClassSymbol, Rf_mkString("m_range"));
+  SEXP att_val_ = PROTECT(Rf_mkString("m_range")); nprotect++;
+  Rf_setAttrib(m_range_, R_ClassSymbol, att_val_);
   
   UNPROTECT(nprotect);
   return m_range_;
@@ -837,8 +842,16 @@ SEXP parse_feature(yyjson_val *obj, geo_parse_options *opt, state_t *state) {
   //~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
   // Set attributes on geometry 
   //~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
-  Rf_setAttrib(geom_col_, Rf_mkString("n_empty")  , Rf_ScalarInteger(0));
-  Rf_setAttrib(geom_col_, Rf_mkString("crs")      , make_crs());
+  SEXP att_name_;
+  SEXP att_val_;
+  
+  att_name_ = PROTECT(Rf_mkString("n_empty")); nprotect++;
+  att_val_  = PROTECT(Rf_ScalarInteger(0));    nprotect++;
+  Rf_setAttrib(geom_col_, att_name_, att_val_);
+  
+  att_name_ = PROTECT(Rf_mkString("crs")); nprotect++;
+  att_val_  = PROTECT(make_crs()); nprotect++;
+  Rf_setAttrib(geom_col_, att_name_, att_val_);
   
   SEXP geom_class_ = PROTECT(Rf_allocVector(STRSXP, 2)); nprotect++;
   
@@ -865,8 +878,13 @@ SEXP parse_feature(yyjson_val *obj, geo_parse_options *opt, state_t *state) {
   SET_STRING_ELT(geom_class_, 1, Rf_mkChar("sfc"));
   Rf_setAttrib(geom_col_, R_ClassSymbol, geom_class_);
   
-  Rf_setAttrib(geom_col_, Rf_mkString("precision"), Rf_ScalarReal(0));
-  Rf_setAttrib(geom_col_, Rf_mkString("bbox"), make_bbox(opt));
+  att_name_ = PROTECT(Rf_mkString("precision")); nprotect++;
+  att_val_  = PROTECT(Rf_ScalarReal(0));         nprotect++;
+  Rf_setAttrib(geom_col_, att_name_, att_val_);
+  
+  att_name_ = PROTECT(Rf_mkString("bbox")); nprotect++;
+  att_val_  = PROTECT(make_bbox(opt));      nprotect++;
+  Rf_setAttrib(geom_col_, att_name_, att_val_);
   
   if (opt->type == SFC_TYPE) {
     // only care about geom, not properties.
@@ -955,7 +973,8 @@ SEXP parse_feature(yyjson_val *obj, geo_parse_options *opt, state_t *state) {
   // Store this as the 'sf_geometry' attribute
   //~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
   SEXP sf_name_ = PROTECT(Rf_mkString("geometry")); nprotect++;
-  Rf_setAttrib(res_, Rf_mkString("sf_column"), sf_name_);
+  att_name_ = PROTECT(Rf_mkString("sf_column")); nprotect++;
+  Rf_setAttrib(res_, att_name_, sf_name_);
   
   //~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
   // Set 'data.frame' class
@@ -1058,6 +1077,9 @@ SEXP parse_feature_collection_geometry(yyjson_val *features, geo_parse_options *
   //~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
   SEXP geom_class_ = PROTECT(Rf_allocVector(STRSXP, 2)); nprotect++;
   
+  SEXP att_name_;
+  SEXP att_val_;
+  
   switch(sf_type_bitset) {
   case SF_POINT:
     SET_STRING_ELT(geom_class_, 0, Rf_mkChar("sfc_POINT"));
@@ -1079,27 +1101,42 @@ SEXP parse_feature_collection_geometry(yyjson_val *features, geo_parse_options *
     break;
   default:
     if (nrows > 0) {
-      Rf_setAttrib(geom_col_, Rf_mkString("classes")  , geom_classes_);
+      att_name_ = PROTECT(Rf_mkString("classes")); nprotect++;
+      Rf_setAttrib(geom_col_, att_name_, geom_classes_);
     }
     SET_STRING_ELT(geom_class_, 0, Rf_mkChar("sfc_GEOMETRY"));
   }
   
   
-  Rf_setAttrib(geom_col_, Rf_mkString("n_empty")  , Rf_ScalarInteger(0));
-  Rf_setAttrib(geom_col_, Rf_mkString("crs")      , make_crs());
+  att_name_ = PROTECT(Rf_mkString("n_empty")); nprotect++;
+  att_val_  = PROTECT(Rf_ScalarInteger(0))   ; nprotect++;
+  Rf_setAttrib(geom_col_, att_name_, att_val_);
+  
+  att_name_ = PROTECT(Rf_mkString("crs")); nprotect++;
+  att_val_  = PROTECT(make_crs())        ; nprotect++;
+  Rf_setAttrib(geom_col_, att_name_, att_val_);
   
   SET_STRING_ELT(geom_class_, 1, Rf_mkChar("sfc"));
   Rf_setAttrib(geom_col_, R_ClassSymbol, geom_class_);
   
-  Rf_setAttrib(geom_col_, Rf_mkString("precision"), Rf_ScalarReal(0));
-  Rf_setAttrib(geom_col_, Rf_mkString("bbox"), make_bbox(opt));
+  att_name_ = PROTECT(Rf_mkString("precision")); nprotect++;
+  att_val_  = PROTECT(Rf_ScalarReal(0));         nprotect++;
+  Rf_setAttrib(geom_col_, att_name_, att_val_);
+  
+  att_name_ = PROTECT(Rf_mkString("bbox")); nprotect++;
+  att_val_  = PROTECT(make_bbox(opt));      nprotect++;
+  Rf_setAttrib(geom_col_, att_name_, att_val_);
   
   if (needs_z_range(opt)) {
-    Rf_setAttrib(geom_col_, Rf_mkString("z_range"), make_z_range(opt));
+    att_name_ = PROTECT(Rf_mkString("z_range")); nprotect++;
+    att_val_  = PROTECT(make_z_range(opt));      nprotect++;
+    Rf_setAttrib(geom_col_, att_name_, att_val_);
   }
   
   if (needs_m_range(opt)) {
-    Rf_setAttrib(geom_col_, Rf_mkString("m_range"), make_m_range(opt));
+    att_name_ = PROTECT(Rf_mkString("m_range")); nprotect++;
+    att_val_  = PROTECT(make_m_range(opt));      nprotect++;
+    Rf_setAttrib(geom_col_, att_name_, att_val_);
   }
   
   UNPROTECT(nprotect);
@@ -1253,7 +1290,8 @@ SEXP parse_feature_collection(yyjson_val *obj, geo_parse_options *opt, state_t *
   // Store this as the 'sf_geometry' attribute
   //~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
   SEXP sf_name_ = PROTECT(Rf_mkString("geometry")); nprotect++;
-  Rf_setAttrib(df_, Rf_mkString("sf_column"), sf_name_);
+  SEXP att_name_ = PROTECT(Rf_mkString("sf_column")); nprotect++;
+  Rf_setAttrib(df_, att_name_, sf_name_);
   
   //~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
   // Set colnames on data.frame
@@ -1292,6 +1330,8 @@ SEXP parse_feature_collection(yyjson_val *obj, geo_parse_options *opt, state_t *
 SEXP promote_bare_geometry_to_list(SEXP geom_, yyjson_val *val, geo_parse_options *opt,
                                    state_t *state) {
   int nprotect = 0;
+  SEXP att_name_;
+  SEXP att_val_;
   
   SEXP geom_col_ = PROTECT(Rf_allocVector(VECSXP, 1)); nprotect++;
   SET_VECTOR_ELT(geom_col_, 0, geom_);
@@ -1324,7 +1364,9 @@ SEXP promote_bare_geometry_to_list(SEXP geom_, yyjson_val *val, geo_parse_option
     SET_STRING_ELT(geom_col_class_, 0, Rf_mkChar("sfc_MULTIPOLYGON"));
   } else if (yyjson_equals_str(type, "GeometryCollection")) {
     SET_STRING_ELT(geom_col_class_, 0, Rf_mkChar("sfc_GEOMETRY"));
-    Rf_setAttrib(geom_col_, Rf_mkString("classes")  , Rf_mkString("GEOMETRYCOLLECTION"));
+    att_name_ = PROTECT(Rf_mkString("classes"))           ; nprotect++;
+    att_val_  = PROTECT(Rf_mkString("GEOMETRYCOLLECTION")); nprotect++;
+    Rf_setAttrib(geom_col_, att_name_, att_val_);
   } else {
     error_and_destroy_state(state, "promote_bare_geometry_to_list(): Unknown geojson type: %s", yyjson_get_str(type));
   }
@@ -1337,19 +1379,33 @@ SEXP promote_bare_geometry_to_list(SEXP geom_, yyjson_val *val, geo_parse_option
   //~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
   // Set attributes on geometry 
   //~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
-  Rf_setAttrib(geom_col_, Rf_mkString("n_empty")  , Rf_ScalarInteger(0));
-  Rf_setAttrib(geom_col_, Rf_mkString("crs")      , make_crs());
+  att_name_ = PROTECT(Rf_mkString("n_empty")); nprotect++;
+  att_val_  = PROTECT(Rf_ScalarInteger(0))   ; nprotect++;
+  Rf_setAttrib(geom_col_, att_name_, att_val_);
   
-  Rf_setAttrib(geom_col_, Rf_mkString("precision"), Rf_ScalarReal(0));
-  Rf_setAttrib(geom_col_, Rf_mkString("bbox"), make_bbox(opt));
+  att_name_ = PROTECT(Rf_mkString("crs")); nprotect++;
+  att_val_  = PROTECT(make_crs())        ; nprotect++;
+  Rf_setAttrib(geom_col_, att_name_, att_val_);
+  
+  att_name_ = PROTECT(Rf_mkString("precision")); nprotect++;
+  att_val_  = PROTECT(Rf_ScalarReal(0))        ; nprotect++;
+  Rf_setAttrib(geom_col_, att_name_, att_val_);
+  
+  att_name_ = PROTECT(Rf_mkString("bbox")); nprotect++;
+  att_val_  = PROTECT(make_bbox(opt))     ; nprotect++;
+  Rf_setAttrib(geom_col_, att_name_, att_val_);
   
   if (needs_z_range(opt)) {
-    Rf_setAttrib(geom_col_, Rf_mkString("z_range"), make_z_range(opt));
+    att_name_ = PROTECT(Rf_mkString("z_range")); nprotect++;
+    att_val_  = PROTECT(make_z_range(opt))     ; nprotect++;
+    Rf_setAttrib(geom_col_, att_name_, att_val_);
   }
   
   if (needs_m_range(opt)) {
-    Rf_setAttrib(geom_col_, Rf_mkString("m_range"), make_m_range(opt));
-  }\
+    att_name_ = PROTECT(Rf_mkString("m_range")); nprotect++;
+    att_val_  = PROTECT(make_m_range(opt))     ; nprotect++;
+    Rf_setAttrib(geom_col_, att_name_, att_val_);
+  }
   
   UNPROTECT(nprotect);
   return geom_col_;
@@ -1363,12 +1419,15 @@ SEXP promote_bare_geometry_to_df(SEXP geom_, yyjson_val *val, geo_parse_options 
                                  state_t *state) {
   
   int nprotect = 0;
+  SEXP att_name_;
+  SEXP att_val_;
   
   // Setup data.frame with single column called 'geometry'
   // 'geometry' is a list column
   SEXP df_ = PROTECT(Rf_allocVector(VECSXP, 1)); nprotect++;
   SET_VECTOR_ELT(df_, 0, promote_bare_geometry_to_list(geom_, val, opt, state));
-  Rf_setAttrib(df_, R_NamesSymbol, Rf_mkString("geometry"));
+  att_val_ = PROTECT(Rf_mkString("geometry")); nprotect++;
+  Rf_setAttrib(df_, R_NamesSymbol, att_val_);
   
   //~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
   // Set NULL rownames on data.frame
@@ -1387,7 +1446,9 @@ SEXP promote_bare_geometry_to_df(SEXP geom_, yyjson_val *val, geo_parse_options 
   Rf_setAttrib(df_, R_ClassSymbol, df_class_);
   
   // Attributes for {sf}
-  Rf_setAttrib(df_, Rf_mkString("sf_column"), Rf_mkString("geometry"));
+  att_name_ = PROTECT(Rf_mkString("sf_column")); nprotect++;
+  att_val_  = PROTECT(Rf_mkString("geometry"));  nprotect++;
+  Rf_setAttrib(df_, att_name_, att_val_);
   
   UNPROTECT(nprotect);
   return df_;

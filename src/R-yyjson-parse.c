@@ -876,9 +876,10 @@ SEXP json_array_as_integer64(yyjson_val *arr, parse_options *opt) {
     *res++ = json_val_to_integer64(val, opt);
   }
   
-  Rf_setAttrib(res_, R_ClassSymbol, Rf_mkString("integer64"));
+  SEXP att_val_ = PROTECT(Rf_mkString("integer64"));
+  Rf_setAttrib(res_, R_ClassSymbol, att_val_);
   
-  UNPROTECT(1);
+  UNPROTECT(2);
   return res_;
 }
 
@@ -1205,7 +1206,9 @@ SEXP json_array_as_robj(yyjson_val *arr, parse_options *opt, state_t *state) {
     // Tag a length-1 array as class = 'AsIs'
     //~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
     if (opt->length1_array_asis && Rf_length(res_) == 1 && !Rf_inherits(res_, "Integer64")) {
-      Rf_setAttrib(res_, R_ClassSymbol, Rf_mkString("AsIs"));
+      SEXP att_val_ = PROTECT(Rf_mkString("AsIs"));
+      Rf_setAttrib(res_, R_ClassSymbol, att_val_);
+      UNPROTECT(1);
     }
     
   } else if (ctn_bitset == CTN_ARR) {
@@ -1777,7 +1780,9 @@ SEXP json_as_robj(yyjson_val *val, parse_options *opt, state_t *state) {
           long long x = json_val_to_integer64(val, opt);
           res_ = PROTECT(Rf_ScalarReal(0)); nprotect++;
           ((long long *)(REAL(res_)))[0] = x;
-          Rf_setAttrib(res_, R_ClassSymbol, Rf_mkString("integer64"));
+          SEXP att_val_ = PROTECT(Rf_mkString("integer64"));
+          Rf_setAttrib(res_, R_ClassSymbol, att_val_);
+          UNPROTECT(1);
         } else {
           error_and_destroy_state(state, "Unhandled opt.bit64 option for YYJSON_SUBTYPE_UINT");
         }
@@ -1807,7 +1812,9 @@ SEXP json_as_robj(yyjson_val *val, parse_options *opt, state_t *state) {
           long long x = json_val_to_integer64(val, opt);
           res_ = PROTECT(Rf_ScalarReal(0)); nprotect++;
           ((long long *)(REAL(res_)))[0] = x;
-          Rf_setAttrib(res_, R_ClassSymbol, Rf_mkString("integer64"));
+          SEXP att_val_ = PROTECT(Rf_mkString("integer64"));
+          Rf_setAttrib(res_, R_ClassSymbol, att_val_);
+          UNPROTECT(1);
         } else {
           error_and_destroy_state(state, "Unhandled opt.bit64 option for YYJSON_SUBTYPE_SINT");
         }
