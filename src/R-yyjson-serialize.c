@@ -4,6 +4,7 @@
 #include <R.h>
 #include <Rinternals.h>
 #include <Rdefines.h>
+#include <Rversion.h>
 
 #include <stdio.h>
 #include <stdbool.h>
@@ -727,7 +728,11 @@ yyjson_mut_val *env_to_json_object(SEXP env_, yyjson_mut_doc *doc, serialize_opt
   
   for (int i = 0; i < Rf_length(nms_); i++) {
     const char *varname = CHAR(STRING_ELT(nms_, i));
+#if R_VERSION < R_Version(4, 5, 0)
     SEXP elem_ = PROTECT(Rf_findVarInFrame(env_, Rf_installChar(Rf_mkChar(varname))));
+#else
+    SEXP elem_ = PROTECT(R_getVar(Rf_installChar(Rf_mkChar(varname)), env_, FALSE));
+#endif
     if (elem_ != R_UnboundValue) {  
       yyjson_mut_val *key = yyjson_mut_strcpy(doc, varname);
       yyjson_mut_val *val = serialize_core(elem_, doc, opt);
