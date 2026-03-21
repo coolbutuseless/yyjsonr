@@ -2,6 +2,7 @@
 # yyjsonr 0.1.21.9002  2026-03-21
 
 * Address non-API call for R 4.6.0: `Rf_findVarInFrame()`
+* switch from `gzfread()` to `gzread()` for `centOS` compatability.
 
 # yyjsonr 0.1.21.9001  2025-07-28
 
