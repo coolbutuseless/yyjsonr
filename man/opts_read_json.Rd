@@ -10,6 +10,7 @@ opts_read_json(
   df_missing_list_elem = NULL,
   obj_of_arrs_to_df = TRUE,
   arr_of_objs_to_df = TRUE,
+  arr_of_arrs_to_matrix = TRUE,
   str_specials = c("string", "special"),
   num_specials = c("special", "string"),
   int64 = c("string", "double", "bit64"),
@@ -38,9 +39,13 @@ columns in data.frames. Default: NULL}
 vectors be promoted to a data.frame?  Default: TRUE.  If FALSE, then
 result will be left as a list.}
 
-\item{arr_of_objs_to_df}{logical. Should an array or objects be promoted to a
+\item{arr_of_objs_to_df}{logical. Should an array of objects be promoted to
 a data.frame? Default: TRUE. If FALSE, then results will be read as a
 list-of-lists.}
+
+\item{arr_of_arrs_to_matrix}{logical. Should an array of objects be promoted to
+a matrix (if types and dimensions align)? Default: TRUE.
+If FALSE, then results will be read as a list-of-atomic-vectors.}
 
 \item{str_specials}{Should \code{'NA'} in a JSON string be converted to the \code{'special'}
 \code{NA} value in R, or left as a \code{'string'}.  Default: 'string'}

@@ -36,6 +36,7 @@ parse_options create_parse_options(SEXP parse_opts_) {
     .df_missing_list_elem  = R_NilValue,
     .obj_of_arrs_to_df     = true,
     .arr_of_objs_to_df     = true,
+    .arr_of_arrs_to_matrix = true,
     .length1_array_asis    = false,
     .str_specials          = STR_SPECIALS_AS_STRING,
     .num_specials          = NUM_SPECIALS_AS_SPECIAL,
@@ -85,6 +86,8 @@ parse_options create_parse_options(SEXP parse_opts_) {
       opt.obj_of_arrs_to_df = Rf_asLogical(val_);
     } else if (strcmp(opt_name, "arr_of_objs_to_df") == 0) {
       opt.arr_of_objs_to_df = Rf_asLogical(val_);
+    } else if (strcmp(opt_name, "arr_of_arrs_to_matrix") == 0) {
+      opt.arr_of_arrs_to_matrix = Rf_asLogical(val_);
     } else if (strcmp(opt_name, "str_specials") == 0) {
       const char *val = CHAR(STRING_ELT(val_, 0));
       opt.str_specials = strcmp(val, "string") == 0 ? STR_SPECIALS_AS_STRING : STR_SPECIALS_AS_SPECIAL;
@@ -1212,8 +1215,10 @@ SEXP json_array_as_robj(yyjson_val *arr, parse_options *opt, state_t *state) {
     }
     
   } else if (ctn_bitset == CTN_ARR) {
+    // There are only JSON []-arrays within this array
+    // Should we try and conver to matrix?
     unsigned int sexp_type = get_best_sexp_type_for_matrix(arr, opt);
-    if (sexp_type != 0) {
+    if (sexp_type != 0 && opt->arr_of_arrs_to_matrix) {
       res_ = PROTECT(json_array_as_matrix(arr, sexp_type, opt)); nprotect++;
     } else {
       res_ = PROTECT(json_array_as_vecsxp(arr, opt, state)); nprotect++;

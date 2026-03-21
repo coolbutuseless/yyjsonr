@@ -3,7 +3,9 @@
 
 * Address non-API call for R 4.6.0: `Rf_findVarInFrame()`
 * switch from `gzfread()` to `gzread()` for `centOS` compatability.
-* Add `read_geojson_conn()`
+* Add `read_geojson_conn()` to handle geonjson from an R connection object
+* Added option `arr_of_arrs_to_matrix`. Logical value to control if conforming
+  JSON []-arrays of nested []-arrays should be converted to matrices.
 
 # yyjsonr 0.1.21.9001  2025-07-28
 

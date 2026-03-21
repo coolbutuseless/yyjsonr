@@ -90,6 +90,7 @@ typedef struct {
   SEXP df_missing_list_elem;
   bool obj_of_arrs_to_df;
   bool arr_of_objs_to_df;
+  bool arr_of_arrs_to_matrix;
   bool length1_array_asis;
   unsigned int str_specials;
   unsigned int num_specials;

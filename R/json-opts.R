@@ -175,9 +175,12 @@ yyjson_write_flag <- list(
 #' @param obj_of_arrs_to_df logical. Should a named list of equal-length
 #'        vectors be promoted to a data.frame?  Default: TRUE.  If FALSE, then
 #'        result will be left as a list.
-#' @param arr_of_objs_to_df logical. Should an array or objects be promoted to a 
+#' @param arr_of_objs_to_df logical. Should an array of objects be promoted to
 #'        a data.frame? Default: TRUE. If FALSE, then results will be read as a
 #'        list-of-lists.
+#' @param arr_of_arrs_to_matrix logical. Should an array of objects be promoted to
+#'        a matrix (if types and dimensions align)? Default: TRUE. 
+#'        If FALSE, then results will be read as a list-of-atomic-vectors.
 #' @param yyjson_read_flag integer vector of internal \code{yyjson}
 #'        options.  See \code{yyjson_read_flag} in this package, and read
 #'        the yyjson API documentation for more information.  This is considered
@@ -216,6 +219,7 @@ opts_read_json <- function(
     df_missing_list_elem  = NULL,
     obj_of_arrs_to_df     = TRUE,
     arr_of_objs_to_df     = TRUE,
+    arr_of_arrs_to_matrix = TRUE,
     str_specials          = c('string', 'special'),
     num_specials          = c('special', 'string'),
     int64                 = c('string', 'double', 'bit64'),
@@ -231,6 +235,7 @@ opts_read_json <- function(
       df_missing_list_elem  = df_missing_list_elem,
       obj_of_arrs_to_df     = isTRUE(obj_of_arrs_to_df),
       arr_of_objs_to_df     = isTRUE(arr_of_objs_to_df),
+      arr_of_arrs_to_matrix = isTRUE(arr_of_arrs_to_matrix),
       length1_array_asis    = isTRUE(length1_array_asis),
       str_specials          = match.arg(str_specials),
       num_specials          = match.arg(num_specials),
