@@ -60,6 +60,7 @@ read_ndjson_file(tmp)
 }
 \seealso{
 Other JSON Parsers: 
+\code{\link{read_geojson_conn}()},
 \code{\link{read_json_conn}()},
 \code{\link{read_json_file}()},
 \code{\link{read_json_raw}()},

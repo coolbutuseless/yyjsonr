@@ -108,6 +108,34 @@ read_geojson_file <- function(filename, opts = list(), ..., json_opts = list()) 
 }
 
 
+#~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+#' Parse geoJSON from an R connection object.
+#' 
+#' Currently, this is not very efficient as the entire contents of the connection are 
+#' read into R as a string and then the JSON parsed from there.
+#' 
+#' For uncompress geojson files it is faster to use
+#' \code{read_geojson_file()}.
+#' 
+#' @inheritParams read_geojson_str
+#' @param conn connection object.  e.g. \code{url('https://jsonplaceholder.typicode.com/todos/1')}
+#'
+#'
+#' @examples
+#' if (interactive()) {
+#'   read_geojson_conn(gzfile("example.geojson.gz"))
+#' }
+#' 
+#' 
+#' @family JSON Parsers
+#' @return R object
+#' @export
+#~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+read_geojson_conn <- function(conn, opts = list(), ...) {
+  str <- paste(readLines(conn), collapse = "")
+  read_geojson_str(str, opts, ...)
+}
+
 
 #~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 #' Write SF to GeoJSON string

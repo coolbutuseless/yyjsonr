@@ -48,7 +48,7 @@ This package contains specialized functions for each type of operation
 
 |       | string              | file                 | raw | conn | options              |
 |-------|---------------------|----------------------|-----|------|----------------------|
-| read  | read_geojson_str()  | read_geojson_file()  |     |      | opts_read_geojson()  |
+| read  | read_geojson_str()  | read_geojson_file()  |     | read_geojson_conn() | opts_read_geojson()  |
 | write | write_geojson_str() | write_geojson_file() |     |      | opts_write_geojson() |
 
 ### Speed

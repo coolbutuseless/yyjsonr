@@ -86,6 +86,23 @@ test_that("Compare parsing of GeoJSON to {geojsonsf}", {
 })
 
 
+#~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+#' Check that {yyjsonr} parses GeoJSON in the same was as {geojsonsf}
+#~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+test_that("gzipped geojson parse works", {
+  
+  uncomp_file <- testthat::test_path("geojson/standard-example.json")
+  gzip_file   <- testthat::test_path("geojson/standard-example.json.gz")
+
+  uncomp <- read_geojson_file(uncomp_file)
+  comp   <- read_geojson_conn(gzfile(gzip_file))
+
+  expect_identical(uncomp, comp)
+
+})
+
+
+
 
 #~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 #' Using 'yyjsonr', round-trip some JSON 

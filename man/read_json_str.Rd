@@ -25,6 +25,7 @@ read_json_str("4294967297", opts = opts_read_json(int64 = 'string'))
 }
 \seealso{
 Other JSON Parsers: 
+\code{\link{read_geojson_conn}()},
 \code{\link{read_json_conn}()},
 \code{\link{read_json_file}()},
 \code{\link{read_json_raw}()},
