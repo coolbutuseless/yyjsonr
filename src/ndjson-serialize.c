@@ -149,87 +149,106 @@ SEXP serialize_df_to_ndjson_file_(SEXP robj_, SEXP filename_, SEXP serialize_opt
   R_xlen_t ncols = Rf_xlength(robj_);
   R_xlen_t nrows = Rf_xlength(VECTOR_ELT(robj_, 0));
   SEXP nms_ = PROTECT(Rf_getAttrib(robj_, R_NamesSymbol));
-  
+  int has_names = !Rf_isNull(nms_);
+
+  // For unnamed data frames, pre-compute column types for array output
+  unsigned int *col_type = NULL;
+  if (!has_names) {
+    col_type = detect_data_frame_types(robj_, &opt);
+  }
+
   FILE *file = NULL;
   const char *filename = CHAR(STRING_ELT(filename_, 0));
   file = fopen(filename, "w");
   if (file == NULL) {
+    if (col_type != NULL) free(col_type);
     Rf_error("Couldn't open file: %s", filename);
   }
-  
+
   for (unsigned int row = 0; row < nrows; row++) {
     yyjson_mut_doc *doc = yyjson_mut_doc_new(NULL);
-    yyjson_mut_val *obj = yyjson_mut_obj(doc);
-    for (unsigned int col = 0; col < ncols; col++) {
-      const char *key_str = CHAR(STRING_ELT(nms_, col));
-      yyjson_mut_val *key = yyjson_mut_str(doc, key_str);
-      yyjson_mut_val *val;
-      SEXP col_ = VECTOR_ELT(robj_, col);
-      
-      switch(TYPEOF(col_)) {
-      case LGLSXP:
-        val = scalar_logical_to_json_val(INTEGER(col_)[row], doc, &opt);
-        break;
-      case INTSXP:
-        if (Rf_isFactor(col_)) {
-          val = scalar_factor_to_json_val(col_, row, doc, &opt);
-        } else if (Rf_inherits(col_, "Date")) {
+    yyjson_mut_val *root;
+
+    if (has_names) {
+      // Named data frame: serialize each row as a JSON object with keys
+      yyjson_mut_val *obj = yyjson_mut_obj(doc);
+      for (unsigned int col = 0; col < ncols; col++) {
+        const char *key_str = CHAR(STRING_ELT(nms_, col));
+        yyjson_mut_val *key = yyjson_mut_str(doc, key_str);
+        yyjson_mut_val *val;
+        SEXP col_ = VECTOR_ELT(robj_, col);
+
+        switch(TYPEOF(col_)) {
+        case LGLSXP:
+          val = scalar_logical_to_json_val(INTEGER(col_)[row], doc, &opt);
+          break;
+        case INTSXP:
+          if (Rf_isFactor(col_)) {
+            val = scalar_factor_to_json_val(col_, row, doc, &opt);
+          } else if (Rf_inherits(col_, "Date")) {
+            val = scalar_date_to_json_val(col_, row, doc, &opt);
+          } else if (Rf_inherits(col_, "POSIXct")) {
+            val = scalar_posixct_to_json_val(col_, row, doc, &opt);
+          } else {
+            val = scalar_integer_to_json_val(INTEGER(col_)[row], doc, &opt);
+          }
+          break;
+        case REALSXP: {
+          if (Rf_inherits(col_, "Date")) {
           val = scalar_date_to_json_val(col_, row, doc, &opt);
         } else if (Rf_inherits(col_, "POSIXct")) {
           val = scalar_posixct_to_json_val(col_, row, doc, &opt);
+        } else if (Rf_inherits(col_, "integer64")) {
+          val = scalar_integer64_to_json_val(col_, row, doc, &opt);
         } else {
-          val = scalar_integer_to_json_val(INTEGER(col_)[row], doc, &opt);
+          val = scalar_double_to_json_val(REAL(col_)[row], doc, &opt);
         }
-        break;
-      case REALSXP: {
-        if (Rf_inherits(col_, "Date")) {
-        val = scalar_date_to_json_val(col_, row, doc, &opt);
-      } else if (Rf_inherits(col_, "POSIXct")) {
-        val = scalar_posixct_to_json_val(col_, row, doc, &opt);
-      } else if (Rf_inherits(col_, "integer64")) {
-        val = scalar_integer64_to_json_val(col_, row, doc, &opt);
-      } else {
-        val = scalar_double_to_json_val(REAL(col_)[row], doc, &opt);
+        }
+          break;
+        case STRSXP: {
+          val = scalar_strsxp_to_json_val(col_, row, doc, &opt);
+        }
+          break;
+        case VECSXP:
+          val = serialize_core(VECTOR_ELT(col_, row), doc, &opt);
+          break;
+        case RAWSXP:
+          val = scalar_rawsxp_to_json_val(col_, row, doc, &opt);
+          break;
+        default:
+          Rf_error("data_frame_to_json_array_of_objects(): Unhandled scalar SEXP: %s\n", Rf_type2char((SEXPTYPE)TYPEOF(col_)));
+        }
+        // Add value to row obj
+        if (val != NULL) {
+          yyjson_mut_obj_add(obj, key, val);
+        }
       }
-      }
-        break;
-      case STRSXP: {
-        val = scalar_strsxp_to_json_val(col_, row, doc, &opt);
-      }
-        break;
-      case VECSXP:
-        val = serialize_core(VECTOR_ELT(col_, row), doc, &opt);
-        break;
-      case RAWSXP:
-        val = scalar_rawsxp_to_json_val(col_, row, doc, &opt);
-        break;
-      default:
-        Rf_error("data_frame_to_json_array_of_objects(): Unhandled scalar SEXP: %s\n", Rf_type2char((SEXPTYPE)TYPEOF(col_)));
-      }
-      // Add value to row obj
-      if (val != NULL) {
-        yyjson_mut_obj_add(obj, key, val);
-      }
+      root = obj;
+    } else {
+      // Unnamed data frame: serialize each row as a JSON array
+      root = data_frame_row_to_json_array(robj_, col_type, row, -1, doc, &opt);
     }
-    yyjson_mut_doc_set_root(doc, obj);
-    
+
+    yyjson_mut_doc_set_root(doc, root);
+
     //~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
     // Write to JSON string
     //~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
     yyjson_write_err err;
-    bool res = yyjson_mut_write_fp(file, doc, opt.yyjson_write_flag, NULL, &err);  
+    bool res = yyjson_mut_write_fp(file, doc, opt.yyjson_write_flag, NULL, &err);
     if (!res) {
       Rf_error("Error writing to file at row %i\n", row);
     }
     fputc('\n', file);
-    
+
     //~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
     // tidy and return
     //~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
     yyjson_mut_doc_free(doc);
-    
+
   }
-  
+
+  if (col_type != NULL) free(col_type);
   fclose(file);
   UNPROTECT(1);
   return R_NilValue;
@@ -262,65 +281,82 @@ SEXP serialize_df_to_ndjson_str_(SEXP robj_, SEXP serialize_opts_, SEXP as_raw_)
   R_xlen_t ncols = Rf_xlength(robj_);
   R_xlen_t nrows = Rf_xlength(VECTOR_ELT(robj_, 0));
   SEXP nms_ = PROTECT(Rf_getAttrib(robj_, R_NamesSymbol));
-  
+  int has_names = !Rf_isNull(nms_);
+
+  // For unnamed data frames, pre-compute column types for array output
+  unsigned int *col_type = NULL;
+  if (!has_names) {
+    col_type = detect_data_frame_types(robj_, &opt);
+  }
+
   char **ndjson = NULL;
-  ndjson = (char **)calloc((unsigned long)nrows, sizeof(char *));      
-  
+  ndjson = (char **)calloc((unsigned long)nrows, sizeof(char *));
+
   for (R_xlen_t row = 0; row < nrows; row++) {
     yyjson_mut_doc *doc = yyjson_mut_doc_new(NULL);
-    yyjson_mut_val *obj = yyjson_mut_obj(doc);
-    for (R_xlen_t col = 0; col < ncols; col++) {
-      const char *key_str = CHAR(STRING_ELT(nms_, col));
-      yyjson_mut_val *key = yyjson_mut_str(doc, key_str);
-      yyjson_mut_val *val;
-      SEXP col_ = VECTOR_ELT(robj_, col);
-      
-      switch(TYPEOF(col_)) {
-      case LGLSXP:
-        val = scalar_logical_to_json_val(INTEGER(col_)[row], doc, &opt);
-        break;
-      case INTSXP:
-        if (Rf_isFactor(col_)) {
-          val = scalar_factor_to_json_val(col_, row, doc, &opt);
-        } else if (Rf_inherits(col_, "Date")) {
+    yyjson_mut_val *root;
+
+    if (has_names) {
+      // Named data frame: serialize each row as a JSON object with keys
+      yyjson_mut_val *obj = yyjson_mut_obj(doc);
+      for (R_xlen_t col = 0; col < ncols; col++) {
+        const char *key_str = CHAR(STRING_ELT(nms_, col));
+        yyjson_mut_val *key = yyjson_mut_str(doc, key_str);
+        yyjson_mut_val *val;
+        SEXP col_ = VECTOR_ELT(robj_, col);
+
+        switch(TYPEOF(col_)) {
+        case LGLSXP:
+          val = scalar_logical_to_json_val(INTEGER(col_)[row], doc, &opt);
+          break;
+        case INTSXP:
+          if (Rf_isFactor(col_)) {
+            val = scalar_factor_to_json_val(col_, row, doc, &opt);
+          } else if (Rf_inherits(col_, "Date")) {
+            val = scalar_date_to_json_val(col_, row, doc, &opt);
+          } else if (Rf_inherits(col_, "POSIXct")) {
+            val = scalar_posixct_to_json_val(col_, row, doc, &opt);
+          } else {
+            val = scalar_integer_to_json_val(INTEGER(col_)[row], doc, &opt);
+          }
+          break;
+        case REALSXP: {
+          if (Rf_inherits(col_, "Date")) {
           val = scalar_date_to_json_val(col_, row, doc, &opt);
         } else if (Rf_inherits(col_, "POSIXct")) {
           val = scalar_posixct_to_json_val(col_, row, doc, &opt);
+        } else if (Rf_inherits(col_, "integer64")) {
+          val = scalar_integer64_to_json_val(col_, row, doc, &opt);
         } else {
-          val = scalar_integer_to_json_val(INTEGER(col_)[row], doc, &opt);
+          val = scalar_double_to_json_val(REAL(col_)[row], doc, &opt);
         }
-        break;
-      case REALSXP: {
-        if (Rf_inherits(col_, "Date")) {
-        val = scalar_date_to_json_val(col_, row, doc, &opt);
-      } else if (Rf_inherits(col_, "POSIXct")) {
-        val = scalar_posixct_to_json_val(col_, row, doc, &opt);
-      } else if (Rf_inherits(col_, "integer64")) {
-        val = scalar_integer64_to_json_val(col_, row, doc, &opt);
-      } else {
-        val = scalar_double_to_json_val(REAL(col_)[row], doc, &opt);
+        }
+          break;
+        case STRSXP: {
+          val = scalar_strsxp_to_json_val(col_, row, doc, &opt);
+        }
+          break;
+        case VECSXP:
+          val = serialize_core(VECTOR_ELT(col_, row), doc, &opt);
+          break;
+        case RAWSXP:
+          val = scalar_rawsxp_to_json_val(col_, row, doc, &opt);
+          break;
+        default:
+          Rf_error("data_frame_to_json_array_of_objects(): Unhandled scalar SEXP: %s\n", Rf_type2char((SEXPTYPE)TYPEOF(col_)));
+        }
+        // Add value to row obj
+        if (val != NULL) {
+          yyjson_mut_obj_add(obj, key, val);
+        }
       }
-      }
-        break;
-      case STRSXP: {
-        val = scalar_strsxp_to_json_val(col_, row, doc, &opt);
-      }
-        break;
-      case VECSXP:
-        val = serialize_core(VECTOR_ELT(col_, row), doc, &opt);
-        break;
-      case RAWSXP:
-        val = scalar_rawsxp_to_json_val(col_, row, doc, &opt);
-        break;
-      default:
-        Rf_error("data_frame_to_json_array_of_objects(): Unhandled scalar SEXP: %s\n", Rf_type2char((SEXPTYPE)TYPEOF(col_)));
-      }
-      // Add value to row obj
-      if (val != NULL) {
-        yyjson_mut_obj_add(obj, key, val);
-      }
+      root = obj;
+    } else {
+      // Unnamed data frame: serialize each row as a JSON array
+      root = data_frame_row_to_json_array(robj_, col_type, row, -1, doc, &opt);
     }
-    yyjson_mut_doc_set_root(doc, obj);
+
+    yyjson_mut_doc_set_root(doc, root);
     
     //~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
     // Write to JSON string
@@ -333,7 +369,9 @@ SEXP serialize_df_to_ndjson_str_(SEXP robj_, SEXP serialize_opts_, SEXP as_raw_)
     yyjson_mut_doc_free(doc);
     
   }
-  
+
+  if (col_type != NULL) free(col_type);
+
   // concatenate into single string for return to R
   unsigned int total_len = 1; // extra '1' for '\0' byte at end of string
   for (unsigned int row = 0; row < nrows; row++) {

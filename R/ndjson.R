@@ -25,27 +25,31 @@
 #'        (skip no data)
 #' @param nprobe Number of lines to read to determine types for data.frame
 #'        columns.  Default: 100.   Use \code{-1} to probe entire file.
+#' @param col_names Character vector of column names.  Used when NDJSON lines
+#'        are JSON arrays (values only, no keys).  If \code{NULL} (default),
+#'        column names are inferred from JSON object keys, or generated as
+#'        "V1", "V2", ... for array-format lines.
 #'
 #'
 #' @examples
 #' tmp <- tempfile()
 #' write_ndjson_file(head(mtcars), tmp)
 #' read_ndjson_file(tmp)
-#' 
+#'
 #' @family JSON Parsers
-#' @return NDJSON data read into R as list or data.frame depending 
+#' @return NDJSON data read into R as list or data.frame depending
 #'         on \code{'type'} argument
 #' @export
 #~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
-read_ndjson_file <- function(filename, type = c('df', 'list'), nread = -1, nskip = 0, nprobe = 100, opts = list(), ...) {
-  
+read_ndjson_file <- function(filename, type = c('df', 'list'), nread = -1, nskip = 0, nprobe = 100, col_names = NULL, opts = list(), ...) {
+
   type <- match.arg(type)
   filename <- normalizePath(filename, mustWork = TRUE)
-  
+
   if (type == 'list') {
     .Call(
       parse_ndjson_file_as_list_,
-      filename, 
+      filename,
       nread,
       nskip,
       modify_list(opts, list(...))
@@ -53,10 +57,11 @@ read_ndjson_file <- function(filename, type = c('df', 'list'), nread = -1, nskip
   } else {
     .Call(
       parse_ndjson_file_as_df_,
-      filename, 
+      filename,
       nread,
       nskip,
       nprobe,
+      col_names,
       modify_list(opts, list(...))
     )
   }
@@ -91,14 +96,14 @@ read_ndjson_file <- function(filename, type = c('df', 'list'), nread = -1, nskip
 #'         on \code{'type'} argument
 #' @export
 #~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
-read_ndjson_str <- function(x, type = c('df', 'list'), nread = -1, nskip = 0, nprobe = 100, opts = list(), ...) {
-  
+read_ndjson_str <- function(x, type = c('df', 'list'), nread = -1, nskip = 0, nprobe = 100, col_names = NULL, opts = list(), ...) {
+
   type <- match.arg(type)
-  
+
   if (type == 'list') {
     .Call(
       parse_ndjson_str_as_list_,
-      x, 
+      x,
       nread,
       nskip,
       modify_list(opts, list(...))
@@ -106,10 +111,11 @@ read_ndjson_str <- function(x, type = c('df', 'list'), nread = -1, nskip = 0, np
   } else {
     .Call(
       parse_ndjson_str_as_df_,
-      x, 
+      x,
       nread,
       nskip,
       nprobe,
+      col_names,
       modify_list(opts, list(...))
     )
   }
@@ -145,14 +151,14 @@ read_ndjson_str <- function(x, type = c('df', 'list'), nread = -1, nskip = 0, np
 #'         on \code{'type'} argument
 #' @export
 #~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
-read_ndjson_raw <- function(x, type = c('df', 'list'), nread = -1, nskip = 0, nprobe = 100, opts = list(), ...) {
-  
+read_ndjson_raw <- function(x, type = c('df', 'list'), nread = -1, nskip = 0, nprobe = 100, col_names = NULL, opts = list(), ...) {
+
   type <- match.arg(type)
-  
+
   if (type == 'list') {
     .Call(
       parse_ndjson_str_as_list_,
-      x, 
+      x,
       nread,
       nskip,
       modify_list(opts, list(...))
@@ -160,10 +166,11 @@ read_ndjson_raw <- function(x, type = c('df', 'list'), nread = -1, nskip = 0, np
   } else {
     .Call(
       parse_ndjson_str_as_df_,
-      x, 
+      x,
       nread,
       nskip,
       nprobe,
+      col_names,
       modify_list(opts, list(...))
     )
   }
