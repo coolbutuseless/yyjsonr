@@ -963,7 +963,20 @@ yyjson_mut_val *data_frame_row_to_json_object(SEXP df_, unsigned int *col_type, 
       val = serialize_core(VECTOR_ELT(col_, row), doc, opt);
       break;
     case VECSXP_DF:
-      val = data_frame_row_to_json_object(col_, col_type, row, -1, doc, opt);
+    {
+      // If this is a 'raw' nested data.frame (i.e. not a list-column),
+      // then each row of the nested data.frame should be serialized with the
+      // same row of the container-data-frame (if we want to match jsonlite behaviour)
+      // So the "col_" we got from the container-data-frame is the nested data.frame
+      // TODO:
+      //  - should really cache "nested_col_type" for each nested data.frame within 
+      //    a container frame, otherwise we have to calculate it each time
+      //  - I'm prepared to live with this kludgy solution as this type of nested
+      //    data.frame seems to be pretty rare in practice.
+      unsigned int *nested_col_type = detect_data_frame_types(col_, opt);
+      val = data_frame_row_to_json_object(col_, nested_col_type, row, -1, doc, opt);
+      free(nested_col_type);
+    }
       break;
     case RAWSXP:
       val = scalar_rawsxp_to_json_val(col_, row, doc, opt);
@@ -1030,7 +1043,20 @@ yyjson_mut_val *data_frame_row_to_json_array(SEXP df_, unsigned int *col_type, u
       val = serialize_core(VECTOR_ELT(col_, row), doc, opt);
       break;
     case VECSXP_DF:
-      val = data_frame_row_to_json_object(col_, col_type, row, -1, doc, opt);
+    {
+      // If this is a 'raw' nested data.frame (i.e. not a list-column),
+      // then each row of the nested data.frame should be serialized with the
+      // same row of the container-data-frame (if we want to match jsonlite behaviour)
+      // So the "col_" we got from the container-data-frame is the nested data.frame
+      // TODO:
+      //  - should really cache "nested_col_type" for each nested data.frame within 
+      //    a container frame, otherwise we have to calculate it each time
+      //  - I'm prepared to live with this kludgy solution as this type of nested
+      //    data.frame seems to be pretty rare in practice.
+      unsigned int *nested_col_type = detect_data_frame_types(col_, opt);
+      val = data_frame_row_to_json_object(col_, nested_col_type, row, -1, doc, opt);
+      free(nested_col_type);
+    }
       break;
     case RAWSXP:
       val = scalar_rawsxp_to_json_val(col_, row, doc, opt);

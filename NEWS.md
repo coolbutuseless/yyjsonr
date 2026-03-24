@@ -6,6 +6,7 @@
 * Add `read_geojson_conn()` to handle geonjson from an R connection object
 * Added option `arr_of_arrs_to_matrix`. Logical value to control if conforming
   JSON []-arrays of nested []-arrays should be converted to matrices.
+* Added support for raw nested data.frames (which are *not* in list-columns)
 
 # yyjsonr 0.1.21.9001  2025-07-28
 
