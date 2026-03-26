@@ -101,6 +101,15 @@ serialize_options parse_serialize_options(SEXP serialize_opts_) {
       opt.json_verbatim = Rf_asLogical(val_);
     } else if (strcmp(opt_name, "fast_numerics") == 0) {
       opt.fast_numerics = Rf_asLogical(val_);
+    } else if (strcmp(opt_name, "null") == 0) {
+      const char *val = CHAR(STRING_ELT(val_, 0));
+      if (strcmp(val, "null") == 0) {
+        opt.null = NULL_AS_NULL;
+      } else if (strcmp(val, "empty_array") == 0) {
+        opt.null = NULL_AS_EMPTY_ARRAY;
+      } else{
+        Rf_error("null option not understood: '%s'", val);
+      }
     } else {
       Rf_warning("Unknown option ignored: '%s'\n", opt_name);
     }
@@ -1193,7 +1202,18 @@ yyjson_mut_val *serialize_core(SEXP robj_, yyjson_mut_doc *doc, serialize_option
   //~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
   // Recursively serialize the R object into JSON
   //~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
-  if (Rf_inherits(robj_, "data.frame")) {
+  if (Rf_isNull(robj_)) {
+    switch(opt->null) {
+    case NULL_AS_NULL:
+      val = yyjson_mut_null(doc);
+      break;
+    case NULL_AS_EMPTY_ARRAY:
+      val = yyjson_mut_arr(doc);
+      break;
+    default:
+      Rf_error("serialize_core: unknown opt->null = %i", opt->null);
+    }
+  } else if (Rf_inherits(robj_, "data.frame")) {
     if (opt->data_frame == DATAFRAME_BY_ROW) {
       val = data_frame_to_json_array_of_objects(robj_, doc, opt);
     } else {
@@ -1256,8 +1276,6 @@ yyjson_mut_val *serialize_core(SEXP robj_, yyjson_mut_doc *doc, serialize_option
     }
   } else if (Rf_isVectorAtomic(robj_)) {
     val = vector_to_json_array(robj_, doc, opt);
-  } else if (Rf_isNull(robj_)) {
-    val = yyjson_mut_null(doc);
   } else {
     Rf_error("serialize_core(): Unhandled SEXP: %s\n", Rf_type2char((SEXPTYPE)TYPEOF(robj_)));
     // val = yyjson_mut_null(doc);

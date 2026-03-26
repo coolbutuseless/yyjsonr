@@ -43,6 +43,8 @@ parse_options create_parse_options(SEXP parse_opts_) {
     .promote_num_to_string = false,
     .digits_promote        = 6,
     .single_null           = R_NilValue,
+    .empty_array           = EMPTY_ARRAY_AS_LIST,
+    .empty_object          = EMPTY_OBJECT_AS_NAMED_LIST,
     .yyjson_read_flag      = 0
   };
   
@@ -98,6 +100,24 @@ parse_options create_parse_options(SEXP parse_opts_) {
       opt.promote_num_to_string = Rf_asLogical(val_);
     } else if (strcmp(opt_name, "single_null") == 0) {
       opt.single_null = val_;
+    } else if (strcmp(opt_name, "empty_array") == 0) {
+      const char *val = CHAR(STRING_ELT(val_, 0));
+      if (strcmp(val, "list") == 0) {
+        opt.empty_array = EMPTY_ARRAY_AS_LIST;
+      } else if (strcmp(val, "NULL") == 0) {
+        opt.empty_array = EMPTY_ARRAY_AS_NULL;
+      } else{
+        Rf_error("empty_array option not understood: '%s'", val);
+      }
+    } else if (strcmp(opt_name, "empty_object") == 0) {
+      const char *val = CHAR(STRING_ELT(val_, 0));
+      if (strcmp(val, "named_list") == 0) {
+        opt.empty_object = EMPTY_OBJECT_AS_NAMED_LIST;
+      } else if (strcmp(val, "NULL") == 0) {
+        opt.empty_object = EMPTY_OBJECT_AS_NULL;
+      } else{
+        Rf_error("empty_object option not understood: '%s'", val);
+      }
     } else if (strcmp(opt_name, "digits_promote") == 0) {
       opt.digits_promote = Rf_asInteger(val_);
       if (opt.digits_promote < 0 || opt.digits_promote > 30) {
@@ -1165,7 +1185,18 @@ SEXP json_array_as_robj(yyjson_val *arr, parse_options *opt, state_t *state) {
   // Empty []-array becomes an empty list
   //~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
   if (len == 0) {
-    res_ = PROTECT(Rf_allocVector(VECSXP, 0)); nprotect++;
+    switch(opt->empty_array) {
+    case EMPTY_ARRAY_AS_LIST:
+      res_ = PROTECT(Rf_allocVector(VECSXP, 0)); nprotect++;
+      break;
+    case EMPTY_ARRAY_AS_NULL:
+      res_ = R_NilValue;
+      break;
+    default:
+      Rf_error("Error with empty array with empty_array = %i", opt->empty_array);
+    }
+    UNPROTECT(nprotect);
+    return res_;
   }
   
   //~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
@@ -1672,6 +1703,18 @@ SEXP json_object_as_list(yyjson_val *obj, parse_options *opt, state_t *state) {
     );
   }
   R_xlen_t n = (R_xlen_t)yyjson_get_len(obj);
+  
+  if (n == 0 && opt->empty_object != EMPTY_OBJECT_AS_NAMED_LIST) {
+    switch(opt->empty_object) {
+    case EMPTY_OBJECT_AS_NULL:
+      UNPROTECT(nprotect);
+      return R_NilValue;
+      break;
+    default:
+      Rf_error("json_object_as_list(): empty_object option not understood: %i", opt->empty_object);
+    }
+  }
+  
   
   SEXP res_ = PROTECT(Rf_allocVector(VECSXP, n)); nprotect++;
   SEXP nms_ = PROTECT(Rf_allocVector(STRSXP, n)); nprotect++;

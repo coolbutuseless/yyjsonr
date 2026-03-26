@@ -47,6 +47,14 @@
 #define MISSING_AS_NULL 0
 #define MISSING_AS_NA   1
 
+
+#define EMPTY_ARRAY_AS_LIST 0
+#define EMPTY_ARRAY_AS_NULL 1
+
+#define EMPTY_OBJECT_AS_NAMED_LIST 0
+#define EMPTY_OBJECT_AS_NULL       1
+
+
 //~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 // Existing SEXPs
 //   0	NILSXP	NULL
@@ -97,6 +105,8 @@ typedef struct {
   bool promote_num_to_string;
   int digits_promote;
   SEXP single_null;
+  unsigned int empty_array;
+  unsigned int empty_object;
   unsigned int yyjson_read_flag;
 } parse_options;
 

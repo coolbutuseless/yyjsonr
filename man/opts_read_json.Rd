@@ -16,6 +16,8 @@ opts_read_json(
   int64 = c("string", "double", "bit64"),
   length1_array_asis = FALSE,
   single_null = NULL,
+  empty_array = c("list", "NULL"),
+  empty_object = c("named_list", "NULL"),
   yyjson_read_flag = 0L
 )
 }
@@ -68,6 +70,12 @@ marked with class \code{AsIs}.  Default: FALSE}
 \item{single_null}{R object to return for isolated JSON \code{null} values.
 Default: NULL.  Note: JSON \code{null} values in arrays may still be
 promoted to \code{NAs} of the appropriate type if possible.}
+
+\item{empty_array}{How should empty JSON arrays be returned?  Default: 'list'
+for an empty list. Valid values: 'list', 'NULL'}
+
+\item{empty_object}{How should empty JSON objects be returned? Default: 'named_list'
+for an empty named list. Valid values: 'named_list', 'NULL'}
 
 \item{yyjson_read_flag}{integer vector of internal \code{yyjson}
 options.  See \code{yyjson_read_flag} in this package, and read

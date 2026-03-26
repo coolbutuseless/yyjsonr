@@ -200,6 +200,10 @@ yyjson_write_flag <- list(
 #' @param digits_promote When promoting numbers to be strings, how many decimal 
 #'        places should be used in the representation. Default: 6.  This option is only 
 #'        valid if \code{promote_num_to_string = TRUE}. Valid range 0 to 30
+#' @param empty_array How should empty JSON arrays be returned?  Default: 'list'
+#'        for an empty list. Valid values: 'list', 'NULL'
+#' @param empty_object How should empty JSON objects be returned? Default: 'named_list'
+#'        for an empty named list. Valid values: 'named_list', 'NULL'
 #' @param single_null R object to return for isolated JSON \code{null} values.
 #'        Default: NULL.  Note: JSON \code{null} values in arrays may still be
 #'        promoted to \code{NAs} of the appropriate type if possible.
@@ -225,6 +229,8 @@ opts_read_json <- function(
     int64                 = c('string', 'double', 'bit64'),
     length1_array_asis    = FALSE,
     single_null           = NULL,
+    empty_array           = c('list', 'NULL'),
+    empty_object          = c('named_list', 'NULL'),
     yyjson_read_flag      = 0L
 ) {
   
@@ -241,6 +247,8 @@ opts_read_json <- function(
       num_specials          = match.arg(num_specials),
       int64                 = match.arg(int64),
       single_null           = single_null,
+      empty_array           = match.arg(empty_array),
+      empty_object          = match.arg(empty_object),
       yyjson_read_flag      = as.integer(yyjson_read_flag)
     ),
     class = "opts_read_json"
@@ -294,6 +302,8 @@ opts_read_json <- function(
 #'        the result?  Default: FALSE.  If \code{json_verbatim = TRUE} and
 #'        a string has the class \code{"json"}, then it will be written verbatim
 #'        into the output.
+#' @param null How should R \code{NULL} values be written? Default: "null" means
+#'        to write as a JSON "null" string. Other valid value is "empty_array".
 #' @param yyjson_write_flag integer vector corresponding to internal \code{yyjson}
 #'        options.  See \code{yyjson_write_flag} in this package, and read
 #'        the yyjson API documentation for more information.  This is considered
@@ -319,6 +329,7 @@ opts_write_json <- function(
     str_specials      = c('null', 'string'),
     fast_numerics     = FALSE,
     json_verbatim     = FALSE,
+    null              = c("null", "empty_array"),
     yyjson_write_flag = 0L) {
   
   structure(
@@ -335,6 +346,7 @@ opts_write_json <- function(
       num_specials      = match.arg(num_specials),
       fast_numerics     = isTRUE(fast_numerics),
       json_verbatim     = isTRUE(json_verbatim),
+      null              = match.arg(null),
       yyjson_write_flag = as.integer(yyjson_write_flag)
     ),
     class = "opts_write_json"

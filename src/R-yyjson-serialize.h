@@ -17,7 +17,8 @@
 #define NAME_REPAIR_NONE    0
 #define NAME_REPAIR_MINIMAL 1
 
-
+#define NULL_AS_NULL        0
+#define NULL_AS_EMPTY_ARRAY 1
 
 //~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 // Existing SEXPs

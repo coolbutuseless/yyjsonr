@@ -1,4 +1,12 @@
 
+# yyjsonr 0.1.21.9003  2026-03-26
+
+* Added parse option for `empty_array` and `empty_object`. 
+  See `opts_read_json()`
+* Add `null` option when serializing. Now defaults to using JSON "null" where
+  previously had defaulted erroneously to an empty json array.
+  See `opts_write_json()`
+
 # yyjsonr 0.1.21.9002  2026-03-21
 
 * Address non-API call for R 4.6.0: `Rf_findVarInFrame()`

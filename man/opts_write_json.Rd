@@ -17,6 +17,7 @@ opts_write_json(
   str_specials = c("null", "string"),
   fast_numerics = FALSE,
   json_verbatim = FALSE,
+  null = c("null", "empty_array"),
   yyjson_write_flag = 0L
 )
 }
@@ -75,6 +76,9 @@ further details.}
 the result?  Default: FALSE.  If \code{json_verbatim = TRUE} and
 a string has the class \code{"json"}, then it will be written verbatim
 into the output.}
+
+\item{null}{How should R \code{NULL} values be written? Default: "null" means
+to write as a JSON "null" string. Other valid value is "empty_array".}
 
 \item{yyjson_write_flag}{integer vector corresponding to internal \code{yyjson}
 options.  See \code{yyjson_write_flag} in this package, and read
