@@ -859,8 +859,8 @@ SEXP parse_ndjson_str_as_df_(SEXP str_, SEXP nread_, SEXP nskip_, SEXP nprobe_, 
         nrows++;
       }
     }
-    if (str[str_size =1] != '\n') {
-      // STring does not end in newline, so need to manually count the last row
+    if (str_size > 0 && str[str_size - 1] != '\n') {
+      // String does not end in newline, so need to manually count the last row
       nrows++;
     }
   }
