@@ -717,7 +717,7 @@ SEXP prop_to_strsxp(yyjson_val *features, char *prop_name, geo_parse_options *op
 }
 
 //~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
-// Parse a property as a character string from a feature collection
+// Parse a property as a VECSXP from a feature collection
 //~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 SEXP prop_to_vecsxp(yyjson_val *features, char *prop_name, geo_parse_options *opt, state_t *state) {
   size_t N = yyjson_get_len(features);
@@ -744,7 +744,7 @@ SEXP prop_to_vecsxp(yyjson_val *features, char *prop_name, geo_parse_options *op
 
 
 //~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
-// Parse a property as a INTSXP from a feature collection
+// Parse a property as a LGLSXP from a feature collection
 //~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 SEXP prop_to_lglsxp(yyjson_val *features, char *prop_name, geo_parse_options *opt) {
   size_t N = yyjson_get_len(features);
@@ -816,6 +816,62 @@ SEXP prop_to_realsxp(yyjson_val *features, char *prop_name, geo_parse_options *o
   UNPROTECT(1);
   return vec_;
 }
+
+
+
+
+
+//~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+// Parse a feature ID as a character string from a feature collection
+//~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+SEXP id_to_strsxp(yyjson_val *features, geo_parse_options *opt) {
+  
+  size_t N = yyjson_get_len(features);
+  SEXP vec_ = PROTECT(Rf_allocVector(STRSXP, (R_xlen_t)N)); 
+  
+  yyjson_arr_iter feature_iter = yyjson_arr_iter_with(features);
+  yyjson_val *feature_obj;
+  unsigned int idx = 0;
+  while ((feature_obj = yyjson_arr_iter_next(&feature_iter))) {
+    yyjson_val *id_obj = yyjson_obj_get(feature_obj, "id");
+    
+    SET_STRING_ELT(vec_, idx, prop_to_rchar(id_obj, opt));
+    idx++;
+  }
+  
+  UNPROTECT(1);
+  return vec_;
+}
+
+
+//~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+// Parse a feature ID as an INTSXP vectorfrom a feature collection
+//~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+SEXP id_to_intsxp(yyjson_val *features, geo_parse_options *opt) {
+  size_t N = yyjson_get_len(features);
+  SEXP vec_ = PROTECT(Rf_allocVector(INTSXP, (R_xlen_t)N)); 
+  int *ptr = INTEGER(vec_);
+  
+  yyjson_arr_iter feature_iter = yyjson_arr_iter_with(features);
+  yyjson_val *feature_obj;
+  while ((feature_obj = yyjson_arr_iter_next(&feature_iter))) {
+    yyjson_val *id_obj = yyjson_obj_get(feature_obj, "id");
+    if (id_obj == NULL) {
+      *ptr++ = NA_INTEGER;
+    } else {
+      *ptr++ = yyjson_get_int(id_obj);
+    }
+  }
+  
+  UNPROTECT(1);
+  return vec_;
+}
+
+
+
+
+
+
 
 //~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 // Forward declaration
@@ -1188,11 +1244,19 @@ SEXP parse_feature_collection(yyjson_val *obj, geo_parse_options *opt, state_t *
   //~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
   char *prop_names[MAX_PROPS];
   unsigned int type_bitset[MAX_PROPS] = {0};
-   int nprops = 0;
+  int nprops = 0;
+  
+  unsigned int id_type_bitset = 0;
   
   yyjson_arr_iter feature_iter = yyjson_arr_iter_with(features);
   yyjson_val *feature;
   while ((feature = yyjson_arr_iter_next(&feature_iter))) {
+    
+    // Accumulate the json type of the feature 'id' value (if any)
+    yyjson_val *id_val = yyjson_obj_get(feature, "id");
+    if (yyjson_get_type(id_val) != 0) {
+      id_type_bitset = update_type_bitset(id_type_bitset, id_val, opt->parse_opt);
+    }
     
     yyjson_val *props = yyjson_obj_get(feature, "properties");
     
@@ -1232,14 +1296,49 @@ SEXP parse_feature_collection(yyjson_val *obj, geo_parse_options *opt, state_t *
   // }
   
   
+  //~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+  // Determine the R SEXP type which can be used to hold the ID
+  // According to geojson spec, feature "id" can only be integer or string
+  //~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+  bool feature_collection_has_id = id_type_bitset != 0;
+  int id_offset = (int)feature_collection_has_id;
+  unsigned int id_sexp_type = 0;
+
+  if (feature_collection_has_id) {
+    switch(id_type_bitset) {
+    case 16:
+      id_sexp_type = INTSXP;
+      break;
+    case 64:
+    case 80:
+      id_sexp_type = STRSXP;
+      break;
+    default:
+      Rf_error("Feature ids may be a mix of 'int' and 'chr' types only");
+    }
+  }
   
   
   //~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
   // Create a data.frame with:
   //   prop1, prop2, prop3.... propN, geometry
   //~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
-  SEXP df_ = PROTECT(Rf_allocVector(VECSXP, nprops + 1)); nprotect++;
-  SET_VECTOR_ELT(df_, nprops, geom_col_);
+  SEXP df_ = PROTECT(Rf_allocVector(VECSXP, id_offset + nprops + 1)); nprotect++;
+  SET_VECTOR_ELT(df_, id_offset + nprops, geom_col_);
+  
+  //~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+  // Parse out the ID
+  //~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+  if (feature_collection_has_id) {
+    if (id_sexp_type == INTSXP) {
+      SET_VECTOR_ELT(df_, 0, id_to_intsxp(features,  opt));
+    } else if (id_sexp_type == STRSXP) {
+      SET_VECTOR_ELT(df_, 0, id_to_strsxp(features,  opt));
+    } else {
+      Rf_error("Unknonwn id_sexp_type. Impossible error");
+    }
+  }
+  
   
   //~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
   // For each property 
@@ -1264,23 +1363,23 @@ SEXP parse_feature_collection(yyjson_val *obj, geo_parse_options *opt, state_t *
     
     switch (sexp_type) {
     case LGLSXP:
-      SET_VECTOR_ELT(df_, idx, prop_to_lglsxp(features, prop_names[idx], opt));
+      SET_VECTOR_ELT(df_, id_offset + idx, prop_to_lglsxp(features, prop_names[idx], opt));
       break;
     case INTSXP:
-      SET_VECTOR_ELT(df_, idx, prop_to_intsxp(features, prop_names[idx], opt));
+      SET_VECTOR_ELT(df_, id_offset + idx, prop_to_intsxp(features, prop_names[idx], opt));
       break;
     case REALSXP:
-      SET_VECTOR_ELT(df_, idx, prop_to_realsxp(features, prop_names[idx], opt));
+      SET_VECTOR_ELT(df_, id_offset + idx, prop_to_realsxp(features, prop_names[idx], opt));
       break;
     case STRSXP:
-      SET_VECTOR_ELT(df_, idx, prop_to_strsxp(features, prop_names[idx], opt));
+      SET_VECTOR_ELT(df_, id_offset + idx, prop_to_strsxp(features, prop_names[idx], opt));
       break;
     case VECSXP:
-      SET_VECTOR_ELT(df_, idx, prop_to_vecsxp(features, prop_names[idx], opt, state));
+      SET_VECTOR_ELT(df_, id_offset + idx, prop_to_vecsxp(features, prop_names[idx], opt, state));
       break;
     default:
       Rf_warning("Unhandled 'prop' coltype: %i -> %s\n", sexp_type, Rf_type2char(sexp_type));
-    SET_VECTOR_ELT(df_, idx, Rf_allocVector(LGLSXP, (R_xlen_t)nrows));
+      SET_VECTOR_ELT(df_, id_offset + idx, Rf_allocVector(LGLSXP, (R_xlen_t)nrows));
     }
   }
   
@@ -1296,11 +1395,15 @@ SEXP parse_feature_collection(yyjson_val *obj, geo_parse_options *opt, state_t *
   //~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
   // Set colnames on data.frame
   //~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
-  SEXP nms_ = PROTECT(Rf_allocVector(STRSXP, nprops + 1)); nprotect++;
-  for (unsigned int i = 0; i < nprops; i++) {
-    SET_STRING_ELT(nms_, i, Rf_mkChar(prop_names[i]));
+  SEXP nms_ = PROTECT(Rf_allocVector(STRSXP, id_offset + nprops + 1)); nprotect++;
+  if (feature_collection_has_id) {
+    SET_STRING_ELT(nms_, 0, Rf_mkChar("id"));
   }
-  SET_STRING_ELT(nms_, nprops, Rf_mkChar("geometry"));
+  
+  for (unsigned int i = 0; i < nprops; i++) {
+    SET_STRING_ELT(nms_, id_offset + i, Rf_mkChar(prop_names[i]));
+  }
+  SET_STRING_ELT(nms_, id_offset + nprops, Rf_mkChar("geometry"));
   Rf_setAttrib(df_, R_NamesSymbol, nms_);
   
   //~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
