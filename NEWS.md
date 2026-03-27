@@ -1,4 +1,9 @@
 
+# yyjsonr 0.1.21.9004  2026-03-27
+
+* Include latest yyjson version 0.12.0
+* Expose new `yyjson_read_flag` options for JSON5 parsing
+
 # yyjsonr 0.1.21.9003  2026-03-26
 
 * Added parse option for `empty_array` and `empty_object`. 

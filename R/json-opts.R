@@ -75,26 +75,98 @@
 #' numbers that cannot be represented by finite "double".
 #' The flag will be overridden by "YYJSON_READ_NUMBER_AS_RAW" flag.
 #' }
+#' 
+#' \item{YYJSON_READ_ALLOW_BOM}{
+#' Allow UTF-8 BOM and skip it before parsing if any (non-standard)
+#' }
+#' 
+#' 
+#' \item{YYJSON_READ_ALLOW_EXT_NUMBER}{
+#' Allow extended number formats (non-standard):
+#' \itemize{
+#'   \item{Hexadecimal numbers}
+#'   \item{Numbers with leading or trailing decimal point}
+#'   \item{Numbers with a leading plus sign}
+#' }
+#' }
+#' 
+#' 
+#' \item{YYJSON_READ_ALLOW_EXT_ESCAPE}{
+#' Allow extended escape sequences in strings (non-standard):
+#' \itemize{
+#'   \item{Additional escapes} 
+#'   \item{Hex escapes}
+#'   \item{Line continuation: backslash followed by line terminator sequences.}
+#'   \item{Unknown escape: if backslash is followed by an unsupported character,
+#'   the backslash will be removed and the character will be kept as-is.}
+#' }
+#' }
+#' 
+#' 
+#' \item{YYJSON_READ_ALLOW_EXT_WHITESPACE}{
+#' Allow extended whitespace characters (non-standard):
+#' \itemize{
+#'    \item{Vertical tab and form feed}
+#'    \item{Line separator and paragraph separator}
+#'    \item{Non-breaking space}
+#'    \item{Byte order mark}
+#'    \item{Other Unicode characters in the Zs (Separator, space) category}
+#' }
+#' }
+#' 
+#' 
+#' \item{YYJSON_READ_ALLOW_SINGLE_QUOTED_STR}{
+#' Allow strings enclosed in single quotes (non-standard)
+#' }
+#' 
+#' 
+#' \item{YYJSON_READ_ALLOW_UNQUOTED_KEY}{
+#' Allow object keys without quotes (non-standard), such as \code{{a:1,b:2}}`.
+#' This extends the ECMAScript IdentifierName rule by allowing any
+#' non-whitespace character with code point above \code{U+007F}. 
+#' }
+#' 
+#' 
+#' \item{YYJSON_READ_JSON5}{
+#' Allow JSON5 format.
+#' This flag supports all JSON5 features with some additional extensions:
+#' \itemize{
+#'   \item{Accepts more escape sequences than JSON5}.
+#'   \item{Unquoted keys are not limited to ECMAScript IdentifierName.}
+#'   \item{- Allow case-insensitive NaN, Inf and Infinity literals.}
+#' }
+#' }
+#' 
 #' }
 #' 
 #' @export
 #'
 #' @examples
 #' read_json_str(
-#'    '[12.3]', 
-#'    opts = opts_read_json(yyjson_read_flag = yyjson_read_flag$YYJSON_READ_ALLOW_TRAILING_COMMAS)
+#'    '[12.3,] // a comment', 
+#'    opts = opts_read_json(yyjson_read_flag = c(
+#'       yyjson_read_flag$YYJSON_READ_ALLOW_TRAILING_COMMAS,
+#'       yyjson_read_flag$YYJSON_READ_ALLOW_COMMENTS
+#'    ))
 #'  )
 #~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 yyjson_read_flag <- list(
-  YYJSON_READ_NOFLAG                =   0L,
-  YYJSON_READ_INSITU                =   1L,
-  YYJSON_READ_STOP_WHEN_DONE        =   2L,
-  YYJSON_READ_ALLOW_TRAILING_COMMAS =   4L,
-  YYJSON_READ_ALLOW_COMMENTS        =   8L, 
-  YYJSON_READ_ALLOW_INF_AND_NAN     =  16L, 
-  YYJSON_READ_NUMBER_AS_RAW         =  32L, 
-  YYJSON_READ_ALLOW_INVALID_UNICODE =  64L, 
-  YYJSON_READ_BIGNUM_AS_RAW         = 128L
+  YYJSON_READ_NOFLAG                  =     0L,
+  YYJSON_READ_INSITU                  =     1L,
+  YYJSON_READ_STOP_WHEN_DONE          =     2L,
+  YYJSON_READ_ALLOW_TRAILING_COMMAS   =     4L,
+  YYJSON_READ_ALLOW_COMMENTS          =     8L, 
+  YYJSON_READ_ALLOW_INF_AND_NAN       =    16L, 
+  YYJSON_READ_NUMBER_AS_RAW           =    32L, 
+  YYJSON_READ_ALLOW_INVALID_UNICODE   =    64L, 
+  YYJSON_READ_BIGNUM_AS_RAW           =   128L,
+  YYJSON_READ_ALLOW_BOM               =   256L,
+  YYJSON_READ_ALLOW_EXT_NUMBER        =   512L,
+  YYJSON_READ_ALLOW_EXT_ESCAPE        =  1024L,
+  YYJSON_READ_ALLOW_EXT_WHITESPACE    =  2048L,
+  YYJSON_READ_ALLOW_SINGLE_QUOTED_STR =  4096L,
+  YYJSON_READ_ALLOW_UNQUOTED_KEY      =  8192L,
+  YYJSON_READ_JSON5                   = 15900L
 )
 
 
