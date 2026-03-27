@@ -948,18 +948,59 @@ SEXP parse_feature(yyjson_val *obj, geo_parse_options *opt, state_t *state) {
     return(geom_col_);
   }
   
+  //~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+  // id
+  //~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+  size_t id_offset = 0;
+  unsigned int id_type_bitset = 0;
+  bool feature_has_id = false;
+  SEXP id_ = R_NilValue;
+  yyjson_val *id_val = yyjson_obj_get(obj, "id");
+  
+  if (yyjson_get_type(id_val) != 0) {
+    
+    id_type_bitset = update_type_bitset(id_type_bitset, id_val, opt->parse_opt);
+    
+    switch(id_type_bitset) {
+    case 16:
+      feature_has_id = true;
+      id_offset = 1;
+      id_ = PROTECT(Rf_ScalarInteger(yyjson_get_int(id_val))); nprotect++;
+      break;
+    case 64:
+    case 80:
+      feature_has_id = true;
+      id_offset = 1;
+      id_ = PROTECT(Rf_mkString(yyjson_get_str(id_val))); nprotect++;
+      break;
+    default:
+      {
+        id_offset = 0;
+        feature_has_id = false;
+        Rf_warning("Feature id is not integer or string. Ignoring");
+      }
+    }
+  }
+
   
   //~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
   // Properties
   //~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
   yyjson_val *props = yyjson_obj_get(obj, "properties");
-  size_t ncols = yyjson_get_len(props) + 1;
+  size_t nprops = yyjson_get_len(props);
+  size_t ncols = id_offset + nprops + 1;
   
   //~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
   // Allocate space for data.frame columns and column names
   //~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
-  SEXP res_ = PROTECT(Rf_allocVector(VECSXP, (R_xlen_t)ncols)); nprotect++;
+  SEXP df_  = PROTECT(Rf_allocVector(VECSXP, (R_xlen_t)ncols)); nprotect++;
   SEXP nms_ = PROTECT(Rf_allocVector(STRSXP, (R_xlen_t)ncols)); nprotect++;
+  
+  if (feature_has_id) {
+    SET_STRING_ELT(nms_, 0, Rf_mkChar("id"));
+    SET_VECTOR_ELT(df_ , 0, id_);
+  }
+  
   
   //~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
   // Iterate over the keys/values "properties"
@@ -996,16 +1037,16 @@ SEXP parse_feature(yyjson_val *obj, geo_parse_options *opt, state_t *state) {
       SET_STRING_ELT(robj_, 0, prop_to_rchar(val, opt));
     }
     
-    SET_VECTOR_ELT(res_, idx, robj_);
+    SET_VECTOR_ELT(df_ , (R_xlen_t)(id_offset + idx), robj_);
     UNPROTECT(1);
-    SET_STRING_ELT(nms_, idx, Rf_mkChar(yyjson_get_str(key)));
+    SET_STRING_ELT(nms_, (R_xlen_t)(id_offset + idx), Rf_mkChar(yyjson_get_str(key)));
     idx++;
   }
   
   //~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
   // The geometry column should be a list (i.e. VECSXP)
   //~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
-  SET_VECTOR_ELT(res_, (R_xlen_t)ncols - 1, geom_col_);
+  SET_VECTOR_ELT(df_ , (R_xlen_t)ncols - 1, geom_col_);
   SET_STRING_ELT(nms_, (R_xlen_t)ncols - 1, Rf_mkChar("geometry"));
   
   
@@ -1014,7 +1055,7 @@ SEXP parse_feature(yyjson_val *obj, geo_parse_options *opt, state_t *state) {
   //~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
   // Set column names
   //~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
-  Rf_setAttrib(res_, R_NamesSymbol, nms_);
+  Rf_setAttrib(df_ , R_NamesSymbol, nms_);
   
   //~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
   // Row.names
@@ -1022,7 +1063,7 @@ SEXP parse_feature(yyjson_val *obj, geo_parse_options *opt, state_t *state) {
   SEXP rownames = PROTECT(Rf_allocVector(INTSXP, 2)); nprotect++;
   SET_INTEGER_ELT(rownames, 0, NA_INTEGER);
   SET_INTEGER_ELT(rownames, 1, -1); // only a single rows
-  Rf_setAttrib(res_, R_RowNamesSymbol, rownames);
+  Rf_setAttrib(df_ , R_RowNamesSymbol, rownames);
   
   //~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
   // Nominate the geometry column name. 
@@ -1030,7 +1071,7 @@ SEXP parse_feature(yyjson_val *obj, geo_parse_options *opt, state_t *state) {
   //~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
   SEXP sf_name_ = PROTECT(Rf_mkString("geometry")); nprotect++;
   att_name_ = PROTECT(Rf_mkString("sf_column")); nprotect++;
-  Rf_setAttrib(res_, att_name_, sf_name_);
+  Rf_setAttrib(df_ , att_name_, sf_name_);
   
   //~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
   // Set 'data.frame' class
@@ -1038,12 +1079,12 @@ SEXP parse_feature(yyjson_val *obj, geo_parse_options *opt, state_t *state) {
   SEXP df_names_ = PROTECT(Rf_allocVector(STRSXP, 2)); nprotect++;
   SET_STRING_ELT(df_names_, 0, Rf_mkChar("sf"));
   SET_STRING_ELT(df_names_, 1, Rf_mkChar("data.frame"));
-  Rf_setAttrib(res_, R_ClassSymbol, df_names_);
+  Rf_setAttrib(df_ , R_ClassSymbol, df_names_);
   
   
   
   UNPROTECT(nprotect);
-  return res_;
+  return df_ ;
 }
 
 
@@ -1244,7 +1285,7 @@ SEXP parse_feature_collection(yyjson_val *obj, geo_parse_options *opt, state_t *
   //~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
   char *prop_names[MAX_PROPS];
   unsigned int type_bitset[MAX_PROPS] = {0};
-  int nprops = 0;
+  size_t nprops = 0;
   
   unsigned int id_type_bitset = 0;
   
@@ -1274,7 +1315,7 @@ SEXP parse_feature_collection(yyjson_val *obj, geo_parse_options *opt, state_t *
       }
       if (name_idx < 0) {
         // Name has not been seen yet. so add it.
-        name_idx = nprops;
+        name_idx = (int)nprops;
         prop_names[nprops] = (char *)yyjson_get_str(prop_name);
         // Rprintf("Key: %s\n", yyjson_get_str(prop_name));
         nprops++;
@@ -1301,7 +1342,7 @@ SEXP parse_feature_collection(yyjson_val *obj, geo_parse_options *opt, state_t *
   // According to geojson spec, feature "id" can only be integer or string
   //~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
   bool feature_collection_has_id = id_type_bitset != 0;
-  int id_offset = (int)feature_collection_has_id;
+  size_t id_offset = (size_t)feature_collection_has_id;
   unsigned int id_sexp_type = 0;
 
   if (feature_collection_has_id) {
@@ -1323,8 +1364,8 @@ SEXP parse_feature_collection(yyjson_val *obj, geo_parse_options *opt, state_t *
   // Create a data.frame with:
   //   prop1, prop2, prop3.... propN, geometry
   //~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
-  SEXP df_ = PROTECT(Rf_allocVector(VECSXP, id_offset + nprops + 1)); nprotect++;
-  SET_VECTOR_ELT(df_, id_offset + nprops, geom_col_);
+  SEXP df_ = PROTECT(Rf_allocVector(VECSXP, (R_xlen_t)(id_offset + nprops + 1))); nprotect++;
+  SET_VECTOR_ELT(df_, (R_xlen_t)(id_offset + nprops), geom_col_); // last column is geometry
   
   //~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
   // Parse out the ID
@@ -1363,23 +1404,23 @@ SEXP parse_feature_collection(yyjson_val *obj, geo_parse_options *opt, state_t *
     
     switch (sexp_type) {
     case LGLSXP:
-      SET_VECTOR_ELT(df_, id_offset + idx, prop_to_lglsxp(features, prop_names[idx], opt));
+      SET_VECTOR_ELT(df_, (R_xlen_t)(id_offset + idx), prop_to_lglsxp(features, prop_names[idx], opt));
       break;
     case INTSXP:
-      SET_VECTOR_ELT(df_, id_offset + idx, prop_to_intsxp(features, prop_names[idx], opt));
+      SET_VECTOR_ELT(df_, (R_xlen_t)(id_offset + idx), prop_to_intsxp(features, prop_names[idx], opt));
       break;
     case REALSXP:
-      SET_VECTOR_ELT(df_, id_offset + idx, prop_to_realsxp(features, prop_names[idx], opt));
+      SET_VECTOR_ELT(df_, (R_xlen_t)(id_offset + idx), prop_to_realsxp(features, prop_names[idx], opt));
       break;
     case STRSXP:
-      SET_VECTOR_ELT(df_, id_offset + idx, prop_to_strsxp(features, prop_names[idx], opt));
+      SET_VECTOR_ELT(df_, (R_xlen_t)(id_offset + idx), prop_to_strsxp(features, prop_names[idx], opt));
       break;
     case VECSXP:
-      SET_VECTOR_ELT(df_, id_offset + idx, prop_to_vecsxp(features, prop_names[idx], opt, state));
+      SET_VECTOR_ELT(df_, (R_xlen_t)(id_offset + idx), prop_to_vecsxp(features, prop_names[idx], opt, state));
       break;
     default:
       Rf_warning("Unhandled 'prop' coltype: %i -> %s\n", sexp_type, Rf_type2char(sexp_type));
-      SET_VECTOR_ELT(df_, id_offset + idx, Rf_allocVector(LGLSXP, (R_xlen_t)nrows));
+      SET_VECTOR_ELT(df_, (R_xlen_t)(id_offset + idx), Rf_allocVector(LGLSXP, (R_xlen_t)nrows));
     }
   }
   
@@ -1395,15 +1436,15 @@ SEXP parse_feature_collection(yyjson_val *obj, geo_parse_options *opt, state_t *
   //~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
   // Set colnames on data.frame
   //~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
-  SEXP nms_ = PROTECT(Rf_allocVector(STRSXP, id_offset + nprops + 1)); nprotect++;
+  SEXP nms_ = PROTECT(Rf_allocVector(STRSXP, (R_xlen_t)(id_offset + nprops + 1))); nprotect++;
   if (feature_collection_has_id) {
     SET_STRING_ELT(nms_, 0, Rf_mkChar("id"));
   }
   
   for (unsigned int i = 0; i < nprops; i++) {
-    SET_STRING_ELT(nms_, id_offset + i, Rf_mkChar(prop_names[i]));
+    SET_STRING_ELT(nms_, (R_xlen_t)(id_offset + i), Rf_mkChar(prop_names[i]));
   }
-  SET_STRING_ELT(nms_, id_offset + nprops, Rf_mkChar("geometry"));
+  SET_STRING_ELT(nms_, (R_xlen_t)(id_offset + nprops), Rf_mkChar("geometry"));
   Rf_setAttrib(df_, R_NamesSymbol, nms_);
   
   //~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~

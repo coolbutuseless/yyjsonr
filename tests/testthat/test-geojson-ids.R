@@ -12,7 +12,7 @@
 # read_geojson_file(gid)
 
 
-test_that("parse geojson ids", {
+test_that("parse geojson ids in feature collections", {
   
   # no IDs
   ref_noid <- read_geojson_file(testthat::test_path("geojson/standard-example.json"))
@@ -43,4 +43,26 @@ test_that("parse geojson ids", {
   expect_true(is.character(res$id))
   expect_identical(res$id, as.character(c(1L, 2L, 3L)))
   
+})
+
+
+test_that("parse geojson ids in standalong features", {
+  
+  # integer ids
+  res <- read_geojson_file(testthat::test_path("geojson-ids/point01-with-int-id.json"))
+  expect_identical(names(res)[[1]], "id")
+  expect_true(is.integer(res$id))
+  expect_identical(res$id, 199L)
+  
+  # chr ids
+  res <- read_geojson_file(testthat::test_path("geojson-ids/point01-with-chr-id.json"))
+  expect_identical(names(res)[[1]], "id")
+  expect_true(is.character(res$id))
+  expect_identical(res$id, "id01")
+  
+  # bad id - float
+  expect_warning({
+    res <- read_geojson_file(testthat::test_path("geojson-ids/point01-with-float-id.json"))
+  })
+  expect_false("id" %in% names(res))
 })

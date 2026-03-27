@@ -1,7 +1,7 @@
 
 # yyjsonr 0.1.21.9005  2026-03-28
 
-# Geojson: Feature level IDs are now parsed correctly.
+* Geojson: Feature level IDs are now parsed correctly.
 
 # yyjsonr 0.1.21.9004  2026-03-27
 
