@@ -45,7 +45,7 @@ read_dataset_ndjson_file <- function(filename, nskip = 1, colspec = NULL, opts =
     colspec,
     nskip,
     modify_list(opts, list(...)),
-    3 # input is file
+    2 # input is file
   )
 }
 
@@ -65,15 +65,17 @@ if (FALSE) {
   
   
   
-  # dsjs <- "tests/testthat/dataset-ndjson/ae.ndjson" |>
-  dsjs <- "tests/testthat/dataset-ndjson/adsl.ndjson" |>
+  dsjs <- "tests/testthat/dataset-ndjson/ae.ndjson" |>
+  # dsjs <- "tests/testthat/dataset-ndjson/adsl.ndjson" |>
     readLines() |> 
     paste(collapse = "\n")
   
   zz <- read_json_str(dsjs, yyjson_read_flag = yyjson_read_flag$YYJSON_READ_STOP_WHEN_DONE)
   zz$columns
   read_dataset_ndjson_str(dsjs, colspec = zz$columns)
-  
+
+  read_dataset_ndjson_file("tests/testthat/dataset-ndjson/adsl.ndjson", colspec = zz$columns)
+    
 }
 
 

@@ -86,14 +86,21 @@ const char *ref_dtype_str[NDTYPES] = {
 //~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 // 
 //~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
-SEXP parse_dataset_ndjson_as_df_(SEXP str_, SEXP colspec_, SEXP nskip_, SEXP parse_opts_, SEXP input_type_) {
+SEXP parse_dataset_ndjson_as_df_(SEXP src_, SEXP colspec_, SEXP nskip_, SEXP parse_opts_, SEXP input_type_) {
   
   int nprotect = 0;
+  
+  char buf[MAX_LINE_LENGTH] = {0};
+  gzFile file;
+  
   parse_options opt = create_parse_options(parse_opts_);
   opt.yyjson_read_flag |= YYJSON_READ_STOP_WHEN_DONE;
   int nskip  = Rf_asInteger(nskip_);
   
-  int input_type = SRC_STRING;
+  //~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+  // Sanity check the input type
+  //~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+  int input_type = Rf_asInteger(input_type_);
   
   //~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
   // Parse the colspec for some sanity
@@ -105,74 +112,105 @@ SEXP parse_dataset_ndjson_as_df_(SEXP str_, SEXP colspec_, SEXP nskip_, SEXP par
   if (dt_idx < 0) Rf_error("parse_dataset_ndjson_str_as_df_(): 'dataType' not found in colspec");
   
   //~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
-  // Iterate over the file.  For each line
-  //   - check if new data would overflow list
-  //        - if so, then grow list
-  //   - create a yyjson doc from this line
-  //   - if document is NULL
-  //        insert a NULL into list
-  //   - otherwise 
-  //        insert resulting robject into list
-  //   - free the doc
+  // Initialise input
   //~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
-  char *str;
-  size_t str_size;      
-  size_t orig_str_size; 
-  size_t total_read = 0;    
+  char *str            = NULL;
+  char *filename       = NULL;
+  size_t str_size      = 0;      
+  size_t orig_str_size = 0; 
+  size_t total_read    = 0;    
   
-  if (TYPEOF(str_) == RAWSXP) {
-    str           = (char *)RAW(str_);
-    str_size      = (size_t)Rf_length(str_);
-    orig_str_size = (size_t)Rf_length(str_);
-  } else {
-    str           = (char *)CHAR( STRING_ELT(str_, 0) );
+  switch(input_type) {
+  case SRC_STRING:
+    str           = (char *)CHAR( STRING_ELT(src_, 0) );
     str_size      = strlen(str);
     orig_str_size = strlen(str);
-  }
-  
-  if (str_size == 0) {
-    UNPROTECT(nprotect);
-    return(R_NilValue);
+    if (str_size == 0) {
+      UNPROTECT(nprotect);
+      return(R_NilValue);
+    }
+    break;
+  case SRC_RAW:
+    str           = (char *)RAW(src_);
+    str_size      = (size_t)Rf_length(src_);
+    orig_str_size = (size_t)Rf_length(src_);
+    if (str_size == 0) {
+      UNPROTECT(nprotect);
+      return(R_NilValue);
+    }
+    break;
+  case SRC_FILE:
+    filename = (char *)CHAR(STRING_ELT(src_, 0));
+    filename = (char *)R_ExpandFileName(filename);
+    if (access(filename, R_OK) != 0) {
+      Rf_error("Cannot read from file '%s'", filename);
+    }
+    file = gzopen(filename, "r");
+    break;
+  default:
+    Rf_error("Impossible");
   }
   
   
   //~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
   // Skip lines if requested
   //~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
-  while (nskip > 0 && total_read < orig_str_size) {
-    yyjson_read_err err;
-    state_t *state = create_state();
-    state->doc = yyjson_read_opts(str, str_size, opt.yyjson_read_flag, NULL, &err);
-    size_t pos = yyjson_doc_get_read_size(state->doc);
-    destroy_state(state);
+  size_t nrows = 0;
+  
+  if (input_type == SRC_STRING || input_type == SRC_RAW) {
+    while (nskip > 0 && total_read < orig_str_size) {
+      yyjson_read_err err;
+      state_t *state = create_state();
+      state->doc = yyjson_read_opts(str, str_size, opt.yyjson_read_flag, NULL, &err);
+      size_t pos = yyjson_doc_get_read_size(state->doc);
+      destroy_state(state);
+      
+      //~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+      // Advance string 
+      //~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+      total_read += pos + 1;
+      str        += pos + 1;
+      str_size   -= (pos + 1);
+      
+      nskip--;
+    }
+  } else {
+    nrows = count_lines(filename);
     
-    //~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
-    // Advance string 
-    //~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
-    total_read += pos + 1;
-    str += pos + 1;
-    str_size -= (pos + 1);
+    // Account for rows to be skipped
+    if (nrows <= nskip) 
+      nrows = 0;
+    else 
+      nrows -= nskip;
     
-    nskip--;
+    if (nskip > 0) {
+      while (gzgets(file, buf, MAX_LINE_LENGTH) != 0) {
+        nskip--;
+        if (nskip == 0) break;
+      }
+    }
   }
   
   
   //~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
   // How many rows in string?  i.e. count the "\n"
   //~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
-  size_t nrows = 0;
-  if (total_read < orig_str_size) {
-    for (size_t sp = 0; sp < str_size; sp++) {
-      if (str[sp] == '\n') {
+  if (input_type == SRC_STRING || input_type == SRC_RAW) {
+    if (total_read < orig_str_size) {
+      for (size_t sp = 0; sp < str_size; sp++) {
+        if (str[sp] == '\n') {
+          nrows++;
+        }
+      }
+      if (str_size > 0 && str[str_size - 1] != '\n') {
+        // String does not end in newline, so need to manually count the last row
         nrows++;
       }
     }
-    if (str_size > 0 && str[str_size - 1] != '\n') {
-      // String does not end in newline, so need to manually count the last row
-      nrows++;
-    }
   }
-  // Rprintf("nrows of data: %i\n", (int)nrows);
+  
+  // Rprintf("nrows: %i\n", (int)nrows);
+  
   
   //~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
   // Parse the datatypes in the colspec
@@ -264,6 +302,15 @@ SEXP parse_dataset_ndjson_as_df_(SEXP str_, SEXP colspec_, SEXP nskip_, SEXP par
   state_t *state = create_state();
   for (int row = 0; row < nrows; row++) {
     yyjson_read_err err;
+    
+    if (input_type == SRC_FILE) {
+      str = gzgets(file, buf, MAX_LINE_LENGTH);
+      if (str == NULL) {
+        Rf_error("Unexpected end to data at row: %i\n", row);
+      }
+      str_size = strlen(str);
+    }
+    
     state->doc = yyjson_read_opts(str, str_size, opt.yyjson_read_flag, NULL, &err);
     size_t pos = yyjson_doc_get_read_size(state->doc);
     if (state->doc == NULL) {
@@ -281,11 +328,10 @@ SEXP parse_dataset_ndjson_as_df_(SEXP str_, SEXP colspec_, SEXP nskip_, SEXP par
                               row + 1, yyjson_get_type_desc(arr));
     }
     
-    // Rprintf("[%i] %s\n", row, yyjson_get_type_desc(arr));
 
     
     //~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
-    // Parse items out of row
+    // Check the number of items in the array matches expectations
     //~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
     int nitems = yyjson_get_len(arr);
     if (nitems != colspec_nrows) {
@@ -296,12 +342,15 @@ SEXP parse_dataset_ndjson_as_df_(SEXP str_, SEXP colspec_, SEXP nskip_, SEXP par
         row + 1, nitems, colspec_nrows);
     }
     
+    //~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+    // Iterate over array for this row, assigning values into the
+    // final data.frame
+    //~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
     int col = 0;
     
     yyjson_arr_iter iter = yyjson_arr_iter_with( arr );
     yyjson_val *val;
     while ((val = yyjson_arr_iter_next(&iter))) {
-      // Rprintf(">>> [%i] [%i] %i %s\n", row, col, dtype[col], yyjson_get_type_desc(val));
       
       switch(dtype[col]) {
       case DS_STRING:
@@ -352,14 +401,19 @@ SEXP parse_dataset_ndjson_as_df_(SEXP str_, SEXP colspec_, SEXP nskip_, SEXP par
     //~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
     // Advance string 
     //~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
-    total_read += pos + 1;
-    str        += pos + 1;
-    str_size   -= (pos + 1);
+    if (input_type != SRC_FILE) {
+      total_read +=  pos + 1;
+      str        +=  pos + 1;
+      str_size   -= (pos + 1);
+    }
   }
   
   
   free(dtype);
   destroy_state(state);
+  if (input_type == SRC_FILE) {
+    gzclose(file);
+  }
   UNPROTECT(nprotect);
   return df_;
 }
