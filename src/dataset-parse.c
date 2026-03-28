@@ -77,6 +77,20 @@ const char *ref_dtype_str[NDTYPES] = {
 // 4     IT.DM.AGE     AGE                       Age  integer     NA          NA
 // 5    IT.DM.AGEU    AGEU                 Age Units   string      5          NA
 
+
+
+SEXP parse_dataset_ndjson_file_as_df_(SEXP filename_, SEXP colspec_, SEXP nskip_, SEXP parse_opts_) {
+  return R_NilValue;
+}
+
+
+
+
+
+
+//~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+// 
+//~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 SEXP parse_dataset_ndjson_str_as_df_(SEXP str_, SEXP colspec_, SEXP nskip_, SEXP parse_opts_) {
   
   int nprotect = 0;
@@ -162,7 +176,7 @@ SEXP parse_dataset_ndjson_str_as_df_(SEXP str_, SEXP colspec_, SEXP nskip_, SEXP
       nrows++;
     }
   }
-  Rprintf("nrows of data: %i\n", (int)nrows);
+  // Rprintf("nrows of data: %i\n", (int)nrows);
   
   //~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
   // Parse the datatypes in the colspec
@@ -173,7 +187,6 @@ SEXP parse_dataset_ndjson_str_as_df_(SEXP str_, SEXP colspec_, SEXP nskip_, SEXP
   int *dtype   = malloc(colspec_nrows * sizeof(int));
   if (dtype == NULL) Rf_error("parse_dataset_ndjson_str_as_df_(): Failed to alloc 'dtypes'");
   
-  Rprintf("dtypes: %i %s\n", colspec_nrows, Rf_type2char(TYPEOF(dtypes_)));
   for (int i = 0; i < colspec_nrows; i++) {
     const char *dtype_str = CHAR(STRING_ELT(dtypes_, i));
     
@@ -193,9 +206,10 @@ SEXP parse_dataset_ndjson_str_as_df_(SEXP str_, SEXP colspec_, SEXP nskip_, SEXP
     
   }
   
-  for (int i = 0; i < colspec_nrows; i++) {
-    Rprintf("%i %i %s\n", i, dtype[i], ref_dtype_str[dtype[i]]);
-  }
+  // Dump the datatype spec
+  // for (int i = 0; i < colspec_nrows; i++) {
+  //   Rprintf("%i %i %s\n", i, dtype[i], ref_dtype_str[dtype[i]]);
+  // }
   
   //~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
   // Prepare the data.frame
@@ -271,29 +285,68 @@ SEXP parse_dataset_ndjson_str_as_df_(SEXP str_, SEXP colspec_, SEXP nskip_, SEXP
                               row + 1, yyjson_get_type_desc(arr));
     }
     
-    Rprintf("[%i] %s\n", row, yyjson_get_type_desc(arr));
+    // Rprintf("[%i] %s\n", row, yyjson_get_type_desc(arr));
 
     
     //~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
     // Parse items out of row
     //~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
     int nitems = yyjson_get_len(arr);
-    Rprintf("Row items: %i/%i\n", nitems, colspec_nrows);
+    if (nitems != colspec_nrows) {
+      free(dtype);
+      error_and_destroy_state(
+        state, 
+        "Dataset-NDJSON row %i - has %i elements. Expecting %i\n", 
+        row + 1, nitems, colspec_nrows);
+    }
     
     int col = 0;
     
     yyjson_arr_iter iter = yyjson_arr_iter_with( arr );
     yyjson_val *val;
     while ((val = yyjson_arr_iter_next(&iter))) {
-      Rprintf(">>> [%i] [%i] %i %s\n", row, col, dtype[col], yyjson_get_type_desc(val));
+      // Rprintf(">>> [%i] [%i] %i %s\n", row, col, dtype[col], yyjson_get_type_desc(val));
       
       switch(dtype[col]) {
       case DS_STRING:
+      case DS_DECIMAL:
+      case DS_URI:
         SET_STRING_ELT(VECTOR_ELT(df_, col), row, Rf_mkChar(yyjson_get_str(val)));
         break;
-      case DS_INTEGER:
-        INTEGER(VECTOR_ELT(df_, col))[row] = yyjson_get_int(val);
+      case DS_BOOLEAN:
+        if (yyjson_is_null(val)) {
+          LOGICAL(VECTOR_ELT(df_, col))[row] = NA_LOGICAL;
+        } else {
+          LOGICAL(VECTOR_ELT(df_, col))[row] = yyjson_get_bool(val);
+        }
         break;
+      case DS_INTEGER:
+        if (yyjson_is_null(val)) {
+          INTEGER(VECTOR_ELT(df_, col))[row] = NA_INTEGER;
+        } else {
+          INTEGER(VECTOR_ELT(df_, col))[row] = yyjson_get_int(val);
+        }
+        break;
+      case DS_FLOAT:
+      case DS_DOUBLE:
+        if (yyjson_is_null(val)) {
+          REAL(VECTOR_ELT(df_, col))[row] = NA_REAL;
+        } else {
+          REAL(VECTOR_ELT(df_, col))[row] = yyjson_get_real(val);
+        }
+        break;
+      case DS_DATETIME:
+      case DS_DATE:
+      case DS_TIME:
+      {
+        // Always read these as strings. Let the user sort it out?
+        SEXP chr_ = PROTECT(json_val_to_charsxp(val, &opt)); 
+        SET_STRING_ELT(VECTOR_ELT(df_, col), row, chr_);
+        UNPROTECT(1);
+      }
+        break;
+      default:
+        Rf_error("parse_dataset_ndjson_str_as_df_(): impossible %i", dtype[col]);
       }
       
       col++;

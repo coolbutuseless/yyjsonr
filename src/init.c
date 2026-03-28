@@ -48,6 +48,7 @@ extern SEXP serialize_sf_to_file_(SEXP sf_, SEXP filename_, SEXP geo_opts_, SEXP
 // Dataset json
 //~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 extern SEXP parse_dataset_ndjson_str_as_df_(SEXP str_, SEXP colspec_, SEXP nskip_, SEXP parse_opts_);
+extern SEXP parse_dataset_ndjson_file_as_df_(SEXP filename_, SEXP colspec_, SEXP nskip_, SEXP parse_opts_);
 
 
 static const R_CallMethodDef CEntries[] = {
@@ -94,7 +95,8 @@ static const R_CallMethodDef CEntries[] = {
   //~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
   // Dataset NDJSON
   //~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
-  {"parse_dataset_ndjson_str_as_df_", (DL_FUNC) &parse_dataset_ndjson_str_as_df_, 4},
+  {"parse_dataset_ndjson_str_as_df_" , (DL_FUNC) &parse_dataset_ndjson_str_as_df_ , 4},
+  {"parse_dataset_ndjson_file_as_df_", (DL_FUNC) &parse_dataset_ndjson_file_as_df_, 4},
   
   
   {NULL , NULL, 0}

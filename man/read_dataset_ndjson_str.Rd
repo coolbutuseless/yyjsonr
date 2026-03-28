@@ -2,7 +2,7 @@
 % Please edit documentation in R/dataset-ndjson.R
 \name{read_dataset_ndjson_str}
 \alias{read_dataset_ndjson_str}
-\title{Parse an Dataset-NDJSON file to a data.frame}
+\title{Parse an Dataset-NDJSON string to a data.frame}
 \usage{
 read_dataset_ndjson_str(str, nskip = 1, colspec = NULL, opts = list(), ...)
 }
