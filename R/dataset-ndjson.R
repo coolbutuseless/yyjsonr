@@ -20,11 +20,12 @@
 read_dataset_ndjson_str <- function(str, nskip = 1, colspec = NULL, opts = list(), ...) {
   
     .Call(
-      parse_dataset_ndjson_str_as_df_,
+      parse_dataset_ndjson_as_df_,
       str, 
       colspec,
       nskip,
-      modify_list(opts, list(...))
+      modify_list(opts, list(...)),
+      0  # input is string
     )
 }
 
@@ -39,11 +40,12 @@ read_dataset_ndjson_str <- function(str, nskip = 1, colspec = NULL, opts = list(
 read_dataset_ndjson_file <- function(filename, nskip = 1, colspec = NULL, opts = list(), ...) {
   
   .Call(
-    parse_dataset_ndjson_file_as_df_,
+    parse_dataset_ndjson_as_df_,
     filename, 
     colspec,
     nskip,
-    modify_list(opts, list(...))
+    modify_list(opts, list(...)),
+    3 # input is file
   )
 }
 

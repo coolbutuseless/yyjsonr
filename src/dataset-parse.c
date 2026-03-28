@@ -78,26 +78,22 @@ const char *ref_dtype_str[NDTYPES] = {
 // 5    IT.DM.AGEU    AGEU                 Age Units   string      5          NA
 
 
-
-SEXP parse_dataset_ndjson_file_as_df_(SEXP filename_, SEXP colspec_, SEXP nskip_, SEXP parse_opts_) {
-  return R_NilValue;
-}
-
-
-
-
+#define SRC_STRING 0
+#define SRC_RAW    1
+#define SRC_FILE   2
 
 
 //~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 // 
 //~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
-SEXP parse_dataset_ndjson_str_as_df_(SEXP str_, SEXP colspec_, SEXP nskip_, SEXP parse_opts_) {
+SEXP parse_dataset_ndjson_as_df_(SEXP str_, SEXP colspec_, SEXP nskip_, SEXP parse_opts_, SEXP input_type_) {
   
   int nprotect = 0;
   parse_options opt = create_parse_options(parse_opts_);
   opt.yyjson_read_flag |= YYJSON_READ_STOP_WHEN_DONE;
-  
   int nskip  = Rf_asInteger(nskip_);
+  
+  int input_type = SRC_STRING;
   
   //~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
   // Parse the colspec for some sanity
