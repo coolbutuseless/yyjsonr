@@ -2,30 +2,49 @@
 % Please edit documentation in R/dataset-ndjson.R
 \name{read_dataset_ndjson_str}
 \alias{read_dataset_ndjson_str}
-\title{Parse an Dataset-NDJSON string to a data.frame}
+\alias{read_dataset_ndjson_raw}
+\alias{read_dataset_ndjson_file}
+\title{Parse Dataset-NDJSON}
 \usage{
-read_dataset_ndjson_str(str, nskip = 1, colspec = NULL, opts = list(), ...)
+read_dataset_ndjson_str(str, opts = list(), ...)
+
+read_dataset_ndjson_raw(rvec, opts = list(), ...)
+
+read_dataset_ndjson_file(filename, opts = list(), ...)
 }
 \arguments{
 \item{str}{a single character string}
-
-\item{nskip}{Number of records to skip before starting to read. Default: 0
-(skip no data)}
-
-\item{colspec}{data.frame of column spec. Must have a row for each data item
-expected in the dataset.  Must include a 'name' and 'dataType' column}
 
 \item{opts}{Named list of options for parsing. Usually created by \code{opts_read_json()}}
 
 \item{...}{Other named options can be used to override any options in \code{opts}.
 The valid named options are identical to arguments to \code{\link[=opts_read_json]{opts_read_json()}}}
+
+\item{rvec}{raw vector}
+
+\item{filename}{Filename}
 }
 \value{
-Dataset-NDJSON data read into R as data.frame
+data.frame with the attribute \code{metadata} containing the
+metadata from the first row of the data.
 }
 \description{
-This is quite a strict parser and a colspec \emph{must} be given and match
-the data stream.
+\code{Dataset NDJSON} is a specific format of \code{NDJSON} proposed by
+\code{CDISC}
+}
+\details{
+\code{Dataset NDJSON} is a specific format of \code{NDJSON} where the
+first row contains metadata for the dataset (including a specification
+for the data which follows).
+
+After the first row in the data, each of the following rows represent
+JSON array data. Each element in the array must adhere to the spec given
+in the first row.
+
+Note: the Dataset-NDJSON file must closely follow the v1.1 specification
+in order to be parsed correctly. In particular the \code{columns} specification
+in the first row (containing the metadata) must include \code{name} and
+\code{dataType} data.
 }
 \seealso{
 Other JSON Parsers: 

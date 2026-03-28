@@ -1,103 +1,99 @@
 
 
 #~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
-#' Parse an Dataset-NDJSON string to a data.frame
+#' Parse Dataset-NDJSON
+#'
+#' \code{Dataset NDJSON} is a specific format of \code{NDJSON} proposed by 
+#' \code{CDISC}
 #' 
-#' This is quite a strict parser and a colspec \emph{must} be given and match 
-#' the data stream.
+#' \code{Dataset NDJSON} is a specific format of \code{NDJSON} where the 
+#' first row contains metadata for the dataset (including a specification
+#' for the data which follows).
+#' 
+#' After the first row in the data, each of the following rows represent
+#' JSON array data. Each element in the array must adhere to the spec given
+#' in the first row.
+#' 
+#' Note: the Dataset-NDJSON file must closely follow the v1.1 specification 
+#' in order to be parsed correctly. In particular the \code{columns} specification
+#' in the first row (containing the metadata) must include \code{name} and
+#' \code{dataType} data.
 #' 
 #' @inheritParams read_json_str
-#' @param nskip Number of records to skip before starting to read. Default: 0 
-#'        (skip no data)
-#' @param colspec data.frame of column spec. Must have a row for each data item
-#'        expected in the dataset.  Must include a 'name' and 'dataType' column
+#' @param rvec raw vector
+#' @param filename Filename
 #'
 #' 
 #' @family JSON Parsers
-#' @return Dataset-NDJSON data read into R as data.frame 
+#' @return data.frame with the attribute \code{metadata} containing the 
+#'         metadata from the first row of the data.
 #' @export
 #~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
-read_dataset_ndjson_str <- function(str, nskip = 1, colspec = NULL, opts = list(), ...) {
+read_dataset_ndjson_str <- function(str, opts = list(), ...) {
   
-    .Call(
-      parse_dataset_ndjson_as_df_,
-      str, 
-      colspec,
-      nskip,
-      modify_list(opts, list(...)),
-      0  # input is string
-    )
+  spec  <- read_json_str(str, yyjson_read_flag = yyjson_read_flag$YYJSON_READ_STOP_WHEN_DONE)
+  nskip <- 1
+  
+  df <- .Call(
+    parse_dataset_ndjson_as_df_,
+    str, 
+    spec$columns,
+    nskip,
+    modify_list(opts, list(...)),
+    0  # input is string
+  )
+  
+  attr(df, "metadata") <- spec
+  df
 }
 
 
 
-
 #~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
-#' Parse a dataset-NDJSON file to a data.frame
-#' 
-#' @inheritParams read_dataset_ndjson_str
-#' @param rvec raw vector
+#' @rdname read_dataset_ndjson_str
 #' @export
 #~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
-read_dataset_ndjson_raw <- function(rvec, nskip = 1, colspec = NULL, opts = list(), ...) {
+read_dataset_ndjson_raw <- function(rvec, opts = list(), ...) {
   
-  .Call(
+  spec  <- read_json_raw(rvec, yyjson_read_flag = yyjson_read_flag$YYJSON_READ_STOP_WHEN_DONE)
+  nskip <- 1
+  
+  df <- .Call(
     parse_dataset_ndjson_as_df_,
     rvec, 
-    colspec,
+    spec$columns,
     nskip,
     modify_list(opts, list(...)),
     1 # input is raw
   )
+  
+  attr(df, "metadata") <- spec
+  df
 }
 
 
+
 #~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
-#' Parse a dataset-NDJSON file to a data.frame
-#' 
-#' @inheritParams read_dataset_ndjson_str
-#' @param filename Filename
+#' @rdname read_dataset_ndjson_str
 #' @export
 #~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
-read_dataset_ndjson_file <- function(filename, nskip = 1, colspec = NULL, opts = list(), ...) {
+read_dataset_ndjson_file <- function(filename, opts = list(), ...) {
   
-  .Call(
+  spec  <- read_json_file(filename, yyjson_read_flag = yyjson_read_flag$YYJSON_READ_STOP_WHEN_DONE)
+  nskip <- 1
+  
+  df <- .Call(
     parse_dataset_ndjson_as_df_,
     filename, 
-    colspec,
+    spec$columns,
     nskip,
     modify_list(opts, list(...)),
     2 # input is file
   )
+  
+  attr(df, "metadata") <- spec
+  df
 }
 
-
-
-
-if (FALSE) {
-  dsjs <- 
-    r"({"datasetJSONCreationDateTime": "2023-06-28T15:38:43", "datasetJSONVersion": "1.1.0", "fileOID": "www.sponsor.xyz.org.project123.final", "dbLastModifiedDateTime": "2023-05-31T00:00:00", "originator": "Sponsor XYZ", "sourceSystem": {"name": "Software ABC", "version": "1.0.0"}, "studyOID": "cdisc.com.CDISCPILOT01", "metaDataVersionOID": "MDV.MSGv2.0.SDTMIG.3.3.SDTM.1.7", "metaDataRef": "https://metadata.location.org/CDISCPILOT01/define.xml", "itemGroupOID": "IG.DM", "records": 18, "name": "DM", "label": "Demographics", "columns": [{"itemOID": "IT.DM.STUDYID", "name": "STUDYID", "label": "Study Identifier", "dataType": "string", "length": 12, "keySequence": 1}, {"itemOID": "IT.DM.DOMAIN", "name": "DOMAIN", "label": "Domain Abbreviation", "dataType": "string", "length": 2},  {"itemOID": "IT.DM.USUBJID", "name": "USUBJID", "label": "Unique Subject Identifier", "dataType": "string", "length": 8, "keySequence": 2}, {"itemOID": "IT.DM.AGE", "name": "AGE", "label": "Age", "dataType": "integer"}, {"itemOID": "IT.DM.AGEU", "name": "AGEU", "label": "Age Units", "dataType": "string", "length": 5}]}
-["CDISCPILOT01", "DM", "CDISC001", 84, "YEARS"]
-["CDISCPILOT01", "DM", "CDISC002", 76, "YEARS"]
-["CDISCPILOT01", "DM", "CDISC003", 61, "YEARS"])"
-  
-  zz <- read_json_str(dsjs, yyjson_read_flag = yyjson_read_flag$YYJSON_READ_STOP_WHEN_DONE)
-  zz$columns
-  read_dataset_ndjson_str(dsjs, colspec = zz$columns)
-  
-  
-  
-  dsjs <- "tests/testthat/dataset-ndjson/ae.ndjson" |>
-  # dsjs <- "tests/testthat/dataset-ndjson/adsl.ndjson" |>
-    readLines() |> 
-    paste(collapse = "\n")
-  
-  zz <- read_json_str(dsjs, yyjson_read_flag = yyjson_read_flag$YYJSON_READ_STOP_WHEN_DONE)
-  zz$columns
-  read_dataset_ndjson_str(dsjs, colspec = zz$columns)
-
-  read_dataset_ndjson_file("tests/testthat/dataset-ndjson/adsl.ndjson", colspec = zz$columns)
-    
-}
 
 

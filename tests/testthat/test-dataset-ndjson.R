@@ -10,10 +10,7 @@ dsjs_raw <- dsjs |> utf8ToInt() |> as.raw()
 
 test_that("parse dataset ndjson string works", {
   
-  zz <- read_json_str(dsjs, yyjson_read_flag = yyjson_read_flag$YYJSON_READ_STOP_WHEN_DONE)
-  zz$columns
-  
-  res <- read_dataset_ndjson_str(dsjs, colspec = zz$columns)
+  res <- read_dataset_ndjson_str(dsjs)
   expect_true(is.data.frame(res))
   
   expect_identical(colnames(res), c('STUDYID', 'DOMAIN', 'USUBJID', 'AGE', 'AGEU'))
@@ -29,10 +26,7 @@ test_that("parse dataset ndjson string works", {
 
 test_that("parse dataset ndjson raw works", {
   
-  zz <- read_json_str(dsjs, yyjson_read_flag = yyjson_read_flag$YYJSON_READ_STOP_WHEN_DONE)
-  zz$columns
-  
-  res <- read_dataset_ndjson_raw(dsjs_raw, colspec = zz$columns)
+  res <- read_dataset_ndjson_raw(dsjs_raw)
   expect_true(is.data.frame(res))
   
   expect_identical(colnames(res), c('STUDYID', 'DOMAIN', 'USUBJID', 'AGE', 'AGEU'))
@@ -51,9 +45,7 @@ test_that("parse dataset ndjson raw works", {
 test_that("parse dataset ndjson from file works", {
   
   f <- testthat::test_path("dataset-ndjson/ae.ndjson")
-  zz <- read_json_file(f, yyjson_read_flag = yyjson_read_flag$YYJSON_READ_STOP_WHEN_DONE)
-  zz$columns
-  res <- read_dataset_ndjson_file(f, colspec = zz$columns)
+  res <- read_dataset_ndjson_file(f)
   expect_true(is.data.frame(res))
   expect_identical(dim(res), c(74L, 37L))
   expect_true(all(res$DOMAIN == 'AE'))
@@ -64,9 +56,7 @@ test_that("parse dataset ndjson from file works", {
 test_that("parse dataset ndjson from file works", {
   
   f <- testthat::test_path("dataset-ndjson/ae.ndjson")
-  zz <- read_json_file(f, yyjson_read_flag = yyjson_read_flag$YYJSON_READ_STOP_WHEN_DONE)
-  zz$columns
-  res <- read_dataset_ndjson_file(f, colspec = zz$columns)
+  res <- read_dataset_ndjson_file(f)
   expect_true(is.data.frame(res))
   expect_identical(dim(res), c(74L, 37L))
   expect_true(all(res$DOMAIN == 'AE'))
