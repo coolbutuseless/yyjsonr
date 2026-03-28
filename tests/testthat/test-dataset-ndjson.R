@@ -25,3 +25,18 @@ test_that("parse dataset ndjson string works", {
   expect_true(is.integer(res[[4]]))
   
 })
+
+
+
+test_that("parse dataset ndjson from file works", {
+  
+  f <- testthat::test_path("dataset-ndjson/ae.ndjson")
+  zz <- read_json_file(f, yyjson_read_flag = yyjson_read_flag$YYJSON_READ_STOP_WHEN_DONE)
+  zz$columns
+  res <- read_dataset_ndjson_file(f, colspec = zz$columns)
+  expect_true(is.data.frame(res))
+  expect_identical(dim(res), c(74L, 37L))
+  expect_true(all(res$DOMAIN == 'AE'))
+    
+})
+
