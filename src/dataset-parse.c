@@ -287,6 +287,15 @@ SEXP parse_dataset_ndjson_str_as_df_(SEXP str_, SEXP colspec_, SEXP nskip_, SEXP
     while ((val = yyjson_arr_iter_next(&iter))) {
       Rprintf(">>> [%i] [%i] %i %s\n", row, col, dtype[col], yyjson_get_type_desc(val));
       
+      switch(dtype[col]) {
+      case DS_STRING:
+        SET_STRING_ELT(VECTOR_ELT(df_, col), row, Rf_mkChar(yyjson_get_str(val)));
+        break;
+      case DS_INTEGER:
+        INTEGER(VECTOR_ELT(df_, col))[row] = yyjson_get_int(val);
+        break;
+      }
+      
       col++;
     }
     
