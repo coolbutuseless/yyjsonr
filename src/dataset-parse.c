@@ -47,6 +47,7 @@
 #define DS_FLOAT    3
 #define DS_DOUBLE   4
 #define DS_BOOLEAN  5
+#define DS_DATETIME 6
 #define DS_DATE     7
 #define DS_TIME     8
 #define DS_URI      9
@@ -164,7 +165,7 @@ SEXP parse_dataset_ndjson_str_as_df_(SEXP str_, SEXP colspec_, SEXP nskip_, SEXP
   Rprintf("nrows of data: %i\n", (int)nrows);
   
   //~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
-  // Prepare data.frame
+  // Parse the datatypes in the colspec
   //~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
   SEXP dtypes_ = VECTOR_ELT(colspec_, dt_idx);
   int colspec_nrows = (int)Rf_length(dtypes_);
@@ -197,36 +198,97 @@ SEXP parse_dataset_ndjson_str_as_df_(SEXP str_, SEXP colspec_, SEXP nskip_, SEXP
   }
   
   //~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+  // Prepare the data.frame
+  //~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+  SEXP df_  = PROTECT(Rf_allocVector(VECSXP, colspec_nrows)); nprotect++;
+  SEXP nms_ = PROTECT(Rf_allocVector(STRSXP, colspec_nrows)); nprotect++;
+  Rf_setAttrib(df_, R_NamesSymbol, nms_);
+  
+  SEXP colspec_nms_ = VECTOR_ELT(colspec_, nm_idx);
+  
+  for (int i = 0; i < colspec_nrows; i++) {
+    SET_STRING_ELT(nms_, i, STRING_ELT(colspec_nms_, i));
+    
+    SEXP col_;
+    switch (dtype[i]) {
+    case DS_STRING:
+    case DS_DECIMAL:
+    case DS_DATETIME:
+    case DS_DATE:
+    case DS_TIME:
+    case DS_URI:
+      col_ = PROTECT(Rf_allocVector(STRSXP, nrows));
+      break;
+    case DS_INTEGER:
+      col_ = PROTECT(Rf_allocVector(INTSXP, nrows));
+      break;
+    case DS_BOOLEAN:
+      col_ = PROTECT(Rf_allocVector(LGLSXP, nrows));
+      break;
+    case DS_FLOAT:
+    case DS_DOUBLE:
+      col_ = PROTECT(Rf_allocVector(REALSXP, nrows));
+      break;
+    default:
+      Rf_error("parse_dataset_ndjson_str_as_df_(): Unknown dtype when creating df");
+    }
+    
+    
+    SET_VECTOR_ELT(df_, i, col_);
+    UNPROTECT(1);
+  }
+  
+  // Set rownames on data.frame
+  SEXP rownames = PROTECT(Rf_allocVector(INTSXP, 2)); nprotect++;
+  SET_INTEGER_ELT(rownames, 0, NA_INTEGER);
+  SET_INTEGER_ELT(rownames, 1, -(int)nrows);
+  Rf_setAttrib(df_, R_RowNamesSymbol, rownames);
+  
+  // Set 'data.frame' class
+  SET_CLASS(df_, Rf_mkString("data.frame"));
+  
+  
+  //~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
   // Parse data row-by-row
   //~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
   state_t *state = create_state();
-  for (int i = 0; i < nrows; i++) {
+  for (int row = 0; row < nrows; row++) {
     yyjson_read_err err;
     state->doc = yyjson_read_opts(str, str_size, opt.yyjson_read_flag, NULL, &err);
     size_t pos = yyjson_doc_get_read_size(state->doc);
     if (state->doc == NULL) {
       free(dtype);
-      error_and_destroy_state(state, "Couldn't parse Dataset-NDJSON on line %i\n", i + 1);
+      error_and_destroy_state(state, "Couldn't parse Dataset-NDJSON on line %i\n", row + 1);
     }
     
     //~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
     // Each data row *MUST* be an array
     //~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
-    yyjson_val *row = yyjson_doc_get_root(state->doc);
-    if (yyjson_get_type(row) != YYJSON_TYPE_ARR) {
+    yyjson_val *arr = yyjson_doc_get_root(state->doc);
+    if (yyjson_get_type(arr) != YYJSON_TYPE_ARR) {
       free(dtype);
       error_and_destroy_state(state, "Couldn't parse Dataset-NDJSON row %i - JSON type = '%s' not 'array'\n", 
-                              i + 1, yyjson_get_type_desc(row));
+                              row + 1, yyjson_get_type_desc(arr));
     }
     
-    Rprintf("[%i] %s\n", i, yyjson_get_type_desc(row));
+    Rprintf("[%i] %s\n", row, yyjson_get_type_desc(arr));
 
     
     //~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
     // Parse items out of row
     //~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
-    int nitems = yyjson_get_len(row);
+    int nitems = yyjson_get_len(arr);
     Rprintf("Row items: %i/%i\n", nitems, colspec_nrows);
+    
+    int col = 0;
+    
+    yyjson_arr_iter iter = yyjson_arr_iter_with( arr );
+    yyjson_val *val;
+    while ((val = yyjson_arr_iter_next(&iter))) {
+      Rprintf(">>> [%i] [%i] %i %s\n", row, col, dtype[col], yyjson_get_type_desc(val));
+      
+      col++;
+    }
     
     
     //~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
@@ -241,6 +303,6 @@ SEXP parse_dataset_ndjson_str_as_df_(SEXP str_, SEXP colspec_, SEXP nskip_, SEXP
   free(dtype);
   destroy_state(state);
   UNPROTECT(nprotect);
-  return R_NilValue;
+  return df_;
 }
 
