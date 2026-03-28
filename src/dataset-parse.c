@@ -5,6 +5,7 @@
 #include <Rinternals.h>
 #include <Rdefines.h>
 #include <R_ext/Connections.h>
+#include <Rversion.h>
 
 #include <stdio.h>
 #include <stdbool.h>
@@ -105,7 +106,12 @@ SEXP parse_dataset_ndjson_as_df_(SEXP src_, SEXP colspec_, SEXP nskip_, SEXP par
   //~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
   // Parse the colspec for some sanity
   //~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+  
+#if R_VERSION < R_Version(4, 5, 0)
+  if (!Rf_isFrame(colspec_)) Rf_error("parse_dataset_ndjson_str_as_df_(): 'colspec' must be a data.frame");
+#else
   if (!Rf_isDataFrame(colspec_)) Rf_error("parse_dataset_ndjson_str_as_df_(): 'colspec' must be a data.frame");
+#endif
   int nm_idx = df_col_idx(colspec_, "name");
   if (nm_idx < 0) Rf_error("parse_dataset_ndjson_str_as_df_(): 'name' not found in colspec");
   int dt_idx = df_col_idx(colspec_, "dataType");
