@@ -30,6 +30,28 @@ read_dataset_ndjson_str <- function(str, nskip = 1, colspec = NULL, opts = list(
 }
 
 
+
+
+#~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+#' Parse a dataset-NDJSON file to a data.frame
+#' 
+#' @inheritParams read_dataset_ndjson_str
+#' @param rvec raw vector
+#' @export
+#~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+read_dataset_ndjson_raw <- function(rvec, nskip = 1, colspec = NULL, opts = list(), ...) {
+  
+  .Call(
+    parse_dataset_ndjson_as_df_,
+    rvec, 
+    colspec,
+    nskip,
+    modify_list(opts, list(...)),
+    1 # input is raw
+  )
+}
+
+
 #~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 #' Parse a dataset-NDJSON file to a data.frame
 #' 

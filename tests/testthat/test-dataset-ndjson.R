@@ -5,6 +5,7 @@ dsjs <-
 ["CDISCPILOT01", "DM", "CDISC002", 76, "YEARS"]
 ["CDISCPILOT01", "DM", "CDISC003", 61, "YEARS"])"
 
+dsjs_raw <- dsjs |> utf8ToInt() |> as.raw()
 
 
 test_that("parse dataset ndjson string works", {
@@ -13,6 +14,25 @@ test_that("parse dataset ndjson string works", {
   zz$columns
   
   res <- read_dataset_ndjson_str(dsjs, colspec = zz$columns)
+  expect_true(is.data.frame(res))
+  
+  expect_identical(colnames(res), c('STUDYID', 'DOMAIN', 'USUBJID', 'AGE', 'AGEU'))
+  expect_equal(nrow(res), 3)
+  expect_true(is.character(res[[1]]))
+  expect_true(is.character(res[[2]]))
+  expect_true(is.character(res[[3]]))
+  expect_true(is.character(res[[5]]))
+  
+  expect_true(is.integer(res[[4]]))
+  
+})
+
+test_that("parse dataset ndjson raw works", {
+  
+  zz <- read_json_str(dsjs, yyjson_read_flag = yyjson_read_flag$YYJSON_READ_STOP_WHEN_DONE)
+  zz$columns
+  
+  res <- read_dataset_ndjson_raw(dsjs_raw, colspec = zz$columns)
   expect_true(is.data.frame(res))
   
   expect_identical(colnames(res), c('STUDYID', 'DOMAIN', 'USUBJID', 'AGE', 'AGEU'))
@@ -37,6 +57,19 @@ test_that("parse dataset ndjson from file works", {
   expect_true(is.data.frame(res))
   expect_identical(dim(res), c(74L, 37L))
   expect_true(all(res$DOMAIN == 'AE'))
-    
+  
+})
+
+
+test_that("parse dataset ndjson from file works", {
+  
+  f <- testthat::test_path("dataset-ndjson/ae.ndjson")
+  zz <- read_json_file(f, yyjson_read_flag = yyjson_read_flag$YYJSON_READ_STOP_WHEN_DONE)
+  zz$columns
+  res <- read_dataset_ndjson_file(f, colspec = zz$columns)
+  expect_true(is.data.frame(res))
+  expect_identical(dim(res), c(74L, 37L))
+  expect_true(all(res$DOMAIN == 'AE'))
+  
 })
 
