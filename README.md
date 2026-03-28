@@ -51,17 +51,6 @@ This package contains specialized functions for each type of operation
 | read  | read_geojson_str()  | read_geojson_file()  |     | read_geojson_conn() | opts_read_geojson()  |
 | write | write_geojson_str() | write_geojson_file() |     |      | opts_write_geojson() |
 
-
-
-#### Dataset-NDJSON
-
-|          | string              | file                 | raw              | conn             | options              |
-|----------|---------------------|----------------------|------------------|------------------|----------------------|
-| read     | read_dataset_ndjson_str()   | read_dataset_ndjson_file()   |read_dataset_ndjson_raw() |                  | opts_read_json()     |
-| write    |                     |                      |                  |                  |                      |
-
-
-
 ### Speed
 
 In the following plots, bigger is better, with `yyjsonr` results in

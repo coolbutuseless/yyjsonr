@@ -1,9 +1,4 @@
 
-
-# yyjsonr 0.1.21.9006  2026-03-28
-
-* Added `read_dataset_ndjson()` to read CDISC Dataset-NDJSON files
-
 # yyjsonr 0.1.21.9005  2026-03-28
 
 * Geojson: Feature level IDs are now parsed correctly.

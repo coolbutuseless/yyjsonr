@@ -88,17 +88,6 @@ storage location of the JSON (string/file/raw vector/connection).
 | write    | write_geojson_str() | write_geojson_file() |                     |                     | opts_write_geojson()    |
 
 
-
-
-#### Dataset-NDJSON
-
-|          | string              | file                 | raw              | conn             | options              |
-|----------|---------------------|----------------------|------------------|------------------|----------------------|
-| read     | read_dataset_ndjson_str()   | read_dataset_ndjson_file()   |read_dataset_ndjson_raw() |                  | opts_read_json()     |
-| write    |                     |                      |                  |                  |                      |
-
-
-
 ### Speed 
 
 In the following plots, bigger is better, with `yyjsonr` results in blue.

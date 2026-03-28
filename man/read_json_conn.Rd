@@ -34,7 +34,6 @@ if (interactive()) {
 }
 \seealso{
 Other JSON Parsers: 
-\code{\link{read_dataset_ndjson_str}()},
 \code{\link{read_geojson_conn}()},
 \code{\link{read_json_file}()},
 \code{\link{read_json_raw}()},
