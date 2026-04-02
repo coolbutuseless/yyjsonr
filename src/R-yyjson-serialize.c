@@ -742,11 +742,13 @@ yyjson_mut_val *env_to_json_object(SEXP env_, yyjson_mut_doc *doc, serialize_opt
 #else
     SEXP elem_ = PROTECT(R_getVar(Rf_installChar(Rf_mkChar(varname)), env_, FALSE));
 #endif
-    if (elem_ != R_UnboundValue) {  
-      yyjson_mut_val *key = yyjson_mut_strcpy(doc, varname);
-      yyjson_mut_val *val = serialize_core(elem_, doc, opt);
-      yyjson_mut_obj_add(obj, key, val);
-    }
+    // Mike 2026-04-03 There used to a check for R_UnboundValue here, but 
+    //  - I haven't managed to create a test that triggers this error
+    //  - UnboundValue handling is changing in 4.6.0 so I'm just going to 
+    //    wait until the dust settles. Sorry for any inconvenience
+    yyjson_mut_val *key = yyjson_mut_strcpy(doc, varname);
+    yyjson_mut_val *val = serialize_core(elem_, doc, opt);
+    yyjson_mut_obj_add(obj, key, val);
     UNPROTECT(1);
   }
   

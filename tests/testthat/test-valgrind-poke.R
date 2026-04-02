@@ -6,8 +6,10 @@ test_that("valgrind check works", {
   # This might be a pathway to trigger a valgrind error as yyjson C lib
   # fails to free all memory?
   #~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+  capture_output(
   expect_error(
     read_json_str('[1, 2, {"a":1, "b":"hello", "c":"test"}, [[[[[[[[[[[[1, {1}]]]]]]]]]]]] ]')
+  )
   )
   
 })

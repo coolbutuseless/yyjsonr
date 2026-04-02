@@ -33,7 +33,9 @@ logging: {
 
 
 test_that("json5 isn't the same as json", {
+  capture_output(
   expect_error(read_json_str(json))
+  )
 })
 
 test_that("json5 parsing works with options set", {

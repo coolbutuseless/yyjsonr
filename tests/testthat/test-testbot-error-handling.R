@@ -10,27 +10,30 @@ test_that("JSON parsing error handling", {
   expect_error(read_json_str(""))
   expect_error(read_json_str("{"))
   expect_error(read_json_str("["))
-  expect_error(read_json_str("null null"))
-  expect_error(read_json_str("[,]"))
-  expect_error(read_json_str('{"key": }'))
-  expect_error(read_json_str('{"key" "value"}'))
-  expect_error(read_json_str('[1, 2, 3,]'), "comma")
+  capture_output(expect_error(read_json_str("null null")))
+  capture_output(expect_error(read_json_str("[,]")))
+  capture_output(expect_error(read_json_str('{"key": }')))
+  capture_output(expect_error(read_json_str('{"key" "value"}')))
+  capture_output(expect_error(read_json_str('[1, 2, 3,]'), "comma"))
   
   # Invalid raw vectors
   #expect_error(read_json_raw(raw(0)))
-  expect_error(read_json_raw(as.raw(c(123, 34, 107))))  # Invalid JSON bytes
+  capture_output(expect_error(read_json_raw(as.raw(c(123, 34, 107)))))  # Invalid JSON bytes
   
   # File errors
+  capture_output(
   expect_warning(
     expect_error(read_json_file("nonexistent_file.json"))
-  )
+  ))
   # expect_warning(
   #   expect_error(validate_json_file("nonexistent_file.json"))
   # )
   
   # Connection errors
   if (capabilities("sockets")) {
+    capture_output(
     expect_error(read_json_conn(textConnection("")))
+    )
   }
 })
 
