@@ -1,32 +1,20 @@
 
-# yyjsonr 0.1.21.9005  2026-03-28
+# yyjsonr 0.1.22
 
 * Geojson: Feature level IDs are now parsed correctly.
-
-# yyjsonr 0.1.21.9004  2026-03-27
-
-* Include latest yyjson version 0.12.0
-* Expose new `yyjson_read_flag` options for JSON5 parsing
-
-# yyjsonr 0.1.21.9003  2026-03-26
-
-* Added parse option for `empty_array` and `empty_object`. 
+* yyjson: Include latest yyjson version 0.12.0
+* yyjson: Expose new `yyjson_read_flag` options for JSON5 parsing
+* opts: Added parse option for `empty_array` and `empty_object`. 
   See `opts_read_json()`
-* Add `null` option when serializing. Now defaults to using JSON "null" where
+* opts: Add `null` option when serializing. Now defaults to using JSON "null" where
   previously had defaulted erroneously to an empty json array.
   See `opts_write_json()`
-
-# yyjsonr 0.1.21.9002  2026-03-21
-
-* Address non-API call for R 4.6.0: `Rf_findVarInFrame()`
-* switch from `gzfread()` to `gzread()` for `centOS` compatability.
-* Add `read_geojson_conn()` to handle geonjson from an R connection object
-* Added option `arr_of_arrs_to_matrix`. Logical value to control if conforming
+* R: Address non-API call for R 4.6.0: `Rf_findVarInFrame()`
+* compat: switch from `gzfread()` to `gzread()` for `centOS` compatability.
+* feature: Add `read_geojson_conn()` to handle geonjson from an R connection object
+* opts: Added option `arr_of_arrs_to_matrix`. Logical value to control if conforming
   JSON []-arrays of nested []-arrays should be converted to matrices.
-* Added support for raw nested data.frames (which are *not* in list-columns)
-
-# yyjsonr 0.1.21.9001  2025-07-28
-
+* Fix: Added support for raw nested data.frames (which are *not* in list-columns)
 * Fix: ndjson error with zero-length input when parsing to data.frame. 
        Now returns empty data.frame(). This matches the parsing of ndjson
        to lists, where zero-length input is not an error, and just returns
