@@ -1,6 +1,7 @@
 
-# yyjsonr 0.1.22
+# yyjsonr 0.1.22  2026-04-03
 
+* R: Address non-API call  `Rf_findVarInFrame()`
 * Geojson: Feature level IDs are now parsed correctly.
 * yyjson: Include latest yyjson version 0.12.0
 * yyjson: Expose new `yyjson_read_flag` options for JSON5 parsing
@@ -9,7 +10,6 @@
 * opts: Add `null` option when serializing. Now defaults to using JSON "null" where
   previously had defaulted erroneously to an empty json array.
   See `opts_write_json()`
-* R: Address non-API call for R 4.6.0: `Rf_findVarInFrame()`
 * compat: switch from `gzfread()` to `gzread()` for `centOS` compatability.
 * feature: Add `read_geojson_conn()` to handle geonjson from an R connection object
 * opts: Added option `arr_of_arrs_to_matrix`. Logical value to control if conforming
