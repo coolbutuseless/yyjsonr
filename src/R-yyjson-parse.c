@@ -2074,7 +2074,7 @@ SEXP parse_from_gzfile_(SEXP filename_, SEXP parse_opts_) {
   // Allocate a buffer to hold the uncompressed file.
   // Note: this approach will change if/when yyjson implements streaming
   //~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
-  char *buf = R_alloc(1, (unsigned long)uncompressed_len + 1);
+  char *buf = R_alloc(1, (int)uncompressed_len + 1);
   if (buf == 0) {
     Rf_error("Couldn't allocate buffer for reading json.gz file: %s", filename);
   }
