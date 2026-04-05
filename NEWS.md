@@ -1,7 +1,7 @@
 
-# yyjsonr 0.1.22  2026-04-03
+# yyjsonr 0.1.22  2026-04-05
 
-* R: Address non-API call  `Rf_findVarInFrame()`
+* C-API: Address non-API call  `Rf_findVarInFrame()`
 * Geojson: Feature level IDs are now parsed correctly.
 * yyjson: Include latest yyjson version 0.12.0
 * yyjson: Expose new `yyjson_read_flag` options for JSON5 parsing
@@ -22,6 +22,7 @@
 * Fix: segfault in parse_ndjson_str_as_df_.  Now freeing allocated colnames
        when error occurs
 * Fix: free yyjson doc on error in geojson parse
+* C-API: Removed support for UnboundValues when serializing environments
 
 # yyjsonr 0.1.21 2025-06-03
 
