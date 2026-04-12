@@ -42,6 +42,7 @@ serialize_options parse_serialize_options(SEXP serialize_opts_) {
     .str_specials      = STR_SPECIALS_AS_NULL,
     .fast_numerics     = FALSE,
     .yyjson_write_flag = 0,
+    .na = NA_AS_NULL,
   };
   
   // Sanity check and get option names
@@ -110,6 +111,17 @@ serialize_options parse_serialize_options(SEXP serialize_opts_) {
       } else{
         Rf_error("null option not understood: '%s'", val);
       }
+    } else if (strcmp(opt_name, "na") == 0) {
+      const char *val = CHAR(STRING_ELT(val_, 0));
+      if (strcmp(val, "null") == 0) {
+        opt.na = NA_AS_NULL;
+      } else if (strcmp(val, "string") == 0) {
+        opt.na = NA_AS_STRING;
+      } else if (strcmp(val, "omit") == 0) {
+        opt.na = NA_OMIT;
+      } else {
+        Rf_error("na option not understood: '%s'", val);
+      }
     } else {
       Rf_warning("Unknown option ignored: '%s'\n", opt_name);
     }
@@ -138,6 +150,9 @@ yyjson_mut_val *scalar_logical_to_json_val(int32_t rlgl, yyjson_mut_doc *doc, se
   yyjson_mut_val *val;
   
   if (rlgl == NA_INTEGER) {
+    if (opt->na == NA_OMIT) {
+      return NULL;
+    } else
     if (opt->num_specials == NUM_SPECIALS_AS_STRING) {
       val = yyjson_mut_str(doc, "NA");
     } else {  
@@ -159,13 +174,15 @@ yyjson_mut_val *scalar_integer_to_json_val(int32_t rint, yyjson_mut_doc *doc, se
   
   yyjson_mut_val *val;
   
-  if (rint == NA_INTEGER) {
-    if (opt->num_specials == NUM_SPECIALS_AS_STRING) {
-      val = yyjson_mut_str(doc, "NA");
-    } else {
-      val = yyjson_mut_null(doc);
-    }
+if (rint == NA_INTEGER) {
+  if (opt->na == NA_OMIT) {
+    return NULL;
+  } else if (opt->num_specials == NUM_SPECIALS_AS_STRING) {
+    val = yyjson_mut_str(doc, "NA");
   } else {
+    val = yyjson_mut_null(doc);
+  }
+} else {
     val = yyjson_mut_sint(doc, rint);
   }
   
@@ -334,12 +351,14 @@ yyjson_mut_val *scalar_double_to_json_val(double rdbl, yyjson_mut_doc *doc, seri
   
   if (isnan(rdbl)) {
     if (ISNA(rdbl)) {
-      if (opt->num_specials == NUM_SPECIALS_AS_STRING) {
-        val = yyjson_mut_str(doc, "NA");
-      } else {
+      if (opt->na == NA_OMIT) {
+    return NULL;
+      } else if (opt->num_specials == NUM_SPECIALS_AS_STRING) {
+          val = yyjson_mut_str(doc, "NA");
+        } else {
         val = yyjson_mut_null(doc);
-      }
-    } else {
+        }
+  } else {
       if (opt->num_specials == NUM_SPECIALS_AS_STRING) {
         val = yyjson_mut_str(doc, "NaN");
       } else {
@@ -384,7 +403,9 @@ yyjson_mut_val *scalar_strsxp_to_json_val(SEXP str_, R_xlen_t idx, yyjson_mut_do
   
   SEXP charsxp_ = STRING_ELT(str_, idx);
   if (charsxp_ == NA_STRING) {
-    if (opt->str_specials == STR_SPECIALS_AS_STRING) {
+    if (opt->na == NA_OMIT) {
+      return NULL;
+    } else if (opt->str_specials == STR_SPECIALS_AS_STRING) {
       val = yyjson_mut_str(doc, "NA");  
     } else {  
       val = yyjson_mut_null(doc);
