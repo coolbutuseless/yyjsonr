@@ -20,6 +20,10 @@
 #define NULL_AS_NULL        0
 #define NULL_AS_EMPTY_ARRAY 1
 
+#define NA_AS_NULL   0
+#define NA_AS_STRING 1
+#define NA_OMIT      2
+
 //~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 // Existing SEXPs
 //   0	NILSXP	NULL
@@ -70,6 +74,7 @@ typedef struct {
   unsigned int data_frame;
   unsigned int factor;
   unsigned int null;
+  unsigned int na;
   int digits;
   int digits_secs;
   int digits_signif;

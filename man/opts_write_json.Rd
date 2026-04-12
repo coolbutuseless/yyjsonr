@@ -18,6 +18,7 @@ opts_write_json(
   fast_numerics = FALSE,
   json_verbatim = FALSE,
   null = c("null", "empty_array"),
+  na = c("null", "string", "omit"),
   yyjson_write_flag = 0L
 )
 }
@@ -79,6 +80,10 @@ into the output.}
 
 \item{null}{How should R \code{NULL} values be written? Default: "null" means
 to write as a JSON "null" string. Other valid value is "empty_array".}
+
+\item{na}{How should \code{NA} values be written? Default: "null" writes as
+JSON \code{null}. "string" writes as the string \code{"NA"}.
+"omit" skips the field entirely.}
 
 \item{yyjson_write_flag}{integer vector corresponding to internal \code{yyjson}
 options.  See \code{yyjson_write_flag} in this package, and read

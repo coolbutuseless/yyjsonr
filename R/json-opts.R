@@ -376,6 +376,9 @@ opts_read_json <- function(
 #'        into the output.
 #' @param null How should R \code{NULL} values be written? Default: "null" means
 #'        to write as a JSON "null" string. Other valid value is "empty_array".
+#' @param na How should \code{NA} values be written? Default: "null" writes as
+#'        JSON \code{null}. "string" writes as the string \code{"NA"}.
+#'        "omit" skips the field entirely.
 #' @param yyjson_write_flag integer vector corresponding to internal \code{yyjson}
 #'        options.  See \code{yyjson_write_flag} in this package, and read
 #'        the yyjson API documentation for more information.  This is considered
@@ -402,6 +405,7 @@ opts_write_json <- function(
     fast_numerics     = FALSE,
     json_verbatim     = FALSE,
     null              = c("null", "empty_array"),
+    na                = c("null", "string", "omit"),
     yyjson_write_flag = 0L) {
   
   structure(
@@ -419,6 +423,7 @@ opts_write_json <- function(
       fast_numerics     = isTRUE(fast_numerics),
       json_verbatim     = isTRUE(json_verbatim),
       null              = match.arg(null),
+      na                = match.arg(na),
       yyjson_write_flag = as.integer(yyjson_write_flag)
     ),
     class = "opts_write_json"
