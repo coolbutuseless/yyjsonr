@@ -137,6 +137,7 @@ SEXP sfc_to_str(SEXP sfc_, geo_serialize_options *opt) {
     }
     
     SET_STRING_ELT(geojson_, idx, Rf_mkChar(json));
+    free(json);
     yyjson_mut_doc_free(doc);
   }
   
