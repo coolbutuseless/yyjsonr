@@ -18,6 +18,7 @@ code directly.  This is an ADVANCED option and should be used with caution.
 Some of these settings overlap and conflict with code needed to handle
 the translation of JSON values to R.
 
+Pass multiple options with
 \code{opts_read_json(yyjson_read_flag = c(yyjson_read_flag$x, yyjson_read_flag$y, ...))}
 
 \describe{

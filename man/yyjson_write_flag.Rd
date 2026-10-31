@@ -18,7 +18,8 @@ code directly.  This is an ADVANCED option and should be used with caution.
 Some of these settings overlap and conflict with code needed to handle
 the translation of JSON values to R.
 
-\code{opts_write_json(yyjson_write_flag = c(write_flag$x, write_flag$y, ...))}
+Pass multiple options with
+\code{opts_write_json(yyjson_write_flag = c(yyjson_write_flag$x, yyjson_write_flag$y, ...))}
 
 \describe{
 \item{YYJSON_WRITE_NOFLAG}{

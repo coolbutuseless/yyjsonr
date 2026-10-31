@@ -45,7 +45,7 @@ result will be left as a list.}
 a data.frame? Default: TRUE. If FALSE, then results will be read as a
 list-of-lists.}
 
-\item{arr_of_arrs_to_matrix}{logical. Should an array of objects be promoted to
+\item{arr_of_arrs_to_matrix}{logical. Should an array of arrays be promoted to
 a matrix (if types and dimensions align)? Default: TRUE.
 If FALSE, then results will be read as a list-of-atomic-vectors.}
 
