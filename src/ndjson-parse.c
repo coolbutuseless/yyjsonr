@@ -423,7 +423,7 @@ SEXP promote_list_to_data_frame(SEXP df_, char **colname, int ncols) {
 //   CON: Have to probe the data.set to find out data types for each column.
 //        This is done once at the start of the parse, and it is then
 //        assumed all future types match the types seen so far.
-//        This might not be true, but a comprimise I'm making for speed.
+//        This might not be true, but a compromise I'm making for speed.
 //   PRO: Faster. Data.frame allocation happens once, and data is slotted into 
 //        it.  No re-allocation as we pre-determine the number of rows and 
 //        type for each columnx
@@ -621,7 +621,7 @@ SEXP parse_ndjson_file_as_df_(SEXP filename_, SEXP nread_, SEXP nskip_, SEXP npr
   for (unsigned int i = 0; i < nrows; i++) {
     char *ret = gzgets(input, buf, MAX_LINE_LENGTH);
     if (ret == NULL) {
-      Rf_error("Unexepcted end to data\n");
+      Rf_error("Unexpected end of data\n");
     }
     
     // ignore lines which are just a "\n".

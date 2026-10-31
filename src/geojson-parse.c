@@ -1014,23 +1014,23 @@ SEXP parse_feature(yyjson_val *obj, geo_parse_options *opt, state_t *state) {
     SEXP robj_ = PROTECT(json_as_robj(val, opt->parse_opt, state)); 
     
     if (Rf_isNull(robj_)) {
-      // compatibilty with geojson: promotes NULL values to NA_character_
+      // compatibility with geojson: promotes NULL values to NA_character_
       UNPROTECT(1);
       robj_ = PROTECT(Rf_allocVector(STRSXP, 1));
       SET_STRING_ELT(robj_, 0, NA_STRING);
     } else if (Rf_isNewList(robj_) && Rf_length(robj_) == 0) {
-      // compatibilty with geojson. promote empty list to "{}"
+      // compatibility with geojson. promote empty list to "{}"
       UNPROTECT(1);
       robj_ = PROTECT(Rf_allocVector(STRSXP, 1));
       SET_STRING_ELT(robj_, 0, Rf_mkChar("{}"));
     } else if (Rf_isNewList(robj_) && opt->property_promotion == PROP_TYPE_STRING) {
-      // this is either a list or a multi-element {}-objet or []-array
+      // this is either a list or a multi-element {}-object or []-array
       // so turn it back into a string
       UNPROTECT(1);
       robj_ = PROTECT(Rf_allocVector(STRSXP, 1));
       SET_STRING_ELT(robj_, 0, prop_to_rchar(val, opt));
     } else if (Rf_length(robj_) > 1 && opt->property_promotion == PROP_TYPE_STRING) {
-      // this is either a list or a multi-element {}-objet or []-array
+      // this is either a list or a multi-element {}-object or []-array
       // so turn it back into a string
       UNPROTECT(1);
       robj_ = PROTECT(Rf_allocVector(STRSXP, 1));
@@ -1090,7 +1090,7 @@ SEXP parse_feature(yyjson_val *obj, geo_parse_options *opt, state_t *state) {
 
 
 //~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
-// Accumulating types and names for properies should really be dynamic, 
+// Accumulating types and names for properties should really be dynamic, 
 // but for first draft, just set a static upper limit on number of properiies.
 //~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 #define MAX_PROPS 256
@@ -1272,7 +1272,7 @@ SEXP parse_feature_collection(yyjson_val *obj, geo_parse_options *opt, state_t *
   //~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
   SEXP geom_col_ = PROTECT(parse_feature_collection_geometry(features, opt, state)); nprotect++;
   if (opt->type == SFC_TYPE) {
-    // we onlyl care about geometry! Don't worry about parsing properties
+    // we only care about geometry! Don't worry about parsing properties
     UNPROTECT(nprotect);
     return geom_col_;
   }
@@ -1320,7 +1320,7 @@ SEXP parse_feature_collection(yyjson_val *obj, geo_parse_options *opt, state_t *
         // Rprintf("Key: %s\n", yyjson_get_str(prop_name));
         nprops++;
         if (nprops == MAX_PROPS) {
-          error_and_destroy_state(state, "Maximum properies exceeded parsing feature collection: %i", MAX_PROPS);
+          error_and_destroy_state(state, "Maximum properties exceeded parsing feature collection: %i", MAX_PROPS);
         }
       }
       
@@ -1376,7 +1376,7 @@ SEXP parse_feature_collection(yyjson_val *obj, geo_parse_options *opt, state_t *
     } else if (id_sexp_type == STRSXP) {
       SET_VECTOR_ELT(df_, 0, id_to_strsxp(features,  opt));
     } else {
-      Rf_error("Unknonwn id_sexp_type. Impossible error");
+      Rf_error("Unknown id_sexp_type. Impossible error");
     }
   }
   

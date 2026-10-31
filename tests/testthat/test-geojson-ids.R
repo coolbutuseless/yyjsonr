@@ -46,7 +46,7 @@ test_that("parse geojson ids in feature collections", {
 })
 
 
-test_that("parse geojson ids in standalong features", {
+test_that("parse geojson ids in standalone features", {
   
   # integer ids
   res <- read_geojson_file(testthat::test_path("geojson-ids/point01-with-int-id.json"))

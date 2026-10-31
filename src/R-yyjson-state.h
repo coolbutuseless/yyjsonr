@@ -20,7 +20,7 @@
 //  
 //~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 typedef struct {
-  yyjson_doc *doc; // Pass around a referece to the doc so it can be freed on error
+  yyjson_doc *doc; // Pass around a reference to the doc so it can be freed on error
   
   char *colnames[MAX_DF_COLS];
   int ncols;

@@ -10,8 +10,8 @@
 * opts: Add `null` option when serializing. Now defaults to using JSON "null" where
   previously had defaulted erroneously to an empty json array.
   See `opts_write_json()`
-* compat: switch from `gzfread()` to `gzread()` for `centOS` compatability.
-* feature: Add `read_geojson_conn()` to handle geonjson from an R connection object
+* compat: switch from `gzfread()` to `gzread()` for `centOS` compatibility.
+* feature: Add `read_geojson_conn()` to handle geojson from an R connection object
 * opts: Added option `arr_of_arrs_to_matrix`. Logical value to control if conforming
   JSON []-arrays of nested []-arrays should be converted to matrices.
 * Fix: Added support for raw nested data.frames (which are *not* in list-columns)
@@ -172,7 +172,7 @@
 
 # yyjsonr 0.1.7 2023-09-10
 
-* Unifed naming scheme
+* Unified naming scheme
 
 # yyjsonr 0.1.6 2023-09-04
 
