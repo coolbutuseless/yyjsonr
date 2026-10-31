@@ -74,7 +74,7 @@ read_json_str(str, str_specials = 'string')
 Option `promote_num_to_string` - mixtures of numeric and string types
 -----------------------------------------------------------------------------
 
-By default, `yyjsonr` does not promote string values to numerica values i.e.
+By default, `yyjsonr` does not promote string values to numeric values i.e.
 `promote_num_to_string = FALSE`.
 
 If an array contains mixed types, then an R *list* will be returned, so that
@@ -236,7 +236,7 @@ value's representation in R.
 The possible values for the `int64` option are:
 
 * `string` store JSON integer as a string in R
-* `double` will store the JSON integer as a double precisision numeric. If the 
+* `double` will store the JSON integer as a double precision numeric. If the 
   integer is outside the range +/- 2^53, then it may not be stored perfectly in
   the double.
 * `bit64` convert to a 64-bit integer supported by the [`{bit64}`](https://cran.r-project.org/package=bit64)

@@ -311,7 +311,7 @@ long long json_val_to_integer64(yyjson_val *val, parse_options *opt) {
     if (yyjson_equals_str(val, "NA")) {
     return INT64_MIN;
   } else {
-    Rf_error("json_val_to_int64(): Unahndled string value %s", yyjson_get_str(val));
+    Rf_error("json_val_to_int64(): Unhandled string value %s", yyjson_get_str(val));
   }
   break;
   }
@@ -1247,7 +1247,7 @@ SEXP json_array_as_robj(yyjson_val *arr, parse_options *opt, state_t *state) {
     
   } else if (ctn_bitset == CTN_ARR) {
     // There are only JSON []-arrays within this array
-    // Should we try and conver to matrix?
+    // Should we try and convert to matrix?
     unsigned int sexp_type = get_best_sexp_type_for_matrix(arr, opt);
     if (sexp_type != 0 && opt->arr_of_arrs_to_matrix) {
       res_ = PROTECT(json_array_as_matrix(arr, sexp_type, opt)); nprotect++;

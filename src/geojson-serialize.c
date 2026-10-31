@@ -117,7 +117,7 @@ SEXP sfc_to_str(SEXP sfc_, geo_serialize_options *opt) {
   
   int nprotect = 0;
   if (!Rf_isNewList(sfc_)) {
-    Rf_error("sfc_to_str(): Expeting list\n");
+    Rf_error("sfc_to_str(): Expecting list\n");
   }
   
   R_xlen_t N = Rf_xlength(sfc_);

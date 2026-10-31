@@ -7,7 +7,7 @@ test_that("Environments works", {
   ll_str <- write_json_str(ll)
   ee_str <- write_json_str(ee)
 
-  # Should have the same contents, but environment name ordering is dependant
+  # Should have the same contents, but environment name ordering is dependent
   # upon ordering of the hash-of-the-name, not the name itself
   ll_str
   ee_str
