@@ -68,7 +68,7 @@ numeric and integer vectors will be written to JSON using a faster method.
 Note: if there are NA, NaN or Inf values, an error will be thrown.
 Expert users are invited to also consider the
 \code{YYJSON_WRITE_ALLOW_INF_AND_NAN} and
-\code{YYJSON_WRITE_INF_AND_NAN_AS_NULL} options for \code{yyjson_write_flags}
+\code{YYJSON_WRITE_INF_AND_NAN_AS_NULL} options for \code{yyjson_write_flag}
 and should consult the \code{yyjson} API documentation for
 further details.}
 

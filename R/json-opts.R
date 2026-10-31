@@ -8,7 +8,7 @@
 #' Some of these settings overlap and conflict with code needed to handle
 #' the translation of JSON values to R.
 #'
-#" Pass multiple options with 
+#' Pass multiple options with
 #' \code{opts_read_json(yyjson_read_flag = c(yyjson_read_flag$x, yyjson_read_flag$y, ...))}
 #' 
 #' \describe{
@@ -179,8 +179,8 @@ yyjson_read_flag <- list(
 #' Some of these settings overlap and conflict with code needed to handle
 #' the translation of JSON values to R.
 #'
-#" Pass multiple options with 
-#' \code{opts_write_json(yyjson_write_flag = c(write_flag$x, write_flag$y, ...))}
+#' Pass multiple options with
+#' \code{opts_write_json(yyjson_write_flag = c(yyjson_write_flag$x, yyjson_write_flag$y, ...))}
 #' 
 #' \describe{
 #' \item{YYJSON_WRITE_NOFLAG}{
@@ -250,7 +250,7 @@ yyjson_write_flag <- list(
 #' @param arr_of_objs_to_df logical. Should an array of objects be promoted to
 #'        a data.frame? Default: TRUE. If FALSE, then results will be read as a
 #'        list-of-lists.
-#' @param arr_of_arrs_to_matrix logical. Should an array of objects be promoted to
+#' @param arr_of_arrs_to_matrix logical. Should an array of arrays be promoted to
 #'        a matrix (if types and dimensions align)? Default: TRUE. 
 #'        If FALSE, then results will be read as a list-of-atomic-vectors.
 #' @param yyjson_read_flag integer vector of internal \code{yyjson}
@@ -367,7 +367,7 @@ opts_read_json <- function(
 #'        Note: if there are NA, NaN or Inf values, an error will be thrown.
 #'        Expert users are invited to also consider the
 #'        \code{YYJSON_WRITE_ALLOW_INF_AND_NAN} and 
-#'        \code{YYJSON_WRITE_INF_AND_NAN_AS_NULL} options for \code{yyjson_write_flags}
+#'        \code{YYJSON_WRITE_INF_AND_NAN_AS_NULL} options for \code{yyjson_write_flag}
 #'        and should consult the \code{yyjson} API documentation for 
 #'        further details.
 #' @param json_verbatim Write strings with class 'json' directly into 
