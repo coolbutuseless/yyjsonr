@@ -1239,7 +1239,7 @@ SEXP json_array_as_robj(yyjson_val *arr, parse_options *opt, state_t *state) {
     //~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
     // Tag a length-1 array as class = 'AsIs'
     //~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
-    if (opt->length1_array_asis && Rf_length(res_) == 1 && !Rf_inherits(res_, "Integer64")) {
+    if (opt->length1_array_asis && Rf_length(res_) == 1 && !Rf_inherits(res_, "integer64")) {
       SEXP att_val_ = PROTECT(Rf_mkString("AsIs"));
       Rf_setAttrib(res_, R_ClassSymbol, att_val_);
       UNPROTECT(1);
